@@ -24,6 +24,23 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        {/* Inline script to apply the correct theme immediately */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                const isDarkMode = localStorage.getItem('theme') === 'dark';
+                if (isDarkMode) {
+                  document.documentElement.classList.add('dark');
+                } else {
+                  document.documentElement.classList.remove('dark');
+                }
+              })();
+            `,
+          }}
+        />
+      </head>
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
         {children}
       </body>

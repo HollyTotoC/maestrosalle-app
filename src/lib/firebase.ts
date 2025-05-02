@@ -1,6 +1,6 @@
 import { initializeApp, getApps, getApp } from 'firebase/app'
 import { getAuth, signInWithPopup, GoogleAuthProvider, signOut } from 'firebase/auth'
-import { getFirestore } from 'firebase/firestore'
+import { getFirestore, collection, addDoc, getDocs } from 'firebase/firestore'
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY!,
@@ -23,7 +23,13 @@ export const loginWithGoogle = async () => {
   try {
     const result = await signInWithPopup(auth, provider);
     const user = result.user;
-    console.log("User logged in:", user);
+
+    // Ensure displayName and photoURL are logged for debugging
+    console.log("User logged in:", {
+      displayName: user.displayName,
+      photoURL: user.photoURL,
+    });
+
     return user;
   } catch (error) {
     console.error("Login failed:", error);
@@ -42,4 +48,14 @@ export const getCurrentUser = () => {
 
 export const logout = async () => {
   await signOut(auth);
+};
+
+export const fetchRestaurants = async () => {
+  const snapshot = await getDocs(collection(db, "restaurants"));
+  return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+};
+
+export const addRestaurant = async (name: string, picture: string) => {
+  const docRef = await addDoc(collection(db, "restaurants"), { name, picture });
+  return { id: docRef.id, name, picture };
 };

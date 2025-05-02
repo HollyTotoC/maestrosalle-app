@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { loginWithGoogle, getCurrentUser } from "@/lib/firebase";
+import { useUserStore } from "@/store/useUserStore";
 
 export default function Home() {
   const router = useRouter();
@@ -21,7 +22,13 @@ export default function Home() {
   const handleLogin = async () => {
     try {
       const user = await loginWithGoogle();
-      alert(`Bienvenue, ${user.displayName}!`);
+      useUserStore.setState({
+        userId: user.uid,
+        role: "serveur", // Example role
+        restaurantId: "123", // Example restaurant ID
+        avatarUrl: user.photoURL,
+        displayName: user.displayName,
+      });
       router.push("/dashboard"); // Redirige après connexion
     } catch (error) {
       console.error("Login error:", error);

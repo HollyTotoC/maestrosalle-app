@@ -1,27 +1,42 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import { logout } from "@/lib/firebase";
+import Navbar from "@/components/Navbar";
+import RestaurantSelector from "@/components/RestaurantSelector";
+import { useUserStore } from "@/store/useUserStore"; // Import Zustand store
+import { useAppStore } from "@/store/store"; // Import Zustand store for app state
+import { Toaster } from "@/components/ui/sonner"; // Import Sonner's Toaster component
+import ToolsSection from "@/components/ToolsSection";
+import TodoSection from "@/components/TodoSection";
+import RecapSection from "@/components/RecapSection";
 
 export default function Dashboard() {
-  const handleLogout = async () => {
-    try {
-      await logout();
-      alert("Vous êtes déconnecté.");
-      window.location.href = "/"; // Redirige vers la page d'accueil
-    } catch (error) {
-      console.error("Logout error:", error);
-      alert("Erreur lors de la déconnexion.");
-    }
-  };
+    const displayName = useUserStore((state) => state.displayName); // Retrieve user name from Zustand
+    const selectedRestaurant = useAppStore((state) => state.selectedRestaurant);
 
-  return (
-    <div className="flex flex-col items-center justify-center min-h-screen gap-3 p-24">
-      <h1 className="text-3xl">Tableau de bord</h1>
-      <p className="text-lg">Bienvenue dans votre tableau de bord MaestroSalle.</p>
-      <div className="mt-4">
-        <Button onClick={handleLogout}>Logout</Button>
-      </div>
-    </div>
-  );
+    return (
+        <>
+            <div className="flex flex-col min-h-screen">
+                <Navbar />
+                <main className="p-4 flex flex-col gap-4 grow">
+                    <div className="">
+                        <h1 className="text-3xl">Tableau de bord</h1>
+                        <p>
+                            Bienvenue dans votre tableau de bord{" "}
+                            {displayName || "Utilisateur"}.
+                        </p>
+                    </div>
+                    {!selectedRestaurant ? (
+                        <RestaurantSelector />
+                    ) : (
+                        <div className="flex flex-col gap-6">
+                            <ToolsSection />
+                            <TodoSection />
+                            <RecapSection />
+                        </div>
+                    )}
+                </main>
+            </div>
+            <Toaster />
+        </>
+    );
 }
