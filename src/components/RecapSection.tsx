@@ -30,21 +30,17 @@ import { useClosuresStore } from "@/store/useClosuresStore";
 import { useAppStore } from "@/store/store";
 import { updateClosuresIfNeeded } from "@/hooks/useClosures";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
-import { parse, formatHsl } from "culori";
-
-function convertOklchToHsl(oklchColor: string): string {
-  const parsed = parse(oklchColor);
-  return parsed ? formatHsl(parsed) : "hsl(0, 0%, 0%)";
-}
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Button } from "./ui/button";
 
 const chartConfig = {
   primeDeNoel: {
     label: "Prime de Noël",
-    color: convertOklchToHsl("oklch(var(--chart-1))"),
+    color: "hsla(360, 74%, 66%, 1)",
   },
   banque: {
     label: "Banque",
-    color: convertOklchToHsl("oklch(var(--chart-2))"),
+    color: "hsla(176, 88%, 22%, 1)",
   },
 };
 
@@ -152,7 +148,7 @@ export default function RecapSection() {
       <h2 className="text-xl font-bold mb-4">Récapitulatif</h2>
 
       <Tabs defaultValue="table">
-        <TabsList>
+        <TabsList className="flex items-center justify-start flex-wrap h-auto space-y-1">
           <TabsTrigger value="table">Tableau</TabsTrigger>
           <TabsTrigger value="lineChart">Évolution des écarts</TabsTrigger>
           <TabsTrigger value="stackedBarChart">Répartition Cash</TabsTrigger>
@@ -165,12 +161,13 @@ export default function RecapSection() {
             <TableCaption>Récapitulatif des clôtures de caisse.</TableCaption>
             <TableHeader>
               <TableRow>
-                <TableHead>Date</TableHead>
-                <TableHead>Coffre (€)</TableHead>
-                <TableHead>Caisse (€)</TableHead>
-                <TableHead>ExtraFlow (€)</TableHead>
-                <TableHead>Écart CB (€)</TableHead>
-                <TableHead>Écart Cash (€)</TableHead>
+                <TableHead className="">Date</TableHead>
+                <TableHead className="hidden md:table-cell">Coffre (€)</TableHead>
+                <TableHead className="hidden md:table-cell">Caisse (€)</TableHead>
+                <TableHead className="hidden md:table-cell">ExtraFlow (€)</TableHead>
+                <TableHead className="hidden md:table-cell">Écart CB (€)</TableHead>
+                <TableHead className="hidden md:table-cell">Écart Cash (€)</TableHead>
+                <TableHead className="md:hidden"></TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -193,13 +190,21 @@ export default function RecapSection() {
                 return (
                   <TableRow
                     key={entry.date}
-                    className={isMissingData ? " text-gray-500" : "bg-white dark:bg-black"}
+                    className={`${
+                      isMissingData ? "text-gray-500" : "bg-white dark:bg-black"
+                    } md:table-row`}
                   >
-                    <TableCell>{entry.date}</TableCell>
-                    <TableCell>{entry.cashToSafe !== null ? `${entry.cashToSafe} €` : "N/A"}</TableCell>
-                    <TableCell>{entry.cashToKeep !== null ? `${entry.cashToKeep} €` : "N/A"}</TableCell>
-                    <TableCell>{entry.extraFlow !== null ? `${entry.extraFlow} €` : "N/A"}</TableCell>
-                    <TableCell>
+                    <TableCell className="">{entry.date}</TableCell>
+                    <TableCell className="hidden md:table-cell">
+                      {entry.cashToSafe !== null ? `${entry.cashToSafe} €` : "N/A"}
+                    </TableCell>
+                    <TableCell className="hidden md:table-cell">
+                      {entry.cashToKeep !== null ? `${entry.cashToKeep} €` : "N/A"}
+                    </TableCell>
+                    <TableCell className="hidden md:table-cell">
+                      {entry.extraFlow !== null ? `${entry.extraFlow} €` : "N/A"}
+                    </TableCell>
+                    <TableCell className="hidden md:table-cell">
                       <Badge
                         variant={
                           entry.tpeDiscrepancy === null
@@ -212,7 +217,7 @@ export default function RecapSection() {
                         {entry.tpeDiscrepancy !== null ? `${entry.tpeDiscrepancy} €` : "N/A"}
                       </Badge>
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="hidden md:table-cell">
                       <Badge
                         variant={
                           entry.cashDiscrepancy === null
@@ -224,6 +229,27 @@ export default function RecapSection() {
                       >
                         {entry.cashDiscrepancy !== null ? `${entry.cashDiscrepancy} €` : "N/A"}
                       </Badge>
+                    </TableCell>
+                    {/* Mobile: Bouton pour ouvrir le dialogue */}
+                    <TableCell className="md:hidden">
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <Button variant="">Détails</Button>
+                        </DialogTrigger>
+                        <DialogContent>
+                          <DialogHeader>
+                            <DialogTitle>Détails pour {entry.date}</DialogTitle>
+                          </DialogHeader>
+                          <div className="space-y-2">
+                            <p><strong>Date :</strong> {entry.date}</p>
+                            <p><strong>Coffre :</strong> {entry.cashToSafe !== null ? `${entry.cashToSafe} €` : "N/A"}</p>
+                            <p><strong>Caisse :</strong> {entry.cashToKeep !== null ? `${entry.cashToKeep} €` : "N/A"}</p>
+                            <p><strong>ExtraFlow :</strong> {entry.extraFlow !== null ? `${entry.extraFlow} €` : "N/A"}</p>
+                            <p><strong>Écart CB :</strong> {entry.tpeDiscrepancy !== null ? `${entry.tpeDiscrepancy} €` : "N/A"}</p>
+                            <p><strong>Écart Cash :</strong> {entry.cashDiscrepancy !== null ? `${entry.cashDiscrepancy} €` : "N/A"}</p>
+                          </div>
+                        </DialogContent>
+                      </Dialog>
                     </TableCell>
                   </TableRow>
                 );
@@ -239,32 +265,58 @@ export default function RecapSection() {
               <CardTitle>Évolution des écarts</CardTitle>
             </CardHeader>
             <CardContent>
-              <LineChart
-                width={600}
-                height={300}
-                data={chartData}
-                margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
+              <ChartContainer
+                config={{
+                  cashDiscrepancy: {
+                    label: "Écart Cash",
+                    color: "hsla(212, 95%, 38%, 1)",
+                  },
+                  tpeDiscrepancy: {
+                    label: "Écart CB",
+                    color: "hsla(176, 88%, 22%, 1)",
+                  },
+                }}
               >
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="date" />
-                <YAxis />
-                <RechartsTooltip />
-                <Legend />
-                <Line
+                <AreaChart
+                  width={600}
+                  height={300}
+                  data={chartData}
+                  margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="date" />
+                  <YAxis />
+                  <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
+
+                  <Legend />
+                  <defs>
+                  <linearGradient id="areaCashDiscrepancy" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="hsla(212, 95%, 38%, 1)" stopOpacity={0.8} />
+                    <stop offset="95%" stopColor="hsla(212, 95%, 38%, 1)" stopOpacity={0.1} />
+                  </linearGradient>
+                  <linearGradient id="areaTpeDiscrepancy" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="hsla(176, 88%, 22%, 1)" stopOpacity={0.8} />
+                    <stop offset="95%" stopColor="hsla(176, 88%, 22%, 1)" stopOpacity={0.1} />
+                  </linearGradient>
+                  </defs>
+                  <Area
                   type="monotone"
                   dataKey="cashDiscrepancy"
-                  stroke="hsl(var(--chart-1))"
+                  stroke="hsla(212, 95%, 38%, 1)"
+                  fill="url(#areaCashDiscrepancy)"
                   name="Écart Cash"
                   connectNulls
-                />
-                <Line
+                  />
+                  <Area
                   type="monotone"
                   dataKey="tpeDiscrepancy"
-                  stroke="hsl(var(--chart-2))"
+                  stroke="hsla(176, 88%, 22%, 1)"
+                  fill="url(#areaTpeDiscrepancy)"
                   name="Écart CB"
                   connectNulls
-                />
-              </LineChart>
+                  />
+                </AreaChart>
+              </ChartContainer>
             </CardContent>
           </Card>
         </TabsContent>
@@ -276,16 +328,47 @@ export default function RecapSection() {
               <CardTitle>Répartition Cash</CardTitle>
             </CardHeader>
             <CardContent>
-              <BarChart width={600} height={300} data={chartData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="date" />
-                <YAxis />
-                <RechartsTooltip />
-                <Legend />
-                <Bar dataKey="cashToKeep" stackId="a" fill="#4CAF50" name="Caisse" />
-                <Bar dataKey="cashToSafe" stackId="a" fill="#FFC107" name="Coffre" />
-                <Bar dataKey="extraFlow" stackId="a" fill="#F44336" name="ExtraFlow" />
-              </BarChart>
+              <ChartContainer
+                config={{
+                  cashToKeep: {
+                    label: "Caisse",
+                    color: "var(--color-cashToKeep)",
+                  },
+                  cashToSafe: {
+                    label: "Coffre",
+                    color: "var(--color-cashToSafe)",
+                  },
+                  extraFlow: {
+                    label: "ExtraFlow",
+                    color: "var(--color-extraFlow)",
+                  },
+                }}
+              >
+                <BarChart width={600} height={300} data={chartData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="date" />
+                  <YAxis />
+                  <Legend />
+                  <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
+                  <defs>
+                    <linearGradient id="barCashToKeep" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="hsla(176, 88%, 22%, 1)" stopOpacity={0.8} />
+                      <stop offset="95%" stopColor="hsla(176, 88%, 22%, 1)" stopOpacity={0.1} />
+                    </linearGradient>
+                    <linearGradient id="barCashToSafe" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="hsla(212, 95%, 38%, 1)" stopOpacity={0.8} />
+                      <stop offset="95%" stopColor="hsla(212, 95%, 38%, 1)" stopOpacity={0.1} />
+                    </linearGradient>
+                    <linearGradient id="barExtraFlow" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="hsla(360, 74%, 66%, 1)" stopOpacity={0.8} />
+                      <stop offset="95%" stopColor="hsla(360, 74%, 66%, 1)" stopOpacity={0.1} />
+                    </linearGradient>
+                  </defs>
+                  <Bar dataKey="cashToKeep" stackId="a" fill="url(#barCashToKeep)" name="Caisse" />
+                  <Bar dataKey="cashToSafe" stackId="a" fill="url(#barCashToSafe)" name="Coffre" />
+                  <Bar dataKey="extraFlow" stackId="a" fill="url(#barExtraFlow)" name="ExtraFlow" />
+                </BarChart>
+              </ChartContainer>
             </CardContent>
           </Card>
         </TabsContent>

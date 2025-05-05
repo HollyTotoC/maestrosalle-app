@@ -76,6 +76,9 @@
   --sidebar-accent-foreground: oklch(0.21 0.006 285.885);
   --sidebar-border: oklch(0.92 0.004 286.32);
   --sidebar-ring: oklch(0.723 0.219 149.579);
+  --denim: hsla(212, 95%, 38%, 1);
+  --caribbean-current: hsla(176, 88%, 22%, 1);
+  --light-coral: hsla(360, 74%, 66%, 1);
 }
 
 .dark {
@@ -110,6 +113,9 @@
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.527 0.154 150.069);
+  --denim: hsla(212, 95%, 38%, 1);
+  --caribbean: hsla(176, 88%, 22%, 1);
+  --light-coral: hsla(360, 74%, 66%, 1);
 }
 
 
