@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { ThemeProvider } from "@/components/ThemeProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -24,25 +25,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <head>
-        {/* Inline script to apply the correct theme immediately */}
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              (function() {
-                const isDarkMode = localStorage.getItem('theme') === 'dark';
-                if (isDarkMode) {
-                  document.documentElement.classList.add('dark');
-                } else {
-                  document.documentElement.classList.remove('dark');
-                }
-              })();
-            `,
-          }}
-        />
-      </head>
+      <head />
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
+        <ThemeProvider > {/* Injecte la logique du mode sombre */}
         {children}
+        </ThemeProvider>
       </body>
     </html>
   );

@@ -1,6 +1,8 @@
 import { initializeApp, getApps, getApp } from 'firebase/app'
 import { getAuth, signInWithPopup, GoogleAuthProvider, signOut } from 'firebase/auth'
-import { getFirestore, collection, addDoc, getDocs } from 'firebase/firestore'
+import { getFirestore, collection, addDoc, getDocs, doc, setDoc, query, where, orderBy } from 'firebase/firestore'
+import { Restaurant } from "@/types/restaurant";
+import { ClosureData } from '@/types/cloture';
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY!,
@@ -24,7 +26,6 @@ export const loginWithGoogle = async () => {
     const result = await signInWithPopup(auth, provider);
     const user = result.user;
 
-    // Ensure displayName and photoURL are logged for debugging
     console.log("User logged in:", {
       displayName: user.displayName,
       photoURL: user.photoURL,
@@ -33,7 +34,7 @@ export const loginWithGoogle = async () => {
     return user;
   } catch (error) {
     console.error("Login failed:", error);
-    throw error;
+    throw error; // Propager l'erreur pour la gestion dans le composant
   }
 };
 
@@ -50,12 +51,45 @@ export const logout = async () => {
   await signOut(auth);
 };
 
-export const fetchRestaurants = async () => {
+export const fetchRestaurants = async (): Promise<Restaurant[]> => {
   const snapshot = await getDocs(collection(db, "restaurants"));
-  return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+  return snapshot.docs.map((doc) => {
+    const data = doc.data();
+    return {
+      id: doc.id,
+      name: data.name || "",
+      picture: data.picture || "",
+    };
+  });
 };
 
-export const addRestaurant = async (name: string, picture: string) => {
+export const addRestaurant = async (name: string, picture: string): Promise<Restaurant> => {
   const docRef = await addDoc(collection(db, "restaurants"), { name, picture });
   return { id: docRef.id, name, picture };
 };
+
+export const saveClosureData = async (closureData: ClosureData) => {
+  try {
+    const docRef = doc(db, "closures", closureData.timestamp); // Utilisez un ID unique
+    await setDoc(docRef, closureData);
+    console.log("Données sauvegardées avec succès !");
+  } catch (error) {
+    console.error("Erreur lors de la sauvegarde des données :", error);
+    throw error;
+  }
+};
+
+export async function fetchClosures(restaurantId: string): Promise<ClosureData[]> {
+  const closuresRef = collection(db, "closures");
+  const q = query(
+    closuresRef,
+    where("restaurantId", "==", restaurantId),
+    orderBy("date", "desc")
+  );
+
+  const querySnapshot = await getDocs(q);
+  return querySnapshot.docs.map((doc) => ({
+    id: doc.id,
+    ...doc.data(),
+  })) as ClosureData[];
+}

@@ -13,6 +13,15 @@ export default function ToolsSection() {
         },
         {
             id: 2,
+            title: "Partage des pourboires",
+            description:
+                "Calculez et répartissez les pourboires entre les serveurs et la cuisine.",
+            icon: "💸",
+            comingSoon: false,
+            url: "/tipsParty", // URL de l'outil TipsParty
+        },
+        {
+            id: 3,
             title: "Todo list",
             description: "Organisez vos tâches de la journée.",
             icon: "✅",
@@ -20,7 +29,7 @@ export default function ToolsSection() {
             url: "/todo",
         },
         {
-            id: 3,
+            id: 4,
             title: "Tiramisu",
             description:
                 "Suivez le stock de tiramisu et prevenez si y en plus.",
@@ -29,7 +38,7 @@ export default function ToolsSection() {
             url: "/tiramisu",
         },
         {
-            id: 4,
+            id: 5,
             title: "Ticket de stock",
             description:
                 "Déclarez les manques, suivez leur état et consultez l’historique.",
@@ -37,12 +46,13 @@ export default function ToolsSection() {
             comingSoon: true,
             url: "/stock",
         },
+
     ];
 
     return (
         <div className="p-4 bg-gray-100 dark:bg-neutral-900 rounded-lg shadow">
             <h2 className="text-xl font-bold mb-4">Outils</h2>
-            <div className="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
                 {tools.map((tool) => (
                     <div
                         key={tool.id}

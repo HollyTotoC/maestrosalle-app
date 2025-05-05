@@ -14,7 +14,7 @@ import { Skeleton } from "@/components/ui/skeleton"; // Import du composant Skel
 import { useState } from "react";
 import { FormData } from "@/types/cloture"; // Import des types
 
-export default function Step3({
+export default function Step7({
     nextStep,
     prevStep,
     formData,
@@ -25,24 +25,28 @@ export default function Step3({
     formData: FormData; // Utilisation du type FormData
     setFormData: (data: Partial<FormData>) => void; // Utilisation de Partial<FormData>
 }) {
-    // Initialiser les valeurs avec les données existantes ou des valeurs par défaut
-    const [cbZelty, setCbZelty] = useState<number | undefined>(
-        formData.cbZelty
+    // Initialiser cashCounted et cashToKeep avec des valeurs par défaut
+    const cashCounted = formData?.cashCounted ?? 0;
+    const [cashToKeep, setCashToKeep] = useState<number>(
+        formData?.cashToKeep ?? 0
     );
-    const [cashZelty, setCashZelty] = useState<number | undefined>(
-        formData.cashZelty
-    );
-    const [cashOutZelty, setCashOutZelty] = useState<number | "">(formData.cashOutZelty ?? "");
 
-    // Simuler un état de chargement
-    const isLoading = !formData;
+    const isLoading = !formData; // Simuler un état de chargement
 
     const handleNext = () => {
-        if (cbZelty === undefined || cashZelty === undefined) {
-            alert("Veuillez remplir tous les champs avant de continuer.");
+        if (cashToKeep < 0 || cashToKeep > cashCounted) {
+            alert(
+                "Le montant à laisser en caisse doit être compris entre 0 et le montant total compté."
+            );
             return;
         }
-        setFormData({ cbZelty, cashZelty, cashOutZelty });
+
+        const cashToSafe = cashCounted - cashToKeep;
+
+        setFormData({
+            cashToKeep,
+            cashToSafe,
+        });
         nextStep();
     };
 
@@ -62,6 +66,7 @@ export default function Step3({
                         <div className="grid gap-4">
                             <Skeleton className="h-10 w-full" />
                             <Skeleton className="h-10 w-full" />
+                            <Skeleton className="h-10 w-full" />
                         </div>
                     </CardContent>
                     <CardFooter className="flex justify-between">
@@ -77,57 +82,37 @@ export default function Step3({
         <div className="flex justify-center items-center">
             <Card className="w-full max-w-md">
                 <CardHeader>
-                    <CardTitle>Étape 3 : Informations Zelty</CardTitle>
+                    <CardTitle>Étape 7 : Reset caisse</CardTitle>
                     <CardDescription>
-                        Renseignez les montants déclarés sur la plateforme
-                        Zelty.
+                        Définissez le montant à laisser en caisse pour le
+                        lendemain.
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
                     <div className="grid gap-4">
                         <div>
-                            <Label htmlFor="cbZelty">Montant CB (Zelty)</Label>
-                            <input
-                                id="cbZelty"
-                                type="number"
-                                placeholder="Ex: 1050"
-                                className="w-full border rounded-md p-2"
-                                value={cbZelty ?? ""}
-                                onChange={(e) =>
-                                    setCbZelty(Number(e.target.value))
-                                }
-                            />
-                        </div>
-                        <div>
-                            <Label htmlFor="cashZelty">
-                                Montant Cash (Zelty)
+                            <Label htmlFor="cashToKeep">
+                                Montant à laisser en caisse
                             </Label>
                             <input
-                                id="cashZelty"
+                                id="cashToKeep"
                                 type="number"
-                                placeholder="Ex: 800"
+                                placeholder="Ex: 200"
                                 className="w-full border rounded-md p-2"
-                                value={cashZelty ?? ""}
+                                value={cashToKeep}
                                 onChange={(e) =>
-                                    setCashZelty(Number(e.target.value))
+                                    setCashToKeep(Number(e.target.value))
                                 }
                             />
                         </div>
-                        <div>
-                            <Label htmlFor="cashOutZelty">
-                                Montant Cash Sortant (Zelty)
-                            </Label>
-                            <input
-                                id="cashOutZelty"
-                                type="number"
-                                placeholder="Ex: 800"
-                                className="w-full border rounded-md p-2"
-                                value={cashOutZelty ?? ""}
-                                onChange={(e) =>
-                                    setCashOutZelty(Number(e.target.value))
-                                }
-                            />
-                        </div>
+                        <p>
+                            <strong>Montant total compté :</strong>{" "}
+                            {cashCounted} €
+                        </p>
+                        <p>
+                            <strong>Montant à verser au coffre :</strong>{" "}
+                            {cashCounted - cashToKeep} €
+                        </p>
                     </div>
                 </CardContent>
                 <CardFooter className="flex justify-between">

@@ -3,140 +3,143 @@
 import { useAppStore } from "@/store/store";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
-    NavigationMenu,
-    NavigationMenuItem,
-    NavigationMenuList,
-    NavigationMenuLink,
+  NavigationMenu,
+  NavigationMenuContent,
+  NavigationMenuItem,
+  NavigationMenuLink,
+  NavigationMenuList,
+  NavigationMenuTrigger,
 } from "@/components/ui/navigation-menu";
-import { Switch } from "@/components/ui/switch"; // Import the Switch component
+import { Switch } from "@/components/ui/switch";
 import { logout } from "@/lib/firebase";
-import { useUserStore } from "@/store/useUserStore"; // Zustand store for user data
-import { useEffect, useState } from "react";
+import { useUserStore } from "@/store/useUserStore";
+import { useTheme } from "@/components/ThemeProvider";
+
+const tools = [
+  {
+    title: "Clôture de caisse",
+    description: "Gérez votre clôture : TPE, cash, Zelty, écarts et pourboires.",
+    href: "/cloture",
+  },
+  {
+    title: "Partage des pourboires",
+    description: "Calculez et répartissez les pourboires entre les serveurs et la cuisine.",
+    href: "/tipsParty",
+  },
+  {
+    title: "Todo list",
+    description: "Organisez vos tâches de la journée.",
+    href: "/todo",
+    comingSoon: true,
+  },
+  {
+    title: "Tiramisu",
+    description: "Suivez le stock de tiramisu et prévenez si y en a plus.",
+    href: "/tiramisu",
+    comingSoon: true,
+  },
+];
 
 export default function Navbar() {
-    const selectedRestaurant = useAppStore((state) => state.selectedRestaurant);
+  const selectedRestaurant = useAppStore((state) => state.selectedRestaurant);
+  const avatarUrl = useUserStore((state) => state.avatarUrl ?? null);
+  const displayName = useUserStore((state) => state.displayName);
 
-    // const userId = useUserStore((state) => state.userId);
-    // const role = useUserStore((state) => state.role);
-    // const restaurantId = useUserStore((state) => state.restaurantId);
-    const avatarUrl = useUserStore((state) => state.avatarUrl);
-    const displayName = useUserStore((state) => state.displayName);
+  const { theme, toggleTheme } = useTheme();
 
-    const handleLogout = async () => {
-        try {
-            await logout();
-            window.location.href = "/"; // Redirige vers la page d'accueil
-        } catch (error) {
-            console.error("Logout error:", error);
-        }
-    };
-
-    // Fonction pour calculer les initiales
-    const getInitials = (name: string | null | undefined) => {
-        if (!name) return "?"; // Fallback to "?" if no name is provided
-        const parts = name.split(" ");
-        const initials = parts
-            .map((part) => part[0])
-            .join("")
-            .toUpperCase();
-        return initials || "?";
-    };
-
-    const handleChangeRestaurant = () => {
-        useAppStore.setState({ selectedRestaurant: null });
+  const handleLogout = async () => {
+    try {
+      await logout();
+      window.location.href = "/";
+    } catch (error) {
+      console.error("Logout error:", error);
     }
+  };
 
-    const [isDarkMode, setIsDarkMode] = useState(false);
+  const getInitials = (name: string | null | undefined) => {
+    if (!name) return "?";
+    const parts = name.split(" ");
+    return parts.map((part) => part[0]).join("").toUpperCase();
+  };
 
-    // Sync the state with localStorage and the DOM on initial load
-    useEffect(() => {
-        const storedTheme = localStorage.getItem("theme");
-        const isDark = storedTheme === "dark";
-        setIsDarkMode(isDark);
-        if (isDark) {
-            document.documentElement.classList.add("dark");
-        } else {
-            document.documentElement.classList.remove("dark");
-        }
-    }, []);
+  const handleChangeRestaurant = () => {
+    useAppStore.setState({ selectedRestaurant: null });
+  };
 
-    // Toggle the theme and update localStorage
-    const toggleDarkMode = () => {
-        const newMode = !isDarkMode;
-        setIsDarkMode(newMode);
-        if (newMode) {
-            document.documentElement.classList.add("dark");
-            localStorage.setItem("theme", "dark");
-        } else {
-            document.documentElement.classList.remove("dark");
-            localStorage.setItem("theme", "light");
-        }
-    };
+  console.log("Selected Restaurant in Navbar:", selectedRestaurant);
 
-    return (
-        <nav className="flex items-center justify-between px-4 py-2 shadow-sm dark:shadow-neutral-600 bg-white dark:bg-black">
-            {/* Nom du restaurant */}
-            <div className="text-xl font-bold cursor-pointer" onClick={handleChangeRestaurant}>
-                {selectedRestaurant ? selectedRestaurant : "MaestroSalle"}
-            </div>
+  return (
+    <nav className="flex items-center justify-between px-4 py-2 shadow-sm dark:shadow-neutral-600 bg-white dark:bg-black w-full sticky top-0 z-10">
+      <div className="text-xl font-bold cursor-pointer" onClick={handleChangeRestaurant}>
+        {selectedRestaurant ? selectedRestaurant.name : "MaestroSalle"}
+      </div>
 
-            {/* Menu de navigation */}
-            {selectedRestaurant && (
-                <NavigationMenu>
-                    <NavigationMenuList>
-                        <NavigationMenuItem>
-                            <NavigationMenuLink href="/dashboard/orders">
-                                Commandes
-                            </NavigationMenuLink>
-                        </NavigationMenuItem>
-                        <NavigationMenuItem>
-                            <NavigationMenuLink href="/dashboard/tables">
-                                Tables
-                            </NavigationMenuLink>
-                        </NavigationMenuItem>
-                        <NavigationMenuItem>
-                            <NavigationMenuLink href="/dashboard/settings">
-                                Paramètres
-                            </NavigationMenuLink>
-                        </NavigationMenuItem>
-                    </NavigationMenuList>
-                </NavigationMenu>
-            )}
-
-            <div className="flex items-center gap-4">
-                {/* Dark mode switch */}
-                <Switch
-                    checked={isDarkMode}
-                    onCheckedChange={toggleDarkMode}
-                    aria-label="Toggle dark mode"
-                />
-
-                {/* Avatar with dropdown */}
-                <DropdownMenu>
-                    <DropdownMenuTrigger>
-                        <Avatar>
-                            <AvatarImage src={avatarUrl} alt="Avatar" />
-                            <AvatarFallback>
-                                {getInitials(displayName)}
-                            </AvatarFallback>
-                        </Avatar>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent>
-                        <DropdownMenuItem
-                            onClick={handleLogout}
-                            className="text-red-600 hover:bg-red-100"
+      {selectedRestaurant && (
+        <NavigationMenu>
+          <NavigationMenuList>
+            <NavigationMenuItem>
+              <NavigationMenuLink href="/dashboard">Dashboard</NavigationMenuLink>
+            </NavigationMenuItem>
+            <NavigationMenuItem>
+              <NavigationMenuTrigger>Tools</NavigationMenuTrigger>
+              <NavigationMenuContent>
+                <ul className="grid gap-3 p-4 w-[300px] md:w-[400px] lg:w-[500px] lg:grid-cols-2">
+                  {tools.map((tool) => (
+                    <li key={tool.title}>
+                      <NavigationMenuLink asChild>
+                        <a
+                          href={tool.href}
+                          className={`block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors ${
+                            tool.comingSoon
+                              ? "cursor-not-allowed text-gray-400"
+                              : "hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
+                          }`}
                         >
-                            Déconnexion
-                        </DropdownMenuItem>
-                    </DropdownMenuContent>
-                </DropdownMenu>
-            </div>
-        </nav>
-    );
+                          <div className="text-sm font-medium leading-none">{tool.title}</div>
+                          <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
+                            {tool.description}
+                          </p>
+                        </a>
+                      </NavigationMenuLink>
+                    </li>
+                  ))}
+                </ul>
+              </NavigationMenuContent>
+            </NavigationMenuItem>
+          </NavigationMenuList>
+        </NavigationMenu>
+      )}
+
+      <div className="flex items-center gap-4">
+        <Switch
+          checked={theme === "dark"}
+          onCheckedChange={toggleTheme}
+          aria-label="Toggle dark mode"
+        />
+
+        <DropdownMenu>
+          <DropdownMenuTrigger>
+            <Avatar>
+              <AvatarImage src={avatarUrl || ""} alt="Avatar" />
+              <AvatarFallback>{getInitials(displayName)}</AvatarFallback>
+            </Avatar>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent>
+            <DropdownMenuItem
+              onClick={handleLogout}
+              className="text-red-600 hover:bg-red-100"
+            >
+              Déconnexion
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+    </nav>
+  );
 }

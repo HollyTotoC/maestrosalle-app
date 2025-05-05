@@ -14,35 +14,30 @@ import { Skeleton } from "@/components/ui/skeleton"; // Import du composant Skel
 import { useState } from "react";
 import { FormData } from "@/types/cloture"; // Import des types
 
-export default function Step3({
+export default function Step5({
     nextStep,
     prevStep,
-    formData,
     setFormData,
+    formData,
 }: {
     nextStep: () => void;
     prevStep: () => void;
-    formData: FormData; // Utilisation du type FormData
     setFormData: (data: Partial<FormData>) => void; // Utilisation de Partial<FormData>
+    formData: FormData; // Utilisation du type FormData
 }) {
-    // Initialiser les valeurs avec les données existantes ou des valeurs par défaut
-    const [cbZelty, setCbZelty] = useState<number | undefined>(
-        formData.cbZelty
+    // Initialiser previousCash avec les données existantes ou une valeur par défaut
+    const [previousCash, setPreviousCash] = useState<number | undefined>(
+        formData.previousCash ?? 0
     );
-    const [cashZelty, setCashZelty] = useState<number | undefined>(
-        formData.cashZelty
-    );
-    const [cashOutZelty, setCashOutZelty] = useState<number | "">(formData.cashOutZelty ?? "");
 
-    // Simuler un état de chargement
-    const isLoading = !formData;
+    const isLoading = !formData; // Simuler un état de chargement
 
     const handleNext = () => {
-        if (cbZelty === undefined || cashZelty === undefined) {
-            alert("Veuillez remplir tous les champs avant de continuer.");
+        if (previousCash === undefined || previousCash < 0) {
+            alert("Veuillez vérifier le montant de la caisse de la veille.");
             return;
         }
-        setFormData({ cbZelty, cashZelty, cashOutZelty });
+        setFormData({ previousCash });
         nextStep();
     };
 
@@ -61,7 +56,6 @@ export default function Step3({
                     <CardContent>
                         <div className="grid gap-4">
                             <Skeleton className="h-10 w-full" />
-                            <Skeleton className="h-10 w-full" />
                         </div>
                     </CardContent>
                     <CardFooter className="flex justify-between">
@@ -77,54 +71,26 @@ export default function Step3({
         <div className="flex justify-center items-center">
             <Card className="w-full max-w-md">
                 <CardHeader>
-                    <CardTitle>Étape 3 : Informations Zelty</CardTitle>
+                    <CardTitle>Étape 5 : Infos caisse de la veille</CardTitle>
                     <CardDescription>
-                        Renseignez les montants déclarés sur la plateforme
-                        Zelty.
+                        Vérifiez ou modifiez le montant laissé en caisse la
+                        veille.
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
                     <div className="grid gap-4">
                         <div>
-                            <Label htmlFor="cbZelty">Montant CB (Zelty)</Label>
-                            <input
-                                id="cbZelty"
-                                type="number"
-                                placeholder="Ex: 1050"
-                                className="w-full border rounded-md p-2"
-                                value={cbZelty ?? ""}
-                                onChange={(e) =>
-                                    setCbZelty(Number(e.target.value))
-                                }
-                            />
-                        </div>
-                        <div>
-                            <Label htmlFor="cashZelty">
-                                Montant Cash (Zelty)
+                            <Label htmlFor="previousCash">
+                                Montant laissé en caisse (veille)
                             </Label>
                             <input
-                                id="cashZelty"
+                                id="previousCash"
                                 type="number"
-                                placeholder="Ex: 800"
+                                placeholder="Ex: 500"
                                 className="w-full border rounded-md p-2"
-                                value={cashZelty ?? ""}
+                                value={previousCash ?? ""}
                                 onChange={(e) =>
-                                    setCashZelty(Number(e.target.value))
-                                }
-                            />
-                        </div>
-                        <div>
-                            <Label htmlFor="cashOutZelty">
-                                Montant Cash Sortant (Zelty)
-                            </Label>
-                            <input
-                                id="cashOutZelty"
-                                type="number"
-                                placeholder="Ex: 800"
-                                className="w-full border rounded-md p-2"
-                                value={cashOutZelty ?? ""}
-                                onChange={(e) =>
-                                    setCashOutZelty(Number(e.target.value))
+                                    setPreviousCash(Number(e.target.value))
                                 }
                             />
                         </div>

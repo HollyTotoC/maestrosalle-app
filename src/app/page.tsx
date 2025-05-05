@@ -22,19 +22,25 @@ export default function Home() {
   const handleLogin = async () => {
     try {
       const user = await loginWithGoogle();
+
+      if (!user) {
+        throw new Error("Utilisateur non récupéré après la connexion.");
+      }
+
       useUserStore.setState({
         userId: user.uid,
-        role: "serveur", // Example role
-        restaurantId: "123", // Example restaurant ID
+        role: "serveur", // Exemple de rôle
+        restaurantId: "123", // Exemple d'ID de restaurant
         avatarUrl: user.photoURL,
         displayName: user.displayName,
       });
+
       router.push("/dashboard"); // Redirige après connexion
     } catch (error) {
-      console.error("Login error:", error);
-      alert("Erreur lors de la connexion.");
+        console.error("Login error:", error);
+        alert("Une erreur est survenue lors de la connexion. Veuillez réessayer.");
+      }
     }
-  };
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen gap-3 p-24">

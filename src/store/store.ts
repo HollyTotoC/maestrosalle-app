@@ -1,10 +1,10 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
-interface AppState {
-  selectedRestaurant: string | null;
-  setSelectedRestaurant: (restaurant: string | null) => void;
-}
+type AppState = {
+  selectedRestaurant: { id: string; name: string } | null;
+  setSelectedRestaurant: (restaurant: { id: string; name: string }) => void;
+};
 
 export const useAppStore = create(
   persist<AppState>(

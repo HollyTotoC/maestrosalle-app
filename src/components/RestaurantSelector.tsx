@@ -18,15 +18,10 @@ import { toast } from "sonner"; // Import Sonner's toast function
 
 import { fetchRestaurants, addRestaurant, auth } from "@/lib/firebase";
 import { useAppStore } from "@/store/store";
-
-interface Restaurant {
-    id: string;
-    name: string;
-    picture: string;
-}
+import { Restaurant } from "@/types/restaurant"; // Import du type Restaurant
 
 export default function RestaurantSelector() {
-    const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
+    const [restaurants, setRestaurants] = useState<Restaurant[]>([]); // Utilisation du type Restaurant[]
     const [newRestaurantName, setNewRestaurantName] = useState("");
     const [newRestaurantPicture, setNewRestaurantPicture] = useState("");
     const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -34,10 +29,11 @@ export default function RestaurantSelector() {
         (state) => state.setSelectedRestaurant
     );
 
+
     useEffect(() => {
         const loadRestaurants = async () => {
             const data = await fetchRestaurants();
-            setRestaurants(data);
+            setRestaurants(data); // TypeScript garantit que `data` est de type Restaurant[]
         };
         loadRestaurants();
     }, []);
@@ -51,7 +47,7 @@ export default function RestaurantSelector() {
 
         if (newRestaurantName && newRestaurantPicture) {
             try {
-                const newRestaurant = await addRestaurant(
+                const newRestaurant: Restaurant = await addRestaurant(
                     newRestaurantName,
                     newRestaurantPicture
                 );
@@ -71,19 +67,19 @@ export default function RestaurantSelector() {
         }
     };
 
-    const handleSelectRestaurant = (name: string) => {
-        setSelectedRestaurant(name);
-    };
+    const handleSelectRestaurant = (restaurantId: string, restaurantName: string) => {
+        setSelectedRestaurant({ id: restaurantId, name: restaurantName });
+      };
 
     return (
         <div className="flex flex-col justify-center items-center gap-8 grow">
             <h1 className="text-2xl font-bold">Sélectionnez un restaurant</h1>
             <div className="flex gap-4">
-                {restaurants.map((restaurant) => (
+                {restaurants.map((restaurant: Restaurant) => (
                     <div
                         key={restaurant.id}
                         className="cursor-pointer"
-                        onClick={() => handleSelectRestaurant(restaurant.name)}
+                        onClick={() => handleSelectRestaurant(restaurant.id, restaurant.name)}
                     >
                         <Avatar className="w-40 h-40">
                             <AvatarImage
