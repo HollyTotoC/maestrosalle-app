@@ -43,8 +43,8 @@ export default function ToolsSection() {
             description:
                 "Déclarez les manques, suivez leur état et consultez l’historique.",
             icon: "📦",
-            comingSoon: true,
-            url: "/stock",
+            comingSoon: false,
+            url: "/stocks",
         },
 
     ];

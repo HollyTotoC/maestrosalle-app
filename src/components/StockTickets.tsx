@@ -1,0 +1,223 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import { Timestamp } from "firebase/firestore";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useTicketStore } from "@/store/useTicketStore";
+import { Skeleton } from "./ui/skeleton";
+import { TicketStatus } from "@/types/ticket";
+
+const statuses: Record<TicketStatus, string> = {
+    new: "🆕 Nouveau",
+    seen: "📤 Vu",
+    in_progress: "🚚 En cours",
+    resolved: "✅ Résolu",
+  };
+
+function getRandomHeight() {
+  const heights = ["h-2", "h-4", "h-6"]; // Différentes hauteurs possibles
+  return heights[Math.floor(Math.random() * heights.length)];
+}
+
+export default function StockTickets() {
+  const { tickets, fetchTickets, addTicket, updateTicket, syncHiddenTickets } = useTicketStore();
+  const [isLoading, setIsLoading] = useState(true); // Ajout de l'état de chargement
+  const [newTicket, setNewTicket] = useState({ item: "", note: "" });
+  const [currentTicket, setCurrentTicket] = useState<string | null>(null); // Ticket en cours de modification
+  const [deliveryNote, setDeliveryNote] = useState("");
+  const [expectedDeliveryAt, setExpectedDeliveryAt] = useState("");
+
+  useEffect(() => {
+    const restaurantId = "exampleRestaurantId"; // Remplacez par l'ID du restaurant actuel
+    setIsLoading(true); // Début du chargement
+    fetchTickets(restaurantId)
+      .finally(() => {
+        syncHiddenTickets(); // Synchronise les tickets masqués
+        setIsLoading(false); // Fin du chargement
+      });
+  }, [fetchTickets, syncHiddenTickets]);
+
+  const createTicket = () => {
+    if (!newTicket.item) return alert("Le champ 'item' est obligatoire.");
+    const restaurantId = "exampleRestaurantId"; // Remplacez par l'ID du restaurant actuel
+    const createdBy = "exampleUserId"; // Remplacez par l'ID de l'utilisateur actuel
+    const createdAt = Timestamp.now();
+
+    addTicket({ ...newTicket, restaurantId, createdBy, createdAt, status: "new" });
+    setNewTicket({ item: "", note: "" });
+  };
+
+  const updateTicketStatus = (ticketId: string, newStatus: "new" | "seen" | "in_progress" | "resolved") => {
+    const updatedBy = "exampleUserId"; // Remplacez par l'utilisateur actuel
+    const now = Timestamp.now();
+
+    if (newStatus === "seen") {
+      updateTicket(ticketId, { status: newStatus, seenAt: now, updatedBy });
+    } else if (newStatus === "in_progress") {
+      setCurrentTicket(ticketId); // Ouvre la modale pour demander des détails
+    } else if (newStatus === "resolved") {
+      updateTicket(ticketId, { status: newStatus, resolvedAt: now, updatedBy });
+    }
+  };
+
+  const handleInProgress = () => {
+    if (!currentTicket) return;
+    const updatedBy = "exampleUserId"; // Remplacez par l'utilisateur actuel
+    updateTicket(currentTicket, {
+      status: "in_progress",
+      deliveryNote,
+      expectedDeliveryAt: expectedDeliveryAt ? Timestamp.fromDate(new Date(expectedDeliveryAt)) : undefined,
+      updatedBy,
+    });
+    setCurrentTicket(null); // Ferme la modale
+    setDeliveryNote("");
+    setExpectedDeliveryAt("");
+  };
+
+  return (
+    <div className="space-y-4">
+      {/* Formulaire d'ajout dans une dialogue */}
+      <Dialog>
+        <DialogTrigger asChild>
+          <Button>Ajouter un ticket</Button>
+        </DialogTrigger>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Ajouter un ticket</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <Input
+              placeholder="Nom de l'article"
+              value={newTicket.item}
+              onChange={(e) => setNewTicket({ ...newTicket, item: e.target.value })}
+            />
+            <Textarea
+              placeholder="Note (optionnelle)"
+              value={newTicket.note}
+              onChange={(e) => setNewTicket({ ...newTicket, note: e.target.value })}
+            />
+            <Button onClick={createTicket}>Créer</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modale pour l'état "En cours" */}
+      <Dialog open={!!currentTicket} onOpenChange={() => setCurrentTicket(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Ajouter des détails de livraison</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <Textarea
+              placeholder="Remarque de livraison"
+              value={deliveryNote}
+              onChange={(e) => setDeliveryNote(e.target.value)}
+            />
+            <Input
+              type="date"
+              placeholder="Date prévue"
+              value={expectedDeliveryAt}
+              onChange={(e) => setExpectedDeliveryAt(e.target.value)}
+            />
+            <Button onClick={handleInProgress}>Confirmer</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Affichage des tickets */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        {Object.keys(statuses).map((statusKey) => (
+          <div key={statusKey} className="space-y-4">
+            <h3 className="text-lg text-center font-bold">{statuses[statusKey as TicketStatus]}</h3>
+            {isLoading ? (
+              // Affichage des squelettes pendant le chargement
+              Array.from({ length: 3 }).map((_, index) => (
+                <div
+                  key={index}
+                  className="p-4 bg-white dark:bg-neutral-900 rounded-lg shadow space-y-2"
+                >
+                  <Skeleton className={`${getRandomHeight()} w-3/4`} />
+                  <Skeleton className={`${getRandomHeight()} w-full`} />
+                  <Skeleton className={`${getRandomHeight()} w-5/6`} />
+                  <div className="mt-4 space-y-1">
+                    <Skeleton className={`${getRandomHeight()} w-1/2`} />
+                    <Skeleton className={`${getRandomHeight()} w-1/3`} />
+                  </div>
+                </div>
+              ))
+            ) : (
+              // Affichage des tickets une fois chargés
+              tickets
+                .filter((ticket) => ticket.status === statusKey)
+                .map((ticket) => (
+                  <div
+                    key={ticket.id}
+                    className="p-4 bg-white dark:bg-neutral-800 rounded-lg shadow-md dark:shadow-neutral-700 space-y-2"
+                  >
+                    <h4 className="text-md font-bold">{ticket.item}</h4>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">{ticket.note || "Pas de commentaire"}</p>
+                    {ticket.deliveryNote && (
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                        <strong>Remarque :</strong> {ticket.deliveryNote}
+                      </p>
+                    )}
+                    {ticket.expectedDeliveryAt && (
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                        <strong>Livraison prévue :</strong>{" "}
+                        {ticket.expectedDeliveryAt.toDate().toLocaleDateString()}
+                      </p>
+                    )}
+                    <div className="mt-4 space-y-1">
+                      <p className="text-xs text-gray-500">
+                        <strong>Créé le :</strong> {ticket.createdAt.toDate().toLocaleDateString()}
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        <strong>Créé par :</strong> {ticket.createdBy}
+                      </p>
+                      {ticket.seenAt && (
+                        <p className="text-xs text-gray-500">
+                          <strong>Vu le :</strong> {ticket.seenAt.toDate().toLocaleDateString()}
+                        </p>
+                      )}
+                      {ticket.resolvedAt && (
+                        <p className="text-xs text-gray-500">
+                          <strong>Résolu le :</strong> {ticket.resolvedAt.toDate().toLocaleDateString()}
+                        </p>
+                      )}
+                      {ticket.updatedBy && (
+                        <p className="text-xs text-gray-500">
+                          <strong>Mis à jour par :</strong> {ticket.updatedBy}
+                        </p>
+                      )}
+                    </div>
+                    <div className="mt-2">
+                      <Select
+                        value={ticket.status}
+                        onValueChange={(value) => updateTicketStatus(ticket.id, value as TicketStatus)}
+                      >
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Changer l'état" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {Object.keys(statuses).map((key) => (
+                            <SelectItem key={key} value={key}>
+                              <Badge className="w-full">{statuses[key as TicketStatus]}</Badge>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                ))
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}

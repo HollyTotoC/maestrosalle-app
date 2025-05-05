@@ -17,8 +17,27 @@ export type FormData = {
 };
 
 // Type pour les données de clôture
-export type ClosureData = FormData & {
+export type FirestoreTimestamp = {
+  seconds: number;
+  nanoseconds: number;
+};
+
+export type ClosureData = {
+  id: string;
+  restaurantId: string;
+  date: FirestoreTimestamp;
+  tpeAmounts: number[];
+  cbZelty: number;
+  cashZelty: number;
+  cashOutZelty: number;
+  extraFlowEntries: { label: string; amount: number }[];
+  previousCash: number;
+  cashToKeep: number;
+  cashToSafe: number;
+  tpeDiscrepancy: number;
+  cashDiscrepancy: number;
+  cbStatus: "OK" | "alert";
+  cashStatus: "OK" | "warning" | "alert";
   validatedBy: string;
   timestamp: string;
-  restaurantId?: string;
 };

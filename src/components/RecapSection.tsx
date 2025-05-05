@@ -13,12 +13,9 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import {
-  LineChart,
-  Line,
   XAxis,
   YAxis,
   CartesianGrid,
-  Tooltip as RechartsTooltip,
   Legend,
   BarChart,
   Bar,
@@ -234,7 +231,7 @@ export default function RecapSection() {
                     <TableCell className="md:hidden">
                       <Dialog>
                         <DialogTrigger asChild>
-                          <Button variant="">Détails</Button>
+                          <Button>Détails</Button>
                         </DialogTrigger>
                         <DialogContent>
                           <DialogHeader>

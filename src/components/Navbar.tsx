@@ -44,6 +44,11 @@ const tools = [
     href: "/tiramisu",
     comingSoon: true,
   },
+  {
+    title: "Stock",
+    description: "Suivez le stock manquant.",
+    href: "/stocks",
+  },
 ];
 
 export default function Navbar() {
