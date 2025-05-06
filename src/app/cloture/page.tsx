@@ -13,7 +13,7 @@ import Step7 from "@/components/cloture/Step7";
 import Step8 from "@/components/cloture/Step8";
 import { Progress } from "@/components/ui/progress";
 import { useRouter } from "next/navigation";
-import { saveClosureData } from "@/lib/firebase";
+import { saveClosureData } from "@/lib/firebase/server";
 import { useUserStore } from "@/store/useUserStore";
 
 export default function Cloture() {

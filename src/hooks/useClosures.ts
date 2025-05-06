@@ -1,4 +1,4 @@
-import { fetchClosures } from "@/lib/firebase";
+import { fetchClosures } from "@/lib/firebase/server";
 import { useClosuresStore } from "@/store/useClosuresStore";
 
 export async function updateClosuresIfNeeded(restaurantId: string) {

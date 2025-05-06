@@ -16,9 +16,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner"; // Import Sonner's toast function
 
-import { fetchRestaurants, addRestaurant, auth } from "@/lib/firebase";
+import { fetchRestaurants, addRestaurant } from "@/lib/firebase/server";
 import { useAppStore } from "@/store/store";
 import { Restaurant } from "@/types/restaurant"; // Import du type Restaurant
+import { auth } from "@/lib/firebase/client";
 
 export default function RestaurantSelector() {
     const [restaurants, setRestaurants] = useState<Restaurant[]>([]); // Utilisation du type Restaurant[]

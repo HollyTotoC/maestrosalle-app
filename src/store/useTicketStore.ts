@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { Ticket } from "@/types/ticket";
-import { fetchTickets, addTicket, updateTicket, hideOldResolvedTickets } from "@/lib/firebase";
+import { fetchTickets, addTicket, updateTicket, hideOldResolvedTickets } from "@/lib/firebase/server";
 import { Timestamp } from "firebase/firestore";
 
 interface TicketStore {

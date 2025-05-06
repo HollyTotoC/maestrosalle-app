@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { loginWithGoogle, getCurrentUser } from "@/lib/firebase";
+import { loginWithGoogle, getCurrentUser } from "@/lib/firebase/client";
 import { useUserStore } from "@/store/useUserStore";
 
 export default function Home() {
