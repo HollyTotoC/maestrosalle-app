@@ -19,8 +19,9 @@ import {
 import { PieChart, Pie, Cell, Tooltip } from "recharts";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Progress } from "@/components/ui/progress";
-import { FormData, ClosureData } from "@/types/cloture"; // Import des types
+import { FormData, ClosureData, FirestoreTimestamp } from "@/types/cloture"; // Import des types
 import { useUserStore } from "@/store/useUserStore";
+import { useAppStore } from "@/store/store"; // Import useAppStore
 
 export default function Step8({
     prevStep,
@@ -32,17 +33,54 @@ export default function Step8({
     onSave: (data: ClosureData) => void;
 }) {
     const userId = useUserStore((state) => state.userId);
+    const restaurantId = useAppStore((state) => state.selectedRestaurant?.id); // Récupérer le restaurantId depuis Zustand
+
     const handleSave = async () => {
         if (!userId) {
             console.error("Utilisateur non authentifié.");
             return;
-          }
+        }
+
+        if (!restaurantId) {
+            console.error("Aucun restaurant sélectionné.");
+            return;
+        }
+
         try {
+            // Utiliser formData.date ou une valeur par défaut
+            const dateToUse: FirestoreTimestamp = formData.date || {
+                seconds: Math.floor(Date.now() / 1000),
+                nanoseconds: 0,
+            };
+
+            // Convertir FirestoreTimestamp en objet Date pour générer l'ID
+            const dateObject = new Date(dateToUse.seconds * 1000);
+            const formattedDate = `${dateObject.getDate().toString().padStart(2, "0")}${(dateObject.getMonth() + 1)
+                .toString()
+                .padStart(2, "0")}${dateObject.getFullYear()}`;
+            const id = `id-${formattedDate}`;
+
             const timestamp = new Date().toISOString();
+
+            // Construire l'objet ClosureData
             const closureData: ClosureData = {
-                ...formData,
+                id, // Utiliser l'id généré
+                restaurantId, // Récupérer depuis Zustand
+                date: dateToUse, // Utiliser le FirestoreTimestamp
                 validatedBy: userId || "unknown",
                 timestamp,
+                tpeAmounts: formData.tpeAmounts || [], // Valeur par défaut : tableau vide
+                cbZelty: formData.cbZelty ?? 0, // Valeur par défaut : 0
+                cashZelty: formData.cashZelty ?? 0, // Valeur par défaut : 0
+                cashOutZelty: formData.cashOutZelty ?? 0, // Valeur par défaut : 0
+                extraFlowEntries: formData.extraFlowEntries || [], // Valeur par défaut : tableau vide
+                previousCash: formData.previousCash ?? 0, // Valeur par défaut : 0
+                cashToKeep: formData.cashToKeep ?? 0, // Valeur par défaut : 0
+                cashToSafe: formData.cashToSafe ?? 0, // Valeur par défaut : 0
+                tpeDiscrepancy: formData.tpeDiscrepancy ?? 0, // Valeur par défaut : 0
+                cashDiscrepancy: formData.cashDiscrepancy ?? 0, // Valeur par défaut : 0
+                cbStatus: formData.cbStatus || "OK", // Valeur par défaut : "OK"
+                cashStatus: formData.cashStatus || "OK", // Valeur par défaut : "OK"
             };
 
             onSave(closureData);
@@ -111,7 +149,7 @@ export default function Step8({
                     <p>
                         <span className="font-semibold">Date :</span>{" "}
                         {formData.date
-                            ? formData.date.toLocaleDateString()
+                            ? new Date(formData.date.seconds * 1000).toLocaleDateString()
                             : "Non défini"}
                     </p>
                 </CardContent>

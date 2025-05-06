@@ -1,6 +1,6 @@
 // Type pour les données du formulaire
 export type FormData = {
-  date?: Date;
+  date?: FirestoreTimestamp;
   cashCounted?: number;
   tpeAmounts: number[];
   cbZelty?: number;

@@ -57,7 +57,7 @@ export default function Cloture() {
 
         try {
             console.log("Enregistrement des données dans Firestore...");
-            await saveClosureData({ ...closureData, restaurantId: restaurantId || undefined });
+            await saveClosureData({ ...closureData, restaurantId: restaurantId ?? "defaultRestaurantId" });
             console.log("Données sauvegardées avec succès !");
             router.push("/dashboard");
         } catch (error) {

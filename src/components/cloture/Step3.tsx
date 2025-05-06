@@ -42,7 +42,11 @@ export default function Step3({
             alert("Veuillez remplir tous les champs avant de continuer.");
             return;
         }
-        setFormData({ cbZelty, cashZelty, cashOutZelty });
+        setFormData({ 
+            cbZelty, 
+            cashZelty, 
+            cashOutZelty: cashOutZelty === "" ? undefined : cashOutZelty 
+        });
         nextStep();
     };
 

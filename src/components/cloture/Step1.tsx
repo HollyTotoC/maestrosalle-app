@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton"; // Import du composant Skeleton
 import { useState } from "react";
-import { FormData } from "@/types/cloture"; // Import des types
+import { FormData, FirestoreTimestamp } from "@/types/cloture"; // Import des types
 
 export default function Step1({
   nextStep,
@@ -26,21 +26,34 @@ export default function Step1({
   setFormData: (data: Partial<FormData>) => void; // Utilisation de Partial<FormData>
 }) {
   const [date, setDate] = useState<string>(
-    formData.date ? new Date(formData.date).toISOString().split("T")[0] : ""
+    formData.date
+      ? new Date(formData.date.seconds * 1000).toISOString().split("T")[0]
+      : ""
   );
   const [cashCounted, setCashCounted] = useState<number | "">(
     formData.cashCounted ?? ""
   );
+
+  // Fonction pour convertir une date en FirestoreTimestamp
+  const convertDateToFirestoreTimestamp = (date: string): FirestoreTimestamp => {
+    const dateObject = new Date(date);
+    return {
+      seconds: Math.floor(dateObject.getTime() / 1000),
+      nanoseconds: (dateObject.getTime() % 1000) * 1e6,
+    };
+  };
 
   const handleNext = () => {
     if (!date || !cashCounted) {
       alert("Veuillez remplir tous les champs avant de continuer.");
       return;
     }
+
     setFormData({
-      date: new Date(date),
+      date: convertDateToFirestoreTimestamp(date), // Conversion en FirestoreTimestamp
       cashCounted: Number(cashCounted),
     });
+
     nextStep();
   };
 
