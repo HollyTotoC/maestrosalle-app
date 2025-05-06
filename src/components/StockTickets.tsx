@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useTicketStore } from "@/store/useTicketStore";
 import { Skeleton } from "./ui/skeleton";
 import { TicketStatus } from "@/types/ticket";
+import { Separator } from "./ui/separator";
 
 const statuses: Record<TicketStatus, string> = {
     new: "🆕 Nouveau",
@@ -105,6 +106,8 @@ export default function StockTickets() {
           </div>
         </DialogContent>
       </Dialog>
+    
+      <Separator className="mb-4 dark:" />
 
       {/* Modale pour l'état "En cours" */}
       <Dialog open={!!currentTicket} onOpenChange={() => setCurrentTicket(null)}>

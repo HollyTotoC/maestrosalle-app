@@ -1,453 +1,691 @@
 "use client";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
-  Table,
-  TableBody,
-  TableCaption,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
+    Table,
+    TableBody,
+    TableCaption,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
 } from "@/components/ui/table";
 import {
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Legend,
-  BarChart,
-  Bar,
-  AreaChart,
-  Area,
+    XAxis,
+    YAxis,
+    CartesianGrid,
+    Legend,
+    BarChart,
+    Bar,
+    AreaChart,
+    Area,
 } from "recharts";
 import { useEffect, useState } from "react";
 import { useClosuresStore } from "@/store/useClosuresStore";
 import { useAppStore } from "@/store/store";
 import { updateClosuresIfNeeded } from "@/hooks/useClosures";
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+    ChartContainer,
+    ChartTooltip,
+    ChartTooltipContent,
+} from "@/components/ui/chart";
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from "@/components/ui/dialog";
 import { Button } from "./ui/button";
 
 const chartConfig = {
-  primeDeNoel: {
-    label: "Prime de Noël",
-    color: "hsla(360, 74%, 66%, 1)",
-  },
-  banque: {
-    label: "Banque",
-    color: "hsla(176, 88%, 22%, 1)",
-  },
+    primeDeNoel: {
+        label: "Prime de Noël",
+        color: "hsla(360, 74%, 66%, 1)",
+    },
+    banque: {
+        label: "Banque",
+        color: "hsla(176, 88%, 22%, 1)",
+    },
 };
 
 export default function RecapSection() {
-  const [loading, setLoading] = useState(true);
-  const closures = useClosuresStore((state) => state.closures);
-  const selectedRestaurant = useAppStore((state) => state.selectedRestaurant);
+    const [loading, setLoading] = useState(true);
+    const closures = useClosuresStore((state) => state.closures);
+    const selectedRestaurant = useAppStore((state) => state.selectedRestaurant);
 
-  useEffect(() => {
-    if (!selectedRestaurant?.id) return;
+    useEffect(() => {
+        if (!selectedRestaurant?.id) return;
 
-    async function fetchData() {
-      setLoading(true);
-      if (selectedRestaurant?.id) {
-        await updateClosuresIfNeeded(selectedRestaurant.id);
-      }
-      setLoading(false);
+        async function fetchData() {
+            setLoading(true);
+            if (selectedRestaurant?.id) {
+                await updateClosuresIfNeeded(selectedRestaurant.id);
+            }
+            setLoading(false);
+        }
+
+        fetchData();
+    }, [selectedRestaurant]);
+
+    if (loading) {
+        return (
+            <div className="p-4 bg-gray-100 dark:bg-neutral-900 rounded-lg shadow">
+                <h2 className="text-xl font-bold mb-4">Récapitulatif</h2>
+                <p>Chargement des données...</p>
+            </div>
+        );
     }
 
-    fetchData();
-  }, [selectedRestaurant]);
-
-  if (loading) {
-    return (
-      <div className="p-4 bg-gray-100 dark:bg-neutral-900 rounded-lg shadow">
-        <h2 className="text-xl font-bold mb-4">Récapitulatif</h2>
-        <p>Chargement des données...</p>
-      </div>
-    );
-  }
-
-  if (closures.length === 0) {
-    return (
-      <div className="p-4 bg-gray-100 dark:bg-neutral-900 rounded-lg shadow">
-        <h2 className="text-xl font-bold mb-4">Récapitulatif</h2>
-        <p>Aucune donnée disponible pour ce restaurant.</p>
-      </div>
-    );
-  }
-
-  // Fonction pour générer une plage de dates
-  function getDateRange(start: Date, end: Date): string[] {
-    const range: string[] = [];
-    const current = new Date(start.getTime());
-    while (current <= end) {
-      range.push(current.toISOString().split("T")[0]);
-      current.setDate(current.getDate() + 1);
+    if (closures.length === 0) {
+        return (
+            <div className="p-4 bg-gray-100 dark:bg-neutral-900 rounded-lg shadow">
+                <h2 className="text-xl font-bold mb-4">Récapitulatif</h2>
+                <p>Aucune donnée disponible pour ce restaurant.</p>
+            </div>
+        );
     }
-    return range;
-  }
 
-  // Récupérer toutes les dates des clôtures
-  const rawDates = closures
-    .map((entry) => new Date(entry.date.seconds * 1000))
-    .sort((a, b) => a.getTime() - b.getTime());
-  const allDates = getDateRange(rawDates[0], rawDates[rawDates.length - 1]);
+    // Fonction pour générer une plage de dates
+    function getDateRange(start: Date, end: Date): string[] {
+        const range: string[] = [];
+        const current = new Date(start.getTime());
+        while (current <= end) {
+            range.push(current.toISOString().split("T")[0]);
+            current.setDate(current.getDate() + 1);
+        }
+        return range;
+    }
 
-  // Créer une map des données des clôtures
-  const closureMap = new Map(
-    closures.map((entry) => [
-      new Date(entry.date.seconds * 1000).toISOString().split("T")[0],
-      {
-        cashDiscrepancy: entry.cashDiscrepancy,
-        tpeDiscrepancy: entry.tpeDiscrepancy,
-        cashToKeep: entry.cashToKeep,
-        cashToSafe: entry.cashToSafe,
-        extraFlow: entry.extraFlowEntries?.reduce((sum, e) => sum + e.amount, 0),
-      },
-    ])
-  );
+    // Récupérer toutes les dates des clôtures
+    const rawDates = closures
+        .map((entry) => new Date(entry.date.seconds * 1000))
+        .sort((a, b) => a.getTime() - b.getTime());
+    const allDates = getDateRange(rawDates[0], rawDates[rawDates.length - 1]);
 
-  // Générer le chartData avec les jours manquants
-  const chartData = allDates.map((dateStr) => {
-    const data = closureMap.get(dateStr);
-    return {
-      date: dateStr,
-      cashDiscrepancy: data?.cashDiscrepancy ?? null,
-      tpeDiscrepancy: data?.tpeDiscrepancy ?? null,
-      cashToKeep: data?.cashToKeep ?? null,
-      cashToSafe: data?.cashToSafe ?? null,
-      extraFlow: data?.extraFlow ?? 0,
-    };
-  });
+    // Créer une map des données des clôtures
+    const closureMap = new Map(
+        closures.map((entry) => [
+            new Date(entry.date.seconds * 1000).toISOString().split("T")[0],
+            {
+                cashDiscrepancy: entry.cashDiscrepancy,
+                tpeDiscrepancy: entry.tpeDiscrepancy,
+                cashToKeep: entry.cashToKeep,
+                cashToSafe: entry.cashToSafe,
+                extraFlow: entry.extraFlowEntries?.reduce(
+                    (sum, e) => sum + e.amount,
+                    0
+                ),
+            },
+        ])
+    );
 
-  const safeData = chartData.reduce<{ date: string; primeDeNoel: number; banque: number }[]>(
-    (acc, entry, index) => {
-      const previous = acc[index - 1] || { primeDeNoel: 0, banque: 0 };
-      acc.push({
-        date: entry.date,
-        primeDeNoel: previous.primeDeNoel + (entry.extraFlow ?? 0),
-        banque: previous.banque + ((entry.cashToSafe ?? 0) - (entry.extraFlow ?? 0)),
-      });
-      return acc;
-    },
-    []
-  );
+    // Générer le chartData avec les jours manquants
+    const chartData = allDates.map((dateStr) => {
+        const data = closureMap.get(dateStr);
+        return {
+            date: dateStr,
+            cashDiscrepancy: data?.cashDiscrepancy ?? null,
+            tpeDiscrepancy: data?.tpeDiscrepancy ?? null,
+            cashToKeep: data?.cashToKeep ?? null,
+            cashToSafe: data?.cashToSafe ?? null,
+            extraFlow: data?.extraFlow ?? 0,
+        };
+    });
 
-  const yAxisDomain = [
-    Math.min(...safeData.map((d) => Math.min(d.primeDeNoel, d.banque))),
-    Math.max(...safeData.map((d) => Math.max(d.primeDeNoel, d.banque))),
-  ];
+    const safeData = chartData.reduce<
+        { date: string; primeDeNoel: number; banque: number }[]
+    >((acc, entry, index) => {
+        const previous = acc[index - 1] || { primeDeNoel: 0, banque: 0 };
+        acc.push({
+            date: entry.date,
+            primeDeNoel: previous.primeDeNoel + (entry.extraFlow ?? 0),
+            banque:
+                previous.banque +
+                ((entry.cashToSafe ?? 0) - (entry.extraFlow ?? 0)),
+        });
+        return acc;
+    }, []);
 
-  return (
-    <div className="p-4 bg-gray-100 dark:bg-neutral-900 rounded-lg shadow">
-      <h2 className="text-xl font-bold mb-4">Récapitulatif</h2>
+    const yAxisDomain = [
+        Math.min(...safeData.map((d) => Math.min(d.primeDeNoel, d.banque))),
+        Math.max(...safeData.map((d) => Math.max(d.primeDeNoel, d.banque))),
+    ];
 
-      <Tabs defaultValue="table">
-        <TabsList className="flex items-center justify-start flex-wrap h-auto space-y-1">
-          <TabsTrigger value="table">Tableau</TabsTrigger>
-          <TabsTrigger value="lineChart">Évolution des écarts</TabsTrigger>
-          <TabsTrigger value="stackedBarChart">Répartition Cash</TabsTrigger>
-          <TabsTrigger value="safeEvolution">Évolution du Coffre</TabsTrigger>
-        </TabsList>
+    return (
+        <div className="p-4 bg-gray-100 dark:bg-neutral-900 rounded-lg shadow">
+            <h2 className="text-xl font-bold mb-4">Récapitulatif</h2>
 
-        {/* Vue Tableau */}
-        <TabsContent value="table">
-          <Table >
-            <TableCaption>Récapitulatif des clôtures de caisse.</TableCaption>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="">Date</TableHead>
-                <TableHead className="hidden md:table-cell">Coffre (€)</TableHead>
-                <TableHead className="hidden md:table-cell">Caisse (€)</TableHead>
-                <TableHead className="hidden md:table-cell">ExtraFlow (€)</TableHead>
-                <TableHead className="hidden md:table-cell">Écart CB (€)</TableHead>
-                <TableHead className="hidden md:table-cell">Écart Cash (€)</TableHead>
-                <TableHead className="md:hidden"></TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {chartData.map((entry) => {
-                const isMissingData =
-                  entry.cashToSafe == null &&
-                  entry.cashToKeep == null &&
-                  entry.cashDiscrepancy == null &&
-                  entry.tpeDiscrepancy == null &&
-                  (entry.extraFlow == null || entry.extraFlow === 0);
+            <Tabs defaultValue="table">
+                <TabsList className="flex items-center justify-start flex-wrap h-auto space-y-1">
+                    <TabsTrigger value="table">Tableau</TabsTrigger>
+                    <TabsTrigger value="lineChart">
+                        Évolution des écarts
+                    </TabsTrigger>
+                    <TabsTrigger value="stackedBarChart">
+                        Répartition Cash
+                    </TabsTrigger>
+                    <TabsTrigger value="safeEvolution">
+                        Évolution du Coffre
+                    </TabsTrigger>
+                </TabsList>
 
-                console.log("entry.date:", entry.date);
-                console.log("entry.cashToSafe:", entry.cashToSafe);
-                console.log("entry.cashToKeep:", entry.cashToKeep);
-                console.log("entry.extraFlow:", entry.extraFlow);
-                console.log("entry.cashDiscrepancy:", entry.cashDiscrepancy);
-                console.log("entry.tpeDiscrepancy:", entry.tpeDiscrepancy);
-                console.log("isMissingData:", isMissingData);
+                {/* Vue Tableau */}
+                <TabsContent value="table">
+                    <Table>
+                        <TableCaption>
+                            Récapitulatif des clôtures de caisse.
+                        </TableCaption>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead className="">Date</TableHead>
+                                <TableHead className="hidden md:table-cell">
+                                    Coffre (€)
+                                </TableHead>
+                                <TableHead className="hidden md:table-cell">
+                                    Caisse (€)
+                                </TableHead>
+                                <TableHead className="hidden md:table-cell">
+                                    ExtraFlow (€)
+                                </TableHead>
+                                <TableHead className="hidden md:table-cell">
+                                    Écart CB (€)
+                                </TableHead>
+                                <TableHead className="hidden md:table-cell">
+                                    Écart Cash (€)
+                                </TableHead>
+                                <TableHead className="md:hidden"></TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {chartData.map((entry) => {
+                                const isMissingData =
+                                    entry.cashToSafe == null &&
+                                    entry.cashToKeep == null &&
+                                    entry.cashDiscrepancy == null &&
+                                    entry.tpeDiscrepancy == null &&
+                                    (entry.extraFlow == null ||
+                                        entry.extraFlow === 0);
 
-                return (
-                  <TableRow
-                    key={entry.date}
-                    className={`${
-                      isMissingData ? "text-gray-500" : "bg-white dark:bg-black"
-                    } md:table-row`}
-                  >
-                    <TableCell className="">{entry.date}</TableCell>
-                    <TableCell className="hidden md:table-cell">
-                      {entry.cashToSafe !== null ? `${entry.cashToSafe} €` : "N/A"}
-                    </TableCell>
-                    <TableCell className="hidden md:table-cell">
-                      {entry.cashToKeep !== null ? `${entry.cashToKeep} €` : "N/A"}
-                    </TableCell>
-                    <TableCell className="hidden md:table-cell">
-                      {entry.extraFlow !== null ? `${entry.extraFlow} €` : "N/A"}
-                    </TableCell>
-                    <TableCell className="hidden md:table-cell">
-                      <Badge
-                        variant={
-                          entry.tpeDiscrepancy === null
-                            ? "default"
-                            : entry.tpeDiscrepancy < 5
-                            ? "secondary"
-                            : "destructive"
-                        }
-                      >
-                        {entry.tpeDiscrepancy !== null ? `${entry.tpeDiscrepancy} €` : "N/A"}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="hidden md:table-cell">
-                      <Badge
-                        variant={
-                          entry.cashDiscrepancy === null
-                            ? "default"
-                            : entry.cashDiscrepancy < 5
-                            ? "secondary"
-                            : "destructive"
-                        }
-                      >
-                        {entry.cashDiscrepancy !== null ? `${entry.cashDiscrepancy} €` : "N/A"}
-                      </Badge>
-                    </TableCell>
-                    {/* Mobile: Bouton pour ouvrir le dialogue */}
-                    <TableCell className="md:hidden">
-                      <Dialog>
-                        <DialogTrigger asChild>
-                          <Button>Détails</Button>
-                        </DialogTrigger>
-                        <DialogContent>
-                          <DialogHeader>
-                            <DialogTitle>Détails pour {entry.date}</DialogTitle>
-                          </DialogHeader>
-                          <div className="space-y-2">
-                            <p><strong>Date :</strong> {entry.date}</p>
-                            <p><strong>Coffre :</strong> {entry.cashToSafe !== null ? `${entry.cashToSafe} €` : "N/A"}</p>
-                            <p><strong>Caisse :</strong> {entry.cashToKeep !== null ? `${entry.cashToKeep} €` : "N/A"}</p>
-                            <p><strong>ExtraFlow :</strong> {entry.extraFlow !== null ? `${entry.extraFlow} €` : "N/A"}</p>
-                            <p><strong>Écart CB :</strong> {entry.tpeDiscrepancy !== null ? `${entry.tpeDiscrepancy} €` : "N/A"}</p>
-                            <p><strong>Écart Cash :</strong> {entry.cashDiscrepancy !== null ? `${entry.cashDiscrepancy} €` : "N/A"}</p>
-                          </div>
-                        </DialogContent>
-                      </Dialog>
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
-        </TabsContent>
+                                console.log("entry.date:", entry.date);
+                                console.log(
+                                    "entry.cashToSafe:",
+                                    entry.cashToSafe
+                                );
+                                console.log(
+                                    "entry.cashToKeep:",
+                                    entry.cashToKeep
+                                );
+                                console.log(
+                                    "entry.extraFlow:",
+                                    entry.extraFlow
+                                );
+                                console.log(
+                                    "entry.cashDiscrepancy:",
+                                    entry.cashDiscrepancy
+                                );
+                                console.log(
+                                    "entry.tpeDiscrepancy:",
+                                    entry.tpeDiscrepancy
+                                );
+                                console.log("isMissingData:", isMissingData);
 
-        {/* Graphique des écarts */}
-        <TabsContent value="lineChart">
-          <Card>
-            <CardHeader>
-              <CardTitle>Évolution des écarts</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ChartContainer
-                config={{
-                  cashDiscrepancy: {
-                    label: "Écart Cash",
-                    color: "hsla(212, 95%, 38%, 1)",
-                  },
-                  tpeDiscrepancy: {
-                    label: "Écart CB",
-                    color: "hsla(176, 88%, 22%, 1)",
-                  },
-                }}
-              >
-                <AreaChart
-                  width={600}
-                  height={300}
-                  data={chartData}
-                  margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
-                >
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="date" />
-                  <YAxis />
-                  <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
+                                return (
+                                    <TableRow
+                                        key={entry.date}
+                                        className={`${
+                                            isMissingData
+                                                ? "text-gray-500"
+                                                : "bg-white dark:bg-black"
+                                        } md:table-row`}
+                                    >
+                                        <TableCell className="">
+                                            {entry.date}
+                                        </TableCell>
+                                        <TableCell className="hidden md:table-cell">
+                                            {entry.cashToSafe !== null
+                                                ? `${entry.cashToSafe} €`
+                                                : "N/A"}
+                                        </TableCell>
+                                        <TableCell className="hidden md:table-cell">
+                                            {entry.cashToKeep !== null
+                                                ? `${entry.cashToKeep} €`
+                                                : "N/A"}
+                                        </TableCell>
+                                        <TableCell className="hidden md:table-cell">
+                                            {entry.extraFlow !== null
+                                                ? `${entry.extraFlow} €`
+                                                : "N/A"}
+                                        </TableCell>
+                                        <TableCell className="hidden md:table-cell">
+                                            <Badge
+                                                variant={
+                                                    entry.tpeDiscrepancy ===
+                                                    null
+                                                        ? "default"
+                                                        : entry.tpeDiscrepancy <
+                                                          5
+                                                        ? "secondary"
+                                                        : "destructive"
+                                                }
+                                            >
+                                                {entry.tpeDiscrepancy !== null
+                                                    ? `${entry.tpeDiscrepancy} €`
+                                                    : "N/A"}
+                                            </Badge>
+                                        </TableCell>
+                                        <TableCell className="hidden md:table-cell">
+                                            <Badge
+                                                variant={
+                                                    entry.cashDiscrepancy ===
+                                                    null
+                                                        ? "default"
+                                                        : entry.cashDiscrepancy <
+                                                          5
+                                                        ? "secondary"
+                                                        : "destructive"
+                                                }
+                                            >
+                                                {entry.cashDiscrepancy !== null
+                                                    ? `${entry.cashDiscrepancy} €`
+                                                    : "N/A"}
+                                            </Badge>
+                                        </TableCell>
+                                        {/* Mobile: Bouton pour ouvrir le dialogue */}
+                                        <TableCell className="md:hidden">
+                                            <Dialog>
+                                                <DialogTrigger asChild>
+                                                    <Button>Détails</Button>
+                                                </DialogTrigger>
+                                                <DialogContent>
+                                                    <DialogHeader>
+                                                        <DialogTitle>
+                                                            Détails pour{" "}
+                                                            {entry.date}
+                                                        </DialogTitle>
+                                                    </DialogHeader>
+                                                    <div className="space-y-2">
+                                                        <p>
+                                                            <strong>
+                                                                Date :
+                                                            </strong>{" "}
+                                                            {entry.date}
+                                                        </p>
+                                                        <p>
+                                                            <strong>
+                                                                Coffre :
+                                                            </strong>{" "}
+                                                            {entry.cashToSafe !==
+                                                            null
+                                                                ? `${entry.cashToSafe} €`
+                                                                : "N/A"}
+                                                        </p>
+                                                        <p>
+                                                            <strong>
+                                                                Caisse :
+                                                            </strong>{" "}
+                                                            {entry.cashToKeep !==
+                                                            null
+                                                                ? `${entry.cashToKeep} €`
+                                                                : "N/A"}
+                                                        </p>
+                                                        <p>
+                                                            <strong>
+                                                                ExtraFlow :
+                                                            </strong>{" "}
+                                                            {entry.extraFlow !==
+                                                            null
+                                                                ? `${entry.extraFlow} €`
+                                                                : "N/A"}
+                                                        </p>
+                                                        <p>
+                                                            <strong>
+                                                                Écart CB :
+                                                            </strong>{" "}
+                                                            {entry.tpeDiscrepancy !==
+                                                            null
+                                                                ? `${entry.tpeDiscrepancy} €`
+                                                                : "N/A"}
+                                                        </p>
+                                                        <p>
+                                                            <strong>
+                                                                Écart Cash :
+                                                            </strong>{" "}
+                                                            {entry.cashDiscrepancy !==
+                                                            null
+                                                                ? `${entry.cashDiscrepancy} €`
+                                                                : "N/A"}
+                                                        </p>
+                                                    </div>
+                                                </DialogContent>
+                                            </Dialog>
+                                        </TableCell>
+                                    </TableRow>
+                                );
+                            })}
+                        </TableBody>
+                    </Table>
+                </TabsContent>
 
-                  <Legend />
-                  <defs>
-                  <linearGradient id="areaCashDiscrepancy" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="hsla(212, 95%, 38%, 1)" stopOpacity={0.8} />
-                    <stop offset="95%" stopColor="hsla(212, 95%, 38%, 1)" stopOpacity={0.1} />
-                  </linearGradient>
-                  <linearGradient id="areaTpeDiscrepancy" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="hsla(176, 88%, 22%, 1)" stopOpacity={0.8} />
-                    <stop offset="95%" stopColor="hsla(176, 88%, 22%, 1)" stopOpacity={0.1} />
-                  </linearGradient>
-                  </defs>
-                  <Area
-                  type="monotone"
-                  dataKey="cashDiscrepancy"
-                  stroke="hsla(212, 95%, 38%, 1)"
-                  fill="url(#areaCashDiscrepancy)"
-                  name="Écart Cash"
-                  connectNulls
-                  />
-                  <Area
-                  type="monotone"
-                  dataKey="tpeDiscrepancy"
-                  stroke="hsla(176, 88%, 22%, 1)"
-                  fill="url(#areaTpeDiscrepancy)"
-                  name="Écart CB"
-                  connectNulls
-                  />
-                </AreaChart>
-              </ChartContainer>
-            </CardContent>
-          </Card>
-        </TabsContent>
+                {/* Graphique des écarts */}
+                <TabsContent value="lineChart">
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Évolution des écarts</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <ChartContainer
+                                config={{
+                                    cashDiscrepancy: {
+                                        label: "Écart Cash",
+                                        color: "hsla(212, 95%, 38%, 1)",
+                                    },
+                                    tpeDiscrepancy: {
+                                        label: "Écart CB",
+                                        color: "hsla(176, 88%, 22%, 1)",
+                                    },
+                                }}
+                            >
+                                <AreaChart
+                                    width={600}
+                                    height={300}
+                                    data={chartData}
+                                    margin={{
+                                        top: 5,
+                                        right: 20,
+                                        left: 10,
+                                        bottom: 5,
+                                    }}
+                                >
+                                    <CartesianGrid strokeDasharray="3 3" />
+                                    <XAxis dataKey="date" />
+                                    <YAxis />
+                                    <ChartTooltip
+                                        cursor={false}
+                                        content={<ChartTooltipContent />}
+                                    />
 
-        {/* Répartition Cash */}
-        <TabsContent value="stackedBarChart">
-          <Card>
-            <CardHeader>
-              <CardTitle>Répartition Cash</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ChartContainer
-                config={{
-                  cashToKeep: {
-                    label: "Caisse",
-                    color: "var(--color-cashToKeep)",
-                  },
-                  cashToSafe: {
-                    label: "Coffre",
-                    color: "var(--color-cashToSafe)",
-                  },
-                  extraFlow: {
-                    label: "ExtraFlow",
-                    color: "var(--color-extraFlow)",
-                  },
-                }}
-              >
-                <BarChart width={600} height={300} data={chartData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="date" />
-                  <YAxis />
-                  <Legend />
-                  <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
-                  <defs>
-                    <linearGradient id="barCashToKeep" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="hsla(176, 88%, 22%, 1)" stopOpacity={0.8} />
-                      <stop offset="95%" stopColor="hsla(176, 88%, 22%, 1)" stopOpacity={0.1} />
-                    </linearGradient>
-                    <linearGradient id="barCashToSafe" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="hsla(212, 95%, 38%, 1)" stopOpacity={0.8} />
-                      <stop offset="95%" stopColor="hsla(212, 95%, 38%, 1)" stopOpacity={0.1} />
-                    </linearGradient>
-                    <linearGradient id="barExtraFlow" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="hsla(360, 74%, 66%, 1)" stopOpacity={0.8} />
-                      <stop offset="95%" stopColor="hsla(360, 74%, 66%, 1)" stopOpacity={0.1} />
-                    </linearGradient>
-                  </defs>
-                  <Bar dataKey="cashToKeep" stackId="a" fill="url(#barCashToKeep)" name="Caisse" />
-                  <Bar dataKey="cashToSafe" stackId="a" fill="url(#barCashToSafe)" name="Coffre" />
-                  <Bar dataKey="extraFlow" stackId="a" fill="url(#barExtraFlow)" name="ExtraFlow" />
-                </BarChart>
-              </ChartContainer>
-            </CardContent>
-          </Card>
-        </TabsContent>
+                                    <Legend />
+                                    <defs>
+                                        <linearGradient
+                                            id="areaCashDiscrepancy"
+                                            x1="0"
+                                            y1="0"
+                                            x2="0"
+                                            y2="1"
+                                        >
+                                            <stop
+                                                offset="5%"
+                                                stopColor="hsla(212, 95%, 38%, 1)"
+                                                stopOpacity={0.8}
+                                            />
+                                            <stop
+                                                offset="95%"
+                                                stopColor="hsla(212, 95%, 38%, 1)"
+                                                stopOpacity={0.1}
+                                            />
+                                        </linearGradient>
+                                        <linearGradient
+                                            id="areaTpeDiscrepancy"
+                                            x1="0"
+                                            y1="0"
+                                            x2="0"
+                                            y2="1"
+                                        >
+                                            <stop
+                                                offset="5%"
+                                                stopColor="hsla(176, 88%, 22%, 1)"
+                                                stopOpacity={0.8}
+                                            />
+                                            <stop
+                                                offset="95%"
+                                                stopColor="hsla(176, 88%, 22%, 1)"
+                                                stopOpacity={0.1}
+                                            />
+                                        </linearGradient>
+                                    </defs>
+                                    <Area
+                                        type="monotone"
+                                        dataKey="cashDiscrepancy"
+                                        stroke="hsla(212, 95%, 38%, 1)"
+                                        fill="url(#areaCashDiscrepancy)"
+                                        name="Écart Cash"
+                                        connectNulls
+                                    />
+                                    <Area
+                                        type="monotone"
+                                        dataKey="tpeDiscrepancy"
+                                        stroke="hsla(176, 88%, 22%, 1)"
+                                        fill="url(#areaTpeDiscrepancy)"
+                                        name="Écart CB"
+                                        connectNulls
+                                    />
+                                </AreaChart>
+                            </ChartContainer>
+                        </CardContent>
+                    </Card>
+                </TabsContent>
 
-        {/* Évolution du Coffre */}
-        <TabsContent value="safeEvolution">
-          <Card>
-            <CardHeader>
-              <CardTitle>Évolution Cumulative du Coffre</CardTitle>
-              <CardDescription>
-                Suivi des entrées cumulées dans le coffre : Prime de Noël et Banque.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ChartContainer
-                config={chartConfig}
-              >
-                <AreaChart
-                  data={safeData}
-                  margin={{
-                    left: 12,
-                    right: 12,
-                  }}
-                >
-                  <CartesianGrid vertical={false} />
-                  <XAxis
-                    dataKey="date"
-                    tickLine={false}
-                    axisLine={false}
-                    tickMargin={8}
-                    tickFormatter={(value) => value.slice(0, 10)} // Affiche la date
-                  />
-                  <YAxis domain={yAxisDomain} />
-                  <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
-                  <defs>
-                    <linearGradient id="fillPrimeDeNoel" x1="0" y1="0" x2="0" y2="1">
-                      <stop
-                        offset="5%"
-                        stopColor="var(--color-primeDeNoel)"
-                        stopOpacity={0.8}
-                      />
-                      <stop
-                        offset="95%"
-                        stopColor="var(--color-primeDeNoel)"
-                        stopOpacity={0.1}
-                      />
-                    </linearGradient>
-                    <linearGradient id="fillBanque" x1="0" y1="0" x2="0" y2="1">
-                      <stop
-                        offset="5%"
-                        stopColor="var(--color-banque)"
-                        stopOpacity={0.8}
-                      />
-                      <stop
-                        offset="95%"
-                        stopColor="var(--color-banque)"
-                        stopOpacity={0.1}
-                      />
-                    </linearGradient>
-                  </defs>
-                  <Area
-                    dataKey="primeDeNoel"
-                    type="natural"
-                    fill="url(#fillPrimeDeNoel)"
-                    fillOpacity={0.4}
-                    stroke="var(--color-primeDeNoel)"
-                    stackId="a"
-                  />
-                  <Area
-                    dataKey="banque"
-                    type="natural"
-                    fill="url(#fillBanque)"
-                    fillOpacity={0.4}
-                    stroke="var(--color-banque)"
-                    stackId="a"
-                  />
-                </AreaChart>
-              </ChartContainer>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
-    </div>
-  );
+                {/* Répartition Cash */}
+                <TabsContent value="stackedBarChart">
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Répartition Cash</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <ChartContainer
+                                config={{
+                                    cashToKeep: {
+                                        label: "Caisse",
+                                        color: "var(--color-cashToKeep)",
+                                    },
+                                    cashToSafe: {
+                                        label: "Coffre",
+                                        color: "var(--color-cashToSafe)",
+                                    },
+                                    extraFlow: {
+                                        label: "ExtraFlow",
+                                        color: "var(--color-extraFlow)",
+                                    },
+                                }}
+                            >
+                                <BarChart
+                                    width={600}
+                                    height={300}
+                                    data={chartData}
+                                >
+                                    <CartesianGrid strokeDasharray="3 3" />
+                                    <XAxis dataKey="date" />
+                                    <YAxis />
+                                    <Legend />
+                                    <ChartTooltip
+                                        cursor={false}
+                                        content={<ChartTooltipContent />}
+                                    />
+                                    <defs>
+                                        <linearGradient
+                                            id="barCashToKeep"
+                                            x1="0"
+                                            y1="0"
+                                            x2="0"
+                                            y2="1"
+                                        >
+                                            <stop
+                                                offset="5%"
+                                                stopColor="hsla(176, 88%, 22%, 1)"
+                                                stopOpacity={0.8}
+                                            />
+                                            <stop
+                                                offset="95%"
+                                                stopColor="hsla(176, 88%, 22%, 1)"
+                                                stopOpacity={0.1}
+                                            />
+                                        </linearGradient>
+                                        <linearGradient
+                                            id="barCashToSafe"
+                                            x1="0"
+                                            y1="0"
+                                            x2="0"
+                                            y2="1"
+                                        >
+                                            <stop
+                                                offset="5%"
+                                                stopColor="hsla(212, 95%, 38%, 1)"
+                                                stopOpacity={0.8}
+                                            />
+                                            <stop
+                                                offset="95%"
+                                                stopColor="hsla(212, 95%, 38%, 1)"
+                                                stopOpacity={0.1}
+                                            />
+                                        </linearGradient>
+                                        <linearGradient
+                                            id="barExtraFlow"
+                                            x1="0"
+                                            y1="0"
+                                            x2="0"
+                                            y2="1"
+                                        >
+                                            <stop
+                                                offset="5%"
+                                                stopColor="hsla(360, 74%, 66%, 1)"
+                                                stopOpacity={0.8}
+                                            />
+                                            <stop
+                                                offset="95%"
+                                                stopColor="hsla(360, 74%, 66%, 1)"
+                                                stopOpacity={0.1}
+                                            />
+                                        </linearGradient>
+                                    </defs>
+                                    <Bar
+                                        dataKey="cashToKeep"
+                                        stackId="a"
+                                        fill="url(#barCashToKeep)"
+                                        name="Caisse"
+                                    />
+                                    <Bar
+                                        dataKey="cashToSafe"
+                                        stackId="a"
+                                        fill="url(#barCashToSafe)"
+                                        name="Coffre"
+                                    />
+                                    <Bar
+                                        dataKey="extraFlow"
+                                        stackId="a"
+                                        fill="url(#barExtraFlow)"
+                                        name="ExtraFlow"
+                                    />
+                                </BarChart>
+                            </ChartContainer>
+                        </CardContent>
+                    </Card>
+                </TabsContent>
+
+                {/* Évolution du Coffre */}
+                <TabsContent value="safeEvolution">
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>
+                                Évolution Cumulative du Coffre
+                            </CardTitle>
+                            <CardDescription>
+                                Suivi des entrées cumulées dans le coffre :
+                                Prime de Noël et Banque.
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <ChartContainer config={chartConfig}>
+                                <AreaChart
+                                    data={safeData}
+                                    margin={{
+                                        left: 12,
+                                        right: 12,
+                                    }}
+                                >
+                                    <CartesianGrid vertical={false} />
+                                    <XAxis
+                                        dataKey="date"
+                                        tickLine={false}
+                                        axisLine={false}
+                                        tickMargin={8}
+                                        tickFormatter={(value) =>
+                                            value.slice(0, 10)
+                                        } // Affiche la date
+                                    />
+                                    <YAxis domain={yAxisDomain} />
+                                    <ChartTooltip
+                                        cursor={false}
+                                        content={<ChartTooltipContent />}
+                                    />
+                                    <defs>
+                                        <linearGradient
+                                            id="fillPrimeDeNoel"
+                                            x1="0"
+                                            y1="0"
+                                            x2="0"
+                                            y2="1"
+                                        >
+                                            <stop
+                                                offset="5%"
+                                                stopColor="var(--color-primeDeNoel)"
+                                                stopOpacity={0.8}
+                                            />
+                                            <stop
+                                                offset="95%"
+                                                stopColor="var(--color-primeDeNoel)"
+                                                stopOpacity={0.1}
+                                            />
+                                        </linearGradient>
+                                        <linearGradient
+                                            id="fillBanque"
+                                            x1="0"
+                                            y1="0"
+                                            x2="0"
+                                            y2="1"
+                                        >
+                                            <stop
+                                                offset="5%"
+                                                stopColor="var(--color-banque)"
+                                                stopOpacity={0.8}
+                                            />
+                                            <stop
+                                                offset="95%"
+                                                stopColor="var(--color-banque)"
+                                                stopOpacity={0.1}
+                                            />
+                                        </linearGradient>
+                                    </defs>
+                                    <Area
+                                        dataKey="primeDeNoel"
+                                        type="natural"
+                                        fill="url(#fillPrimeDeNoel)"
+                                        fillOpacity={0.4}
+                                        stroke="var(--color-primeDeNoel)"
+                                        stackId="a"
+                                    />
+                                    <Area
+                                        dataKey="banque"
+                                        type="natural"
+                                        fill="url(#fillBanque)"
+                                        fillOpacity={0.4}
+                                        stroke="var(--color-banque)"
+                                        stackId="a"
+                                    />
+                                </AreaChart>
+                            </ChartContainer>
+                        </CardContent>
+                    </Card>
+                </TabsContent>
+            </Tabs>
+        </div>
+    );
 }

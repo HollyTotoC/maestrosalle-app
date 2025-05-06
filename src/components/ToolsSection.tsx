@@ -58,7 +58,7 @@ export default function ToolsSection() {
                         key={tool.id}
                         className="p-4 flex flex-col justify-between bg-white dark:bg-neutral-800 rounded-lg shadow hover:shadow-lg transition-shadow"
                     >
-                        <div className="flex items-center gap-4">
+                        <div className="flex flex-col md:flex-row items-center gap-4">
                             <span className="text-3xl">{tool.icon}</span>
                             <h3 className="text-lg font-bold">{tool.title}</h3>
                         </div>
