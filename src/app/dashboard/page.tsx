@@ -10,15 +10,18 @@ import TodoSection from "@/components/TodoSection";
 import RecapSection from "@/components/RecapSection";
 
 export default function Dashboard() {
-    const displayName = useUserStore((state) => state.displayName); // Retrieve user name from Zustand
+    const displayName = useUserStore((state) => state.displayName);
     const selectedRestaurant = useAppStore((state) => state.selectedRestaurant);
+    const hasHydrated = useAppStore((state) => state.hasHydrated);
+
+    if (!hasHydrated) return null; // Avoid UI flicker
 
     return (
         <>
             <div className="flex flex-col min-h-screen">
                 <Navbar />
                 <main className="p-4 flex flex-col gap-4 grow">
-                    <div className="">
+                    <div>
                         <h1 className="text-3xl">Tableau de bord</h1>
                         <p>
                             Bienvenue dans votre tableau de bord{" "}

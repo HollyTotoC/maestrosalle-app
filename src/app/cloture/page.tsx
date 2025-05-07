@@ -14,7 +14,7 @@ import Step8 from "@/components/cloture/Step8";
 import { Progress } from "@/components/ui/progress";
 import { useRouter } from "next/navigation";
 import { saveClosureData } from "@/lib/firebase/server";
-import { useUserStore } from "@/store/useUserStore";
+import { useAppStore } from "@/store/store";
 
 export default function Cloture() {
     const [step, setStep] = useState(1);
@@ -37,7 +37,7 @@ export default function Cloture() {
 
     const router = useRouter();
 
-    const restaurantId = useUserStore((state) => state.restaurantId);
+    const restaurantId = useAppStore((state) => state.selectedRestaurant?.id ?? "defaultRestaurantId");
 
     const nextStep = () => setStep((prev) => Math.min(prev + 1, 8));
     const prevStep = () => {
@@ -57,7 +57,7 @@ export default function Cloture() {
 
         try {
             console.log("Enregistrement des données dans Firestore...");
-            await saveClosureData({ ...closureData, restaurantId: restaurantId ?? "defaultRestaurantId" });
+            await saveClosureData({ ...closureData, restaurantId: restaurantId });
             console.log("Données sauvegardées avec succès !");
             router.push("/dashboard");
         } catch (error) {

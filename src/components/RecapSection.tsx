@@ -31,7 +31,6 @@ import {
 import { useEffect, useState } from "react";
 import { useClosuresStore } from "@/store/useClosuresStore";
 import { useAppStore } from "@/store/store";
-import { updateClosuresIfNeeded } from "@/hooks/useClosures";
 import {
     ChartContainer,
     ChartTooltip,
@@ -45,6 +44,7 @@ import {
     DialogTrigger,
 } from "@/components/ui/dialog";
 import { Button } from "./ui/button";
+import { listenToClosures } from "@/lib/firebase/server";
 
 const chartConfig = {
     primeDeNoel: {
@@ -65,15 +65,12 @@ export default function RecapSection() {
     useEffect(() => {
         if (!selectedRestaurant?.id) return;
 
-        async function fetchData() {
-            setLoading(true);
-            if (selectedRestaurant?.id) {
-                await updateClosuresIfNeeded(selectedRestaurant.id);
-            }
+        const unsubscribe = listenToClosures(selectedRestaurant.id, (closures) => {
+            useClosuresStore.getState().setClosures(closures); // Mettez à jour l'état avec les clôtures en temps réel
             setLoading(false);
-        }
+        });
 
-        fetchData();
+        return () => unsubscribe(); // Nettoyage lors du démontage
     }, [selectedRestaurant]);
 
     if (loading) {

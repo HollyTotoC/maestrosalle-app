@@ -16,7 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner"; // Import Sonner's toast function
 
-import { fetchRestaurants, addRestaurant } from "@/lib/firebase/server";
+import { addRestaurant, listenToRestaurants } from "@/lib/firebase/server";
 import { useAppStore } from "@/store/store";
 import { Restaurant } from "@/types/restaurant"; // Import du type Restaurant
 import { auth } from "@/lib/firebase/client";
@@ -26,17 +26,18 @@ export default function RestaurantSelector() {
     const [newRestaurantName, setNewRestaurantName] = useState("");
     const [newRestaurantPicture, setNewRestaurantPicture] = useState("");
     const [isDialogOpen, setIsDialogOpen] = useState(false);
+    const [isLoading, setIsLoading] = useState(true); // État pour le chargement
     const setSelectedRestaurant = useAppStore(
         (state) => state.setSelectedRestaurant
     );
 
-
     useEffect(() => {
-        const loadRestaurants = async () => {
-            const data = await fetchRestaurants();
-            setRestaurants(data); // TypeScript garantit que `data` est de type Restaurant[]
-        };
-        loadRestaurants();
+        const unsubscribe = listenToRestaurants((restaurants) => {
+            setRestaurants(restaurants); // Mettez à jour l'état avec les restaurants en temps réel
+            setIsLoading(false); // Arrête le chargement une fois les données reçues
+        });
+
+        return () => unsubscribe(); // Nettoyage lors du démontage
     }, []);
 
     const handleAddRestaurant = async () => {
@@ -68,30 +69,52 @@ export default function RestaurantSelector() {
         }
     };
 
-    const handleSelectRestaurant = (restaurantId: string, restaurantName: string) => {
+    const handleSelectRestaurant = (
+        restaurantId: string,
+        restaurantName: string
+    ) => {
         setSelectedRestaurant({ id: restaurantId, name: restaurantName });
-      };
+    };
 
     return (
         <div className="flex flex-col justify-center items-center gap-8 grow">
             <h1 className="text-2xl font-bold">Sélectionnez un restaurant</h1>
             <div className="flex gap-4">
-                {restaurants.map((restaurant: Restaurant) => (
+                {isLoading ? (
                     <div
-                        key={restaurant.id}
-                        className="cursor-pointer"
-                        onClick={() => handleSelectRestaurant(restaurant.id, restaurant.name)}
+                        className="animate-pulse flex flex-col items-center"
                     >
-                        <Avatar className="w-40 h-40">
-                            <AvatarImage
-                                src={restaurant.picture}
-                                alt={restaurant.name}
-                            />
-                            <AvatarFallback>{restaurant.name}</AvatarFallback>
-                        </Avatar>
-                        <p className="text-center text-2xl font-semibold">{restaurant.name}</p>
+                        <div className="w-40 h-40 bg-gray-300 rounded-full"></div>
+                        <div className="mt-2 w-24 h-4 bg-gray-300 rounded"></div>
                     </div>
-                ))}
+                ) : (
+                    // Affiche tous les restaurants une fois le chargement terminé
+                    restaurants.map((restaurant: Restaurant) => (
+                        <div
+                            key={restaurant.id}
+                            className="cursor-pointer"
+                            onClick={() =>
+                                handleSelectRestaurant(
+                                    restaurant.id,
+                                    restaurant.name
+                                )
+                            }
+                        >
+                            <Avatar className="w-40 h-40">
+                                <AvatarImage
+                                    src={restaurant.picture}
+                                    alt={restaurant.name}
+                                />
+                                <AvatarFallback>
+                                    {restaurant.name}
+                                </AvatarFallback>
+                            </Avatar>
+                            <p className="text-center text-2xl font-semibold">
+                                {restaurant.name}
+                            </p>
+                        </div>
+                    ))
+                )}
                 <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                     <DialogTrigger asChild>
                         <div className="cursor-pointer">
@@ -100,7 +123,9 @@ export default function RestaurantSelector() {
                                     src="/path/to/plus-icon.png"
                                     alt="Ajouter"
                                 />
-                                <AvatarFallback className="text-2xl font-semibold">+</AvatarFallback>
+                                <AvatarFallback className="text-2xl font-semibold">
+                                    +
+                                </AvatarFallback>
                             </Avatar>
                         </div>
                     </DialogTrigger>

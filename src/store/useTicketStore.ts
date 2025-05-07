@@ -10,6 +10,7 @@ interface TicketStore {
   addTicket: (ticket: Omit<Ticket, "id">) => Promise<void>;
   updateTicket: (ticketId: string, updates: Partial<Ticket>) => Promise<void>;
   syncHiddenTickets: () => Promise<void>; // Nouvelle fonction pour synchroniser les tickets masqués
+  setTickets: (tickets: Ticket[]) => void; // Nouvelle fonction pour définir les tickets
 }
 
 export const useTicketStore = create<TicketStore>((set, get) => ({
@@ -27,6 +28,9 @@ export const useTicketStore = create<TicketStore>((set, get) => ({
 
     const tickets = await fetchTickets(restaurantId);
     set({ tickets, lastFetchedAt: now });
+  },
+  setTickets: (tickets) => {
+    set({ tickets });
   },
   addTicket: async (ticket) => {
     const newTicket = await addTicket(ticket);

@@ -11,8 +11,10 @@ import {
     CardTitle,
 } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton"; // Import du composant Skeleton
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { FormData } from "@/types/cloture"; // Import des types
+import { fetchPreviousCashToKeep } from "@/lib/firebase/server";
+import { useAppStore } from "@/store/store"; // Pour récupérer `restaurantId`
 
 export default function Step5({
     nextStep,
@@ -25,12 +27,42 @@ export default function Step5({
     setFormData: (data: Partial<FormData>) => void; // Utilisation de Partial<FormData>
     formData: FormData; // Utilisation du type FormData
 }) {
-    // Initialiser previousCash avec les données existantes ou une valeur par défaut
-    const [previousCash, setPreviousCash] = useState<number | undefined>(
-        formData.previousCash ?? 0
-    );
+    const restaurantId = useAppStore((state) => state.selectedRestaurant?.id);
+    const [previousCash, setPreviousCash] = useState<number | undefined>(undefined);
+    const [isLoading, setIsLoading] = useState(true);
 
-    const isLoading = !formData; // Simuler un état de chargement
+    useEffect(() => {
+        const fetchPreviousCash = async () => {
+            if (!restaurantId || !formData.date) {
+                console.log("%ccomponent: Missing restaurantId or formData.date", "color: red");
+                return;
+            }
+
+            console.log("%ccomponent: Fetching previous cash for restaurantId: " + restaurantId, "color: green");
+            console.log("%ccomponent: FormData : " + JSON.stringify(formData), "color: green");
+            console.log("%ccomponent: FormData date: " + JSON.stringify(formData.date), "color: green");
+
+            try {
+                const cashToKeep = await fetchPreviousCashToKeep(restaurantId, formData.date);
+                console.log("%ccomponent: Fetched cashToKeep: " + cashToKeep, "color: green");
+
+                if (cashToKeep !== null) {
+                    setPreviousCash(cashToKeep); // Utiliser la valeur trouvée
+                    console.log("%ccomponent: Set previousCash to fetched value: " + cashToKeep, "color: green");
+                } else {
+                    setPreviousCash(300); // Valeur par défaut si aucune valeur connue
+                    console.log("%ccomponent: Set previousCash to default value: 300", "color: green");
+                }
+
+                setIsLoading(false);
+                console.log("%ccomponent: Set isLoading to false", "color: green");
+            } catch (error) {
+                console.error("%ccomponent: Error fetching previous cash: " + error, "color: red");
+            }
+        };
+
+        fetchPreviousCash();
+    }, [restaurantId, formData.date]);
 
     const handleNext = () => {
         if (previousCash === undefined || previousCash < 0) {

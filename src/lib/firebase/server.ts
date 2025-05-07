@@ -9,21 +9,25 @@ import {
   where,
   orderBy,
   Timestamp,
+  onSnapshot,
+  limit,
 } from "firebase/firestore";
 import { Restaurant } from "@/types/restaurant";
 import { ClosureData } from "@/types/cloture";
 import { Ticket } from "@/types/ticket";
 
-export const fetchRestaurants = async (): Promise<Restaurant[]> => {
-  const snapshot = await getDocs(collection(db, "restaurants"));
-  return snapshot.docs.map((doc) => {
-    const data = doc.data();
-    return {
+export const listenToRestaurants = (callback: (restaurants: Restaurant[]) => void) => {
+  const restaurantsRef = collection(db, "restaurants");
+
+  const unsubscribe = onSnapshot(restaurantsRef, (snapshot) => {
+    const restaurants = snapshot.docs.map((doc) => ({
       id: doc.id,
-      name: data.name || "",
-      picture: data.picture || "",
-    };
+      ...doc.data(),
+    })) as Restaurant[];
+    callback(restaurants);
   });
+
+  return unsubscribe; // Permet de stopper l'écoute si nécessaire
 };
 
 export const addRestaurant = async (name: string, picture: string): Promise<Restaurant> => {
@@ -34,7 +38,10 @@ export const addRestaurant = async (name: string, picture: string): Promise<Rest
 export const saveClosureData = async (closureData: ClosureData) => {
   try {
     const docRef = doc(db, "closures", closureData.timestamp); // Utilisez un ID unique
-    await setDoc(docRef, closureData);
+    await setDoc(docRef, {
+      ...closureData,
+      date: Timestamp.fromDate(new Date(closureData.date.seconds * 1000)),
+    });
     console.log("Données sauvegardées avec succès !");
   } catch (error) {
     console.error("Erreur lors de la sauvegarde des données :", error);
@@ -78,6 +85,25 @@ export async function fetchClosures(restaurantId: string): Promise<ClosureData[]
   });
 }
 
+export const listenToClosures = (restaurantId: string, callback: (closures: ClosureData[]) => void) => {
+  const closuresRef = collection(db, "closures");
+  const q = query(
+    closuresRef,
+    where("restaurantId", "==", restaurantId),
+    orderBy("date", "desc")
+  );
+
+  const unsubscribe = onSnapshot(q, (snapshot) => {
+    const closures = snapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    })) as ClosureData[];
+    callback(closures);
+  });
+
+  return unsubscribe; // Permet de stopper l'écoute si nécessaire
+};
+
 export const addTicket = async (ticket: Omit<Ticket, "id">): Promise<Ticket> => {
   const docRef = await addDoc(collection(db, "tickets"), ticket);
   return { id: docRef.id, ...ticket };
@@ -120,4 +146,43 @@ export const hideOldResolvedTickets = async (): Promise<void> => {
       await updateTicket(doc.id, { hidden: true });
     }
   });
+};
+
+export const fetchPreviousCashToKeep = async (restaurantId: string, date: { seconds: number; nanoseconds: number }): Promise<number | null> => {
+  console.log("%cserver: Starting fetchPreviousCashToKeep", "color: green");
+
+  const closuresRef = collection(db, "closures");
+
+  // Calculer la date de la veille en soustrayant 24 heures
+  const previousDate = new Date(date.seconds * 1000);
+  previousDate.setUTCDate(previousDate.getUTCDate() - 1); // Soustraire un jour
+  previousDate.setUTCHours(0, 0, 0, 0); // Forcer à minuit UTC
+  const previousTimestamp = Timestamp.fromDate(previousDate);
+
+  try {
+    // Requête pour récupérer les clôtures avant la date donnée
+    const q = query(
+      closuresRef,
+      where("restaurantId", "==", restaurantId),
+      where("date", "<=", previousTimestamp), // Utiliser le timestamp normalisé
+      orderBy("date", "desc"),
+      limit(1) // Récupérer la dernière clôture connue
+    );
+
+    console.log("%cserver: Query created successfully", "color: green");
+
+    const snapshot = await getDocs(q);
+
+    if (!snapshot.empty) {
+      const closure = snapshot.docs[0].data();
+      console.log("%cserver: Closure found: " + JSON.stringify(closure), "color: green");
+      return closure.cashToKeep ?? null; // Retourner `cashToKeep` si disponible
+    }
+
+    console.log("%cserver: No closure found", "color: red");
+    return null; // Aucune valeur trouvée
+  } catch (error) {
+    console.error("%cserver: Error fetching previous cash: " + error, "color: red");
+    throw error;
+  }
 };

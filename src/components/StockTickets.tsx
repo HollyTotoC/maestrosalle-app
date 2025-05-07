@@ -10,8 +10,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useTicketStore } from "@/store/useTicketStore";
 import { Skeleton } from "./ui/skeleton";
-import { TicketStatus } from "@/types/ticket";
+import { Ticket, TicketStatus } from "@/types/ticket";
 import { Separator } from "./ui/separator";
+import { collection, onSnapshot, query, where, orderBy } from "firebase/firestore";
+import { db } from "@/lib/firebase";
 
 const statuses: Record<TicketStatus, string> = {
     new: "🆕 Nouveau",
@@ -25,8 +27,27 @@ function getRandomHeight() {
   return heights[Math.floor(Math.random() * heights.length)];
 }
 
+export const listenToTickets = (restaurantId: string, callback: (tickets: Ticket[]) => void) => {
+  const ticketsRef = collection(db, "tickets");
+  const q = query(
+    ticketsRef,
+    where("restaurantId", "==", restaurantId),
+    orderBy("createdAt", "desc")
+  );
+
+  const unsubscribe = onSnapshot(q, (snapshot) => {
+    const tickets = snapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    })) as Ticket[];
+    callback(tickets);
+  });
+
+  return unsubscribe; // Permet de stopper l'écoute si nécessaire
+};
+
 export default function StockTickets() {
-  const { tickets, fetchTickets, addTicket, updateTicket, syncHiddenTickets } = useTicketStore();
+  const { tickets, addTicket, updateTicket } = useTicketStore();
   const [isLoading, setIsLoading] = useState(true); // Ajout de l'état de chargement
   const [newTicket, setNewTicket] = useState({ item: "", note: "" });
   const [currentTicket, setCurrentTicket] = useState<string | null>(null); // Ticket en cours de modification
@@ -35,13 +56,13 @@ export default function StockTickets() {
 
   useEffect(() => {
     const restaurantId = "exampleRestaurantId"; // Remplacez par l'ID du restaurant actuel
-    setIsLoading(true); // Début du chargement
-    fetchTickets(restaurantId)
-      .finally(() => {
-        syncHiddenTickets(); // Synchronise les tickets masqués
-        setIsLoading(false); // Fin du chargement
-      });
-  }, [fetchTickets, syncHiddenTickets]);
+    const unsubscribe = listenToTickets(restaurantId, (tickets) => {
+      useTicketStore.getState().setTickets(tickets); // Mettez à jour l'état avec les tickets en temps réel
+      setIsLoading(false);
+    });
+
+    return () => unsubscribe(); // Nettoyage lors du démontage
+  }, []);
 
   const createTicket = () => {
     if (!newTicket.item) return alert("Le champ 'item' est obligatoire.");

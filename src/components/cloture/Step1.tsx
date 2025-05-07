@@ -36,10 +36,11 @@ export default function Step1({
 
   // Fonction pour convertir une date en FirestoreTimestamp
   const convertDateToFirestoreTimestamp = (date: string): FirestoreTimestamp => {
-    const dateObject = new Date(date);
+    const dateObject = new Date(date); // Convertir la chaîne en objet Date
+    dateObject.setUTCHours(0, 0, 0, 0); // Forcer l'heure à minuit UTC
     return {
       seconds: Math.floor(dateObject.getTime() / 1000),
-      nanoseconds: (dateObject.getTime() % 1000) * 1e6,
+      nanoseconds: 0,
     };
   };
 
