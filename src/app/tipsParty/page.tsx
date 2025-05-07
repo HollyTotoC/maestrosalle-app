@@ -50,12 +50,12 @@ export default function TipsParty() {
         {
             name: "Part Cuisine",
             value: tipsResult.kitchenShare,
-            color: "#4CAF50",
+            color: "hsla(176, 88%, 22%, 1)",
         },
         ...Array.from({ length: staffCount }, (_, index) => ({
             name: `Serveur ${index + 1}`,
             value: tipsResult.tipPerStaff,
-            color: `hsl(${(index * 50) / staffCount}, 70%, 50%)`,
+            color: `hsla(360, 74%, ${66 - index * (40 / staffCount)}%, 1)`,
         })),
     ];
 
