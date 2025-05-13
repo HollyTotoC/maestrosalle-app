@@ -15,6 +15,7 @@ import {
 import { Restaurant } from "@/types/restaurant";
 import { ClosureData } from "@/types/cloture";
 import { Ticket } from "@/types/ticket";
+import { BatchUpdate, TiramisuBatch } from "@/types/tiramisu";
 
 export const listenToRestaurants = (callback: (restaurants: Restaurant[]) => void) => {
   const restaurantsRef = collection(db, "restaurants");
@@ -185,4 +186,137 @@ export const fetchPreviousCashToKeep = async (restaurantId: string, date: { seco
     console.error("%cserver: Error fetching previous cash: " + error, "color: red");
     throw error;
   }
+};
+
+export const addBatch = async (batch: {
+  createdBy: string;
+  totalBacs: number;
+}): Promise<void> => {
+  const newBatch = {
+    createdBy: batch.createdBy,
+    createdAt: Timestamp.now(),
+    totalBacs: batch.totalBacs,
+    consumedBacs: 0,
+    partialConsumption: 0,
+    remainingBacs: batch.totalBacs, // Champ calculé
+    history: [],
+  };
+
+  try {
+    await addDoc(collection(db, "batches"), newBatch);
+    console.log("Batch ajouté avec succès :", newBatch);
+  } catch (error) {
+    console.error("Erreur lors de l'ajout du batch :", error);
+    throw error;
+  }
+};
+
+export const updateTiramisuStock = async (update: {
+  updatedBy: string;
+  remainingBacs: number; // Stock restant déclaré par l'utilisateur
+  partialConsumption: number; // Pourcentage du bac partiellement consommé
+}): Promise<void> => {
+  const batchesRef = collection(db, "batches");
+  const q = query(batchesRef, orderBy("createdAt", "asc")); // FIFO : traiter les plus anciens en premier
+
+  const snapshot = await getDocs(q);
+
+  let remainingPercentage = update.remainingBacs * 100 + update.partialConsumption * 100; // Stock restant en %
+  const batchUpdates: BatchUpdate[] = [];
+
+  snapshot.forEach((doc) => {
+    const batch = doc.data() as TiramisuBatch;
+
+    const batchTotalPercentage = batch.totalBacs * 100; // Stock total en %
+    const batchConsumedPercentage =
+      batch.consumedBacs * 100 + batch.partialConsumption * 100; // Stock consommé en %
+    const batchRemainingPercentage = batchTotalPercentage - batchConsumedPercentage; // Stock restant en %
+
+    if (remainingPercentage >= batchRemainingPercentage) {
+      // Consommer tout le batch
+      remainingPercentage -= batchRemainingPercentage;
+
+      batchUpdates.push({
+        batchRef: doc.ref,
+        update: {
+          consumedBacs: batch.totalBacs,
+          partialConsumption: 0,
+          remainingBacs: 0,
+          history: [
+            ...batch.history,
+            {
+              updatedAt: Timestamp.now(),
+              updatedBy: update.updatedBy,
+              consumedBacs: batch.totalBacs - batch.consumedBacs,
+              partialConsumption: 1 - batch.partialConsumption,
+            },
+          ],
+        },
+      });
+    } else {
+      // Consommer partiellement le batch
+      const consumedPercentage = batchRemainingPercentage - remainingPercentage;
+      const consumedBacs = Math.floor(consumedPercentage / 100);
+      const partialConsumption = (consumedPercentage % 100) / 100;
+
+      batchUpdates.push({
+        batchRef: doc.ref,
+        update: {
+          consumedBacs: batch.consumedBacs + consumedBacs,
+          partialConsumption: batch.partialConsumption + partialConsumption,
+          remainingBacs: batch.totalBacs - (batch.consumedBacs + consumedBacs) - (batch.partialConsumption + partialConsumption),
+          history: [
+            ...batch.history,
+            {
+              updatedAt: Timestamp.now(),
+              updatedBy: update.updatedBy,
+              consumedBacs,
+              partialConsumption,
+            },
+          ],
+        },
+      });
+
+      remainingPercentage = 0; // Tout le stock restant a été consommé
+    }
+  });
+
+  // Appliquer les mises à jour
+  const batchPromises = batchUpdates.map(({ batchRef, update }) =>
+    setDoc(batchRef, update, { merge: true })
+  );
+
+  try {
+    await Promise.all(batchPromises);
+    console.log("Stock mis à jour avec succès !");
+  } catch (error) {
+    console.error("Erreur lors de la mise à jour du stock :", error);
+    throw error;
+  }
+};
+
+export const listenToBatchesFiltered = (callback: (batches: TiramisuBatch[]) => void) => {
+  const batchesRef = collection(db, "batches");
+  const q = query(batchesRef, orderBy("createdAt", "asc"));
+
+  const unsubscribe = onSnapshot(q, (snapshot) => {
+    console.log("📥 Firestore snapshot received:", snapshot.docs.length, "documents");
+
+    const batches = snapshot.docs
+      .map((doc) => {
+        const data = doc.data();
+        console.log("📄 Batch document data:", data);
+
+        return {
+          id: doc.id,
+          ...data,
+        } as TiramisuBatch;
+      })
+      .filter((batch) => batch.consumedBacs < batch.totalBacs); // Filtrer les batches avec du stock restant
+
+    console.log("✅ Processed batches:", batches);
+    callback(batches);
+  });
+
+  return unsubscribe; // Permet de stopper l'écoute si nécessaire
 };

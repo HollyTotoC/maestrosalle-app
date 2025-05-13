@@ -62,7 +62,7 @@ export default function Step5({
         };
 
         fetchPreviousCash();
-    }, [restaurantId, formData.date]);
+    }, [restaurantId, formData]);
 
     const handleNext = () => {
         if (previousCash === undefined || previousCash < 0) {
