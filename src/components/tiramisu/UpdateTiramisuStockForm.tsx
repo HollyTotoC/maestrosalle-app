@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider"; // Import du slider ShadCN
 import { listenToBatchesFiltered, updateTiramisuStock } from "@/lib/firebase/server";
 import { TiramisuBatch } from "@/types/tiramisu";
+import { DialogDescription, DialogTitle } from "../ui/dialog";
 
 export default function UpdateTiramisuStockForm({ onClose }: { onClose: () => void }) {
   const [initialStock, setInitialStock] = useState<number>(0); // Stock initial (en %)
@@ -40,7 +41,9 @@ export default function UpdateTiramisuStockForm({ onClose }: { onClose: () => vo
       // Convertir la consommation en bacs pleins et partiels
       const remainingBacs = Math.floor(remainingStock / 100); // Bacs pleins restants
       const partialConsumption = (remainingStock % 100) / 100; // Bac partiellement restant
-
+      console.log("Bacs restants :", remainingBacs);
+      console.log("Consommation partielle :", partialConsumption);
+      
       await updateTiramisuStock({
         updatedBy: "Utilisateur", // Remplacez par l'utilisateur connecté
         remainingBacs,
@@ -57,7 +60,10 @@ export default function UpdateTiramisuStockForm({ onClose }: { onClose: () => vo
 
   return (
     <div className="p-4 max-w-md mx-auto mb-6">
-      <h2 className="text-xl font-bold mb-4">Mise à jour du stock</h2>
+      <DialogTitle className="text-xl font-bold mb-4">Mise à jour du stock</DialogTitle>
+      <DialogDescription className="text-sm mb-4">
+        Utilisez le slider pour ajuster le stock restant de tiramisu.
+      </DialogDescription>
       <div className="grid gap-4">
         <div>
           <Label htmlFor="remainingStock">Stock restant</Label>
@@ -67,7 +73,7 @@ export default function UpdateTiramisuStockForm({ onClose }: { onClose: () => vo
               value={[remainingStock]} // Valeur actuelle du slider
               onValueChange={(value) => setRemainingStock(value[0])} // Mettre à jour le stock restant
               max={initialStock} // Limiter la plage au stock initial
-              step={1} // Pas de 1% pour inclure les consommations partielles
+              step={10} // Pas de 0.1 pour inclure des consommations plus précises
               className="w-full"
             />
             <span className="text-sm text-gray-700">{(remainingStock / 100).toFixed(2)} bacs</span>

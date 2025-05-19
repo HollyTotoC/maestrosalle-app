@@ -25,17 +25,20 @@ export default function TiramisuList() {
 
   // Calculer tous les bacs restants (y compris les partiels)
   const remainingBacs = batches.flatMap<Bac>((batch) => {
-    const fullBacs = Math.floor(batch.totalBacs - batch.consumedBacs); // Bacs entiers
-    const hasPartialBac = batch.partialConsumption > 0; // Bac partiel
-    const partialBacWidth = batch.partialConsumption; // Pourcentage du bac partiel
+    const totalRemaining = batch.totalBacs - batch.consumedBacs - batch.partialConsumption;
+    const fullBacs = Math.floor(totalRemaining);
+    const hasPartialBac = totalRemaining % 1 > 0;
+    const partialBacWidth = hasPartialBac ? totalRemaining % 1 : 0;
 
     const bacs: Bac[] = Array.from({ length: fullBacs }).map(() => ({
       type: "full",
       batch,
-    })); // Ajouter les bacs entiers
+    }));
+
     if (hasPartialBac) {
-      bacs.push({ type: "partial", batch, width: partialBacWidth }); // Ajouter le bac partiel
+      bacs.push({ type: "partial", batch, width: partialBacWidth });
     }
+
     return bacs;
   });
 

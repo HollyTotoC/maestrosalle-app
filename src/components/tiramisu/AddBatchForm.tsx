@@ -6,6 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { addBatch } from "@/lib/firebase/server"; // Import de la fonction centralisée
 import { useUserStore } from "@/store/useUserStore"; // Import du store utilisateur
+import { DialogTitle } from "../ui/dialog";
+import { DialogDescription } from "@radix-ui/react-dialog";
 
 export default function AddBatchForm({ onClose }: { onClose: () => void }) {
   const displayName = useUserStore((state) => state.displayName); // Récupérer le displayName
@@ -45,7 +47,10 @@ export default function AddBatchForm({ onClose }: { onClose: () => void }) {
 
   return (
     <div className="max-w-md mx-auto p-4 mb-6">
-      <h2 className="text-xl font-bold mb-4">Ajouter un batch de tiramisu</h2>
+      <DialogTitle className="text-xl font-bold mb-4">Ajouter un batch de tiramisu</DialogTitle>
+      <DialogDescription className="text-sm mb-4">
+        Remplissez les informations ci-dessous pour ajouter un nouveau batch de tiramisu.
+      </DialogDescription>
       <div className="grid gap-4">
         <div>
           <Label htmlFor="createdByDisplayName">Préparé par</Label>

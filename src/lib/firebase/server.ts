@@ -150,8 +150,6 @@ export const hideOldResolvedTickets = async (): Promise<void> => {
 };
 
 export const fetchPreviousCashToKeep = async (restaurantId: string, date: { seconds: number; nanoseconds: number }): Promise<number | null> => {
-  console.log("%cserver: Starting fetchPreviousCashToKeep", "color: green");
-
   const closuresRef = collection(db, "closures");
 
   // Calculer la date de la veille en soustrayant 24 heures
@@ -170,17 +168,13 @@ export const fetchPreviousCashToKeep = async (restaurantId: string, date: { seco
       limit(1) // Récupérer la dernière clôture connue
     );
 
-    console.log("%cserver: Query created successfully", "color: green");
-
     const snapshot = await getDocs(q);
 
     if (!snapshot.empty) {
       const closure = snapshot.docs[0].data();
-      console.log("%cserver: Closure found: " + JSON.stringify(closure), "color: green");
       return closure.cashToKeep ?? null; // Retourner `cashToKeep` si disponible
     }
 
-    console.log("%cserver: No closure found", "color: red");
     return null; // Aucune valeur trouvée
   } catch (error) {
     console.error("%cserver: Error fetching previous cash: " + error, "color: red");
@@ -211,17 +205,44 @@ export const addBatch = async (batch: {
   }
 };
 
+export const listenToBatchesFiltered = (callback: (batches: TiramisuBatch[]) => void) => {
+  const batchesRef = collection(db, "batches");
+  const q = query(batchesRef, orderBy("createdAt", "asc"));
+
+  const unsubscribe = onSnapshot(q, (snapshot) => {
+    const batches = snapshot.docs
+      .map((doc) => {
+        const data = doc.data();
+
+        return {
+          id: doc.id,
+          ...data,
+        } as TiramisuBatch;
+      })
+      .filter((batch) => batch.consumedBacs < batch.totalBacs); // Filtrer les batches avec du stock restant
+
+    callback(batches);
+  });
+
+  return unsubscribe; // Permet de stopper l'écoute si nécessaire
+};
+
 export const updateTiramisuStock = async (update: {
   updatedBy: string;
   remainingBacs: number; // Stock restant déclaré par l'utilisateur
   partialConsumption: number; // Pourcentage du bac partiellement consommé
 }): Promise<void> => {
+  console.log("Mise à jour du stock :", update);
   const batchesRef = collection(db, "batches");
   const q = query(batchesRef, orderBy("createdAt", "asc")); // FIFO : traiter les plus anciens en premier
 
   const snapshot = await getDocs(q);
-
-  let remainingPercentage = update.remainingBacs * 100 + update.partialConsumption * 100; // Stock restant en %
+  const totalInitialBacs = snapshot.docs.reduce((acc, doc) => {
+    const batch = doc.data() as TiramisuBatch;
+    return acc + batch.totalBacs;
+  }, 0);
+  
+  let toConsumePercentage = (totalInitialBacs - update.remainingBacs - update.partialConsumption) * 100;
   const batchUpdates: BatchUpdate[] = [];
 
   snapshot.forEach((doc) => {
@@ -232,9 +253,22 @@ export const updateTiramisuStock = async (update: {
       batch.consumedBacs * 100 + batch.partialConsumption * 100; // Stock consommé en %
     const batchRemainingPercentage = batchTotalPercentage - batchConsumedPercentage; // Stock restant en %
 
-    if (remainingPercentage >= batchRemainingPercentage) {
+    console.log("Processing batch:", {
+      id: doc.id,
+      batchTotalPercentage,
+      batchConsumedPercentage,
+      batchRemainingPercentage,
+      toConsumePercentage,
+    });
+
+    if (toConsumePercentage <= 0) {
+      // Si toute la consommation a été appliquée, arrêter
+      return;
+    }
+
+    if (toConsumePercentage >= batchRemainingPercentage) {
       // Consommer tout le batch
-      remainingPercentage -= batchRemainingPercentage;
+      toConsumePercentage -= batchRemainingPercentage;
 
       batchUpdates.push({
         batchRef: doc.ref,
@@ -255,31 +289,45 @@ export const updateTiramisuStock = async (update: {
       });
     } else {
       // Consommer partiellement le batch
-      const consumedPercentage = batchRemainingPercentage - remainingPercentage;
+      const consumedPercentage = toConsumePercentage;
       const consumedBacs = Math.floor(consumedPercentage / 100);
-      const partialConsumption = (consumedPercentage % 100) / 100;
+      const partial = (consumedPercentage % 100) / 100;
+      const newPartial = batch.partialConsumption + partial;
+
+      let finalConsumedBacs = batch.consumedBacs + consumedBacs;
+      let finalPartialConsumption = newPartial;
+
+      if (newPartial >= 1) {
+        finalConsumedBacs += 1;
+        finalPartialConsumption = newPartial - 1;
+      }
 
       batchUpdates.push({
         batchRef: doc.ref,
         update: {
-          consumedBacs: batch.consumedBacs + consumedBacs,
-          partialConsumption: batch.partialConsumption + partialConsumption,
-          remainingBacs: batch.totalBacs - (batch.consumedBacs + consumedBacs) - (batch.partialConsumption + partialConsumption),
+          consumedBacs: finalConsumedBacs,
+          partialConsumption: finalPartialConsumption,
+          remainingBacs:
+            batch.totalBacs -
+            finalConsumedBacs -
+            finalPartialConsumption,
           history: [
             ...batch.history,
             {
               updatedAt: Timestamp.now(),
               updatedBy: update.updatedBy,
               consumedBacs,
-              partialConsumption,
+              partialConsumption: partial,
             },
           ],
         },
       });
 
-      remainingPercentage = 0; // Tout le stock restant a été consommé
+      toConsumePercentage = 0; // Toute la consommation a été appliquée
     }
   });
+
+  console.log("Batch updates to apply:", batchUpdates);
 
   // Appliquer les mises à jour
   const batchPromises = batchUpdates.map(({ batchRef, update }) =>
@@ -288,35 +336,9 @@ export const updateTiramisuStock = async (update: {
 
   try {
     await Promise.all(batchPromises);
-    console.log("Stock mis à jour avec succès !");
+    console.log("✅ Stock mis à jour avec succès !");
   } catch (error) {
     console.error("Erreur lors de la mise à jour du stock :", error);
     throw error;
   }
-};
-
-export const listenToBatchesFiltered = (callback: (batches: TiramisuBatch[]) => void) => {
-  const batchesRef = collection(db, "batches");
-  const q = query(batchesRef, orderBy("createdAt", "asc"));
-
-  const unsubscribe = onSnapshot(q, (snapshot) => {
-    console.log("📥 Firestore snapshot received:", snapshot.docs.length, "documents");
-
-    const batches = snapshot.docs
-      .map((doc) => {
-        const data = doc.data();
-        console.log("📄 Batch document data:", data);
-
-        return {
-          id: doc.id,
-          ...data,
-        } as TiramisuBatch;
-      })
-      .filter((batch) => batch.consumedBacs < batch.totalBacs); // Filtrer les batches avec du stock restant
-
-    console.log("✅ Processed batches:", batches);
-    callback(batches);
-  });
-
-  return unsubscribe; // Permet de stopper l'écoute si nécessaire
 };

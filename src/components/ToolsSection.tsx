@@ -34,7 +34,7 @@ export default function ToolsSection() {
             description:
                 "Suivez le stock de tiramisu et prevenez si y en plus.",
             icon: "🍰",
-            comingSoon: true,
+            comingSoon: false,
             url: "/tiramisu",
         },
         {

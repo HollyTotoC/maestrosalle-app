@@ -42,7 +42,6 @@ const tools = [
     title: "Tiramisu",
     description: "Suivez le stock de tiramisu et prévenez si y en a plus.",
     href: "/tiramisu",
-    comingSoon: true,
   },
   {
     title: "Stock",
@@ -76,8 +75,6 @@ export default function Navbar() {
   const handleChangeRestaurant = () => {
     useAppStore.setState({ selectedRestaurant: null });
   };
-
-  console.log("Selected Restaurant in Navbar:", selectedRestaurant);
 
   return (
     <nav className="flex items-center justify-between px-4 py-2 shadow-sm dark:shadow-neutral-600 bg-white dark:bg-black w-full sticky top-0 z-10">
