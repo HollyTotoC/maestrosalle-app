@@ -16,6 +16,8 @@ import { Restaurant } from "@/types/restaurant";
 import { ClosureData } from "@/types/cloture";
 import { Ticket } from "@/types/ticket";
 import { BatchUpdate, TiramisuBatch } from "@/types/tiramisu";
+import { useUsersStore } from "@/store/useUsersStore";
+import { User } from "@/types/user";
 
 export const listenToRestaurants = (callback: (restaurants: Restaurant[]) => void) => {
   const restaurantsRef = collection(db, "restaurants");
@@ -342,3 +344,14 @@ export const updateTiramisuStock = async (update: {
     throw error;
   }
 };
+
+export function listenToUsers() {
+  const usersRef = collection(db, "users");
+  return onSnapshot(usersRef, (snapshot) => {
+    const users: Record<string, User> = {};
+    snapshot.forEach((doc) => {
+      users[doc.id] = doc.data() as User;
+    });
+    useUsersStore.getState().setUsers(users);
+  });
+}

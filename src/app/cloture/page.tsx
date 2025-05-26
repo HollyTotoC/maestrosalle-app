@@ -81,7 +81,7 @@ export default function Cloture() {
                 <h1 className="text-3xl font-bold">Clôture de caisse</h1>
                 <Progress
                     value={(step / 8) * 100}
-                    className="mx-auto w-full max-w-md children:bg-primary"
+                    className="mx-auto w-full max-w-md"
                 />
                 <div className="">
                     {step === 1 && (

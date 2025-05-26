@@ -44,8 +44,10 @@ import {
     DialogTrigger,
 } from "@/components/ui/dialog";
 import { Button } from "./ui/button";
-import { listenToClosures } from "@/lib/firebase/server";
+import { listenToClosures, listenToUsers } from "@/lib/firebase/server";
 import { Pagination, PaginationContent, PaginationItem, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
+import { useUsersStore } from "@/store/useUsersStore";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 const chartConfig = {
     primeDeNoel: {
@@ -74,6 +76,13 @@ export default function RecapSection() {
         return () => unsubscribe(); // Nettoyage lors du démontage
     }, [selectedRestaurant]);
 
+    const users = useUsersStore((state) => state.users);
+
+    useEffect(() => {
+        const unsubscribe = listenToUsers();
+        return () => unsubscribe();
+    }, []);
+
 
     // Fonction pour générer une plage de dates
     function getDateRange(start: Date, end: Date): string[] {
@@ -90,7 +99,11 @@ export default function RecapSection() {
     const rawDates = closures
         .map((entry) => new Date(entry.date.seconds * 1000))
         .sort((a, b) => a.getTime() - b.getTime());
-    const allDates = getDateRange(rawDates[0], rawDates[rawDates.length - 1]);
+
+    const allDates =
+        rawDates.length > 0
+            ? getDateRange(rawDates[0], rawDates[rawDates.length - 1])
+            : [];
 
     // Créer une map des données des clôtures
     const closureMap = new Map(
@@ -221,6 +234,7 @@ export default function RecapSection() {
                                     <TableHead className="hidden md:table-cell">
                                         Écart Cash (€)
                                     </TableHead>
+                                    <TableHead className="hidden md:table-cell">Validé par</TableHead>
                                     <TableHead className="md:hidden"></TableHead>
                                 </TableRow>
                             </TableHeader>
@@ -317,6 +331,33 @@ export default function RecapSection() {
                                                         ? `${entry.cashDiscrepancy} €`
                                                         : "N/A"}
                                                 </Badge>
+                                            </TableCell>
+                                            <TableCell className="hidden md:table-cell">
+                                                {(() => {
+                                                    // On retrouve la closure d'origine pour la date
+                                                    const closure = closures.find(
+                                                        (c) =>
+                                                            new Date(c.date.seconds * 1000).toISOString().split("T")[0] === entry.date
+                                                    );
+                                                    const user = closure ? users[closure.validatedBy] : undefined;
+                                                    if (!user) return <span className="text-gray-400">-</span>;
+                                                    return (
+                                                        <div className="flex items-center gap-2">
+                                                            <Avatar className="h-6 w-6">
+                                                                {user.avatarUrl && <AvatarImage src={user.avatarUrl} alt={user.displayName} />}
+                                                                <AvatarFallback>
+                                                                    {user.displayName
+                                                                        .split(" ")
+                                                                        .map((n) => n[0])
+                                                                        .join("")
+                                                                        .toUpperCase()
+                                                                        .slice(0, 2)}
+                                                                </AvatarFallback>
+                                                            </Avatar>
+                                                            <span>{user.displayName}</span>
+                                                        </div>
+                                                    );
+                                                })()}
                                             </TableCell>
                                             {/* Mobile: Bouton pour ouvrir le dialogue */}
                                             <TableCell className="md:hidden">
