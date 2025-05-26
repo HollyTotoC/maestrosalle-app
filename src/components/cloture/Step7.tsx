@@ -27,14 +27,18 @@ export default function Step7({
 }) {
     // Initialiser cashCounted et cashToKeep avec des valeurs par défaut
     const cashCounted = formData?.cashCounted ?? 0;
-    const [cashToKeep, setCashToKeep] = useState<number>(
-        formData?.cashToKeep ?? 0
+    const [cashToKeep, setCashToKeep] = useState<number | "">(
+        formData?.cashToKeep !== undefined ? formData.cashToKeep : ""
     );
 
     const isLoading = !formData; // Simuler un état de chargement
 
     const handleNext = () => {
-        if (cashToKeep < 0 || cashToKeep > cashCounted) {
+        if (
+            cashToKeep === "" ||
+            cashToKeep < 0 ||
+            cashToKeep > cashCounted
+        ) {
             alert(
                 "Le montant à laisser en caisse doit être compris entre 0 et le montant total compté."
             );
@@ -101,7 +105,11 @@ export default function Step7({
                                 className="w-full border rounded-md p-2"
                                 value={cashToKeep}
                                 onChange={(e) =>
-                                    setCashToKeep(Number(e.target.value))
+                                    setCashToKeep(
+                                        e.target.value === ""
+                                            ? ""
+                                            : Number(e.target.value)
+                                    )
                                 }
                             />
                         </div>
@@ -111,7 +119,7 @@ export default function Step7({
                         </p>
                         <p>
                             <strong>Montant à verser au coffre :</strong>{" "}
-                            {cashCounted - cashToKeep} €
+                            {cashToKeep === "" ? "-" : cashCounted - cashToKeep} €
                         </p>
                     </div>
                 </CardContent>

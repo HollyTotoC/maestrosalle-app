@@ -27,14 +27,19 @@ export default function Step4({
 }) {
     // Initialiser extraFlowEntries avec les données existantes ou une valeur par défaut
     const [extraFlowEntries, setExtraFlowEntries] = useState(
-        formData.extraFlowEntries || [{ label: "", amount: 0 }]
+        formData.extraFlowEntries
+            ? formData.extraFlowEntries.map((e) => ({
+                  label: e.label,
+                  amount: e.amount === 0 ? "" : e.amount,
+              }))
+            : [{ label: "", amount: "" }]
     );
 
     // Simuler un état de chargement
     const isLoading = !formData;
 
     const handleAddEntry = () => {
-        setExtraFlowEntries((prev) => [...prev, { label: "", amount: 0 }]);
+        setExtraFlowEntries((prev) => [...prev, { label: "", amount: "" }]);
     };
 
     const handleRemoveEntry = (index: number) => {
@@ -51,7 +56,10 @@ export default function Step4({
                 i === index
                     ? {
                           ...entry,
-                          [field]: field === "amount" ? Number(value) : value,
+                          [field]:
+                              field === "amount"
+                                  ? value === "" ? "" : Number(value)
+                                  : value,
                       }
                     : entry
             )
@@ -60,12 +68,22 @@ export default function Step4({
 
     const handleNext = () => {
         if (
-            extraFlowEntries.some((entry) => !entry.label || entry.amount === 0)
+            extraFlowEntries.some(
+                (entry) =>
+                    !entry.label ||
+                    entry.amount === "" ||
+                    Number(entry.amount) === 0
+            )
         ) {
             alert("Veuillez remplir tous les champs avant de continuer.");
             return;
         }
-        setFormData({ extraFlowEntries });
+        setFormData({
+            extraFlowEntries: extraFlowEntries.map((e) => ({
+                label: e.label,
+                amount: Number(e.amount),
+            })),
+        });
         nextStep();
     };
 
@@ -153,14 +171,16 @@ export default function Step4({
                                         }
                                     />
                                 </div>
-                                <Button
-                                    variant="outline"
-                                    className="h-10"
-                                    onClick={() => handleRemoveEntry(index)}
-                                    disabled={extraFlowEntries.length === 1}
-                                >
-                                    -
-                                </Button>
+                                <div className="pt-3">
+                                    <Button
+                                        variant="outline"
+                                        className="h-10"
+                                        onClick={() => handleRemoveEntry(index)}
+                                        disabled={extraFlowEntries.length === 1}
+                                    >
+                                        -
+                                    </Button>
+                                </div>
                             </div>
                         ))}
                         <Button variant="outline" onClick={handleAddEntry}>

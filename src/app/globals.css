@@ -164,26 +164,26 @@
 
 :root {
   --background: oklch(1.0000 0 0);
-  --foreground: oklch(0.2645 0 0);
+  --foreground: oklch(0.4702 0.0798 187.8390);
   --card: oklch(1.0000 0 0);
   --card-foreground: oklch(0.2645 0 0);
   --popover: oklch(1.0000 0 0);
   --popover-foreground: oklch(0.2645 0 0);
-  --primary: oklch(0.3250 0 0);
+  --primary: oklch(0.4702 0.0798 187.8390);
   --primary-foreground: oklch(0.9881 0 0);
   --secondary: oklch(0.9761 0 0);
-  --secondary-foreground: oklch(0.3250 0 0);
+  --secondary-foreground: oklch(0.7020 0.1893 22.5968);
   --muted: oklch(0.9761 0 0);
   --muted-foreground: oklch(0.6467 0 0);
   --accent: oklch(0.9761 0 0);
-  --accent-foreground: oklch(0.3250 0 0);
+  --accent-foreground: oklch(0.7020 0.1893 22.5968);
   --destructive: oklch(0.6195 0.2087 25.7511);
   --destructive-foreground: oklch(1.0000 0 0);
   --border: oklch(0.9401 0 0);
   --input: oklch(0.9401 0 0);
   --ring: oklch(0.7731 0 0);
-  --chart-1: oklch(0.8248 0.1255 84.9429);
-  --chart-2: oklch(0.8010 0.1114 203.2046);
+  --chart-1: oklch(0.7020 0.1893 22.5968);
+  --chart-2: oklch(0.4702 0.0798 187.8390);
   --chart-3: oklch(0.4194 0.1687 266.9275);
   --chart-4: oklch(0.9222 0.0759 125.5702);
   --chart-5: oklch(0.9149 0.1030 115.9972);
@@ -330,7 +330,7 @@ body {
   position: relative;
   animation: flicker 150ms infinite;
   filter: blur(.3px);
-  text-shadow: 0 0 .2px #0ff;
+  /* text-shadow: 0 0 .2px var(--primary); */
 }
 
 .crt::before {

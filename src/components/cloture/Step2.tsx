@@ -26,33 +26,39 @@ export default function Step2({
     setFormData: (data: Partial<FormData>) => void; // Utilisation de Partial<FormData>
 }) {
     // Initialiser les montants TPE avec les données existantes ou une valeur par défaut
-    const [tpeAmounts, setTpeAmounts] = useState<number[]>(
-        formData.tpeAmounts || [0]
+    const [tpeAmounts, setTpeAmounts] = useState<(number | "")[]>(
+        formData.tpeAmounts && formData.tpeAmounts.length > 0
+            ? formData.tpeAmounts
+            : [""]
     );
 
     // Simuler un état de chargement
     const isLoading = !formData;
 
     const handleAddTpe = () => {
-        setTpeAmounts((prev) => [...prev, 0]); // Ajouter un nouveau champ TPE
+        setTpeAmounts((prev) => [...prev, ""]);
     };
 
     const handleRemoveTpe = (index: number) => {
         setTpeAmounts((prev) => prev.filter((_, i) => i !== index)); // Supprimer un champ TPE
     };
 
-    const handleTpeChange = (index: number, value: number) => {
+    const handleTpeChange = (index: number, value: string) => {
         setTpeAmounts((prev) =>
-            prev.map((amount, i) => (i === index ? value : amount))
+            prev.map((amount, i) =>
+                i === index
+                    ? value === "" ? "" : Number(value)
+                    : amount
+            )
         );
     };
 
     const handleNext = () => {
-        if (tpeAmounts.some((amount) => amount <= 0)) {
+        if (tpeAmounts.some((amount) => !amount || Number(amount) <= 0)) {
             alert("Veuillez remplir tous les montants TPE avant de continuer.");
             return;
         }
-        setFormData({ tpeAmounts });
+        setFormData({ tpeAmounts: tpeAmounts.map(Number) });
         nextStep();
     };
 
@@ -107,14 +113,11 @@ export default function Step2({
                                     <input
                                         id={`tpe-${index}`}
                                         type="number"
-                                        placeholder={`Ex: 500`}
+                                        placeholder="Ex: 500"
                                         className="w-full border rounded-md p-2"
-                                        value={amount}
+                                        value={amount === 0 ? "" : amount}
                                         onChange={(e) =>
-                                            handleTpeChange(
-                                                index,
-                                                Number(e.target.value)
-                                            )
+                                            handleTpeChange(index, e.target.value)
                                         }
                                     />
                                 </div>
