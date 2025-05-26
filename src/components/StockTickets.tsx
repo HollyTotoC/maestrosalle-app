@@ -13,7 +13,8 @@ import { Skeleton } from "./ui/skeleton";
 import { Ticket, TicketStatus } from "@/types/ticket";
 import { Separator } from "./ui/separator";
 import { collection, onSnapshot, query, where, orderBy } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+import { db } from "@/lib/firebase/firebase";
+
 
 const statuses: Record<TicketStatus, string> = {
     new: "🆕 Nouveau",

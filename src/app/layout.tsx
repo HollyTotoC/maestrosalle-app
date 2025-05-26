@@ -27,7 +27,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head />
-      <body className={`${geistSans.variable} ${geistMono.variable} bg-neutral-50 dark:bg-neutral-900 text-neutral-900 dark:text-neutral-50`}>
+      <body className={`crt ${geistSans.variable} ${geistMono.variable}`}>
         <ThemeProvider > {/* Injecte la logique du mode sombre */}
           <AuthProvider>
             {children}

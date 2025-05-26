@@ -1,4 +1,8 @@
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "./ui/card";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faCashRegister, faCoins, faListCheck, faCake, faBoxesStacked } from "@fortawesome/free-solid-svg-icons";
+
 
 export default function ToolsSection() {
     const tools = [
@@ -7,16 +11,16 @@ export default function ToolsSection() {
             title: "Cloture de caisse",
             description:
                 "Gérez votre cloture : TPE, cash, Zelty, écarts et pourboires.",
-            icon: "💰",
+            icon: <FontAwesomeIcon icon={faCashRegister} fixedWidth />,
             comingSoon: false,
             url: "/cloture",
         },
         {
             id: 2,
-            title: "Partage des pourboires",
+            title: "Tips calculator",
             description:
                 "Calculez et répartissez les pourboires entre les serveurs et la cuisine.",
-            icon: "💸",
+            icon: <FontAwesomeIcon icon={faCoins}  fixedWidth />,
             comingSoon: false,
             url: "/tipsParty", // URL de l'outil TipsParty
         },
@@ -24,7 +28,7 @@ export default function ToolsSection() {
             id: 3,
             title: "Todo list",
             description: "Organisez vos tâches de la journée.",
-            icon: "✅",
+            icon: <FontAwesomeIcon icon={faListCheck}  fixedWidth />,
             comingSoon: true,
             url: "/todo",
         },
@@ -33,7 +37,7 @@ export default function ToolsSection() {
             title: "Tiramisu",
             description:
                 "Suivez le stock de tiramisu et prevenez si y en plus.",
-            icon: "🍰",
+            icon: <FontAwesomeIcon icon={faCake}  fixedWidth />,
             comingSoon: false,
             url: "/tiramisu",
         },
@@ -42,7 +46,7 @@ export default function ToolsSection() {
             title: "Ticket de stock",
             description:
                 "Déclarez les manques, suivez leur état et consultez l’historique.",
-            icon: "📦",
+            icon: <FontAwesomeIcon icon={faBoxesStacked} fixedWidth />,
             comingSoon: false,
             url: "/stocks",
         },
@@ -50,34 +54,33 @@ export default function ToolsSection() {
     ];
 
     return (
-        <div className="p-4 bg-gray-100 dark:bg-neutral-900 rounded-lg shadow">
+        <div className="p-4 border-2 shadow">
             <h2 className="text-xl font-bold mb-4">Outils</h2>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
                 {tools.map((tool) => (
-                    <div
-                        key={tool.id}
-                        className="p-4 flex flex-col justify-between bg-white dark:bg-neutral-800 rounded-lg shadow hover:shadow-lg transition-shadow"
-                    >
-                        <div className="flex flex-col md:flex-row items-center gap-4">
+                    <Card key={tool.id}  className="gap-2">
+                        <CardHeader className="flex flex-col md:flex-row items-center gap-2 px-4">
                             <span className="text-3xl">{tool.icon}</span>
-                            <h3 className="text-lg font-bold">{tool.title}</h3>
-                        </div>
-                        <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
-                            {tool.description}
-                        </p>
-                        <Button
-                            className="w-full mt-4 cursor-pointer"
-                            variant={tool.comingSoon ? "outline" : undefined}
-                            disabled={tool.comingSoon}
-                            onClick={() => {
-                                if (!tool.comingSoon) {
-                                    window.location.href = tool.url;
-                                }
-                            }}
-                        >
-                            Accéder
-                        </Button>
-                    </div>
+                            <CardTitle className="text-lg font-bold">{tool.title}</CardTitle>
+                        </CardHeader>
+                        <CardContent className="flex-1 pb-0 px-4">
+                            <p className="text-sm mt-2">{tool.description}</p>
+                        </CardContent>
+                        <CardFooter className=" px-4">
+                            <Button
+                                className="w-full cursor-pointer"
+                                variant={tool.comingSoon ? "outline" : undefined}
+                                disabled={tool.comingSoon}
+                                onClick={() => {
+                                    if (!tool.comingSoon) {
+                                        window.location.href = tool.url;
+                                    }
+                                }}
+                            >
+                                Accéder
+                            </Button>
+                        </CardFooter>
+                    </Card>
                 ))}
             </div>
         </div>

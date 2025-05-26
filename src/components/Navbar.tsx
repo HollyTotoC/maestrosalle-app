@@ -77,7 +77,7 @@ export default function Navbar() {
   };
 
   return (
-    <nav className="flex items-center justify-between px-4 py-2 shadow-sm dark:shadow-neutral-600 bg-white dark:bg-black w-full sticky top-0 z-10">
+    <nav className="flex items-center justify-between px-4 py-2 shadow-sm w-full bg-background border-b-2 border-primary sticky top-0 z-10">
       <div className="text-xl font-bold cursor-pointer" onClick={handleChangeRestaurant}>
         {selectedRestaurant ? selectedRestaurant.name : "MaestroSalle"}
       </div>

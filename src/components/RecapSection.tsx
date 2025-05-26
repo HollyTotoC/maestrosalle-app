@@ -5,6 +5,7 @@ import {
     Card,
     CardContent,
     CardDescription,
+    CardFooter,
     CardHeader,
     CardTitle,
 } from "@/components/ui/card";
@@ -12,7 +13,6 @@ import { Badge } from "@/components/ui/badge";
 import {
     Table,
     TableBody,
-    TableCaption,
     TableCell,
     TableHead,
     TableHeader,
@@ -45,6 +45,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "./ui/button";
 import { listenToClosures } from "@/lib/firebase/server";
+import { Pagination, PaginationContent, PaginationItem, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 
 const chartConfig = {
     primeDeNoel: {
@@ -73,23 +74,6 @@ export default function RecapSection() {
         return () => unsubscribe(); // Nettoyage lors du démontage
     }, [selectedRestaurant]);
 
-    if (loading) {
-        return (
-            <div className="p-4 bg-gray-100 dark:bg-neutral-900 rounded-lg shadow">
-                <h2 className="text-xl font-bold mb-4">Récapitulatif</h2>
-                <p>Chargement des données...</p>
-            </div>
-        );
-    }
-
-    if (closures.length === 0) {
-        return (
-            <div className="p-4 bg-gray-100 dark:bg-neutral-900 rounded-lg shadow">
-                <h2 className="text-xl font-bold mb-4">Récapitulatif</h2>
-                <p>Aucune donnée disponible pour ce restaurant.</p>
-            </div>
-        );
-    }
 
     // Fonction pour générer une plage de dates
     function getDateRange(start: Date, end: Date): string[] {
@@ -157,8 +141,44 @@ export default function RecapSection() {
         Math.max(...safeData.map((d) => Math.max(d.primeDeNoel, d.banque))),
     ];
 
+    // Trier du plus récent au plus ancien
+    const sortedChartData = [...chartData].sort((a, b) => b.date.localeCompare(a.date));
+
+    // Pagination
+    const ITEMS_PER_PAGE = 7;
+    const [page, setPage] = useState(1);
+    const pageCount = Math.ceil(sortedChartData.length / ITEMS_PER_PAGE);
+    const paginatedData = sortedChartData.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
+
+
+    if (loading) {
+        return (
+            <Card className="p-4 rounded-lg shadow">
+                <CardHeader>
+                    <CardTitle className="text-xl font-bold mb-4">Récapitulatif</CardTitle>
+                </CardHeader>
+                <CardContent >
+                    <CardDescription>Chargement des données...</CardDescription>
+                </CardContent>
+            </Card>
+        );
+    }
+
+    if (closures.length === 0) {
+        return (
+            <Card className="p-4 rounded-lg shadow">
+                <CardHeader>
+                    <CardTitle className="text-xl font-bold mb-4">Récapitulatif</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <CardDescription>Aucune donnée disponible pour ce restaurant.</CardDescription>
+                </CardContent>
+            </Card>
+        );
+    }
+
     return (
-        <div className="p-4 bg-gray-100 dark:bg-neutral-900 rounded-lg shadow">
+        <div className="p-4 border-2 shadow">
             <h2 className="text-xl font-bold mb-4">Récapitulatif</h2>
 
             <Tabs defaultValue="table">
@@ -177,199 +197,228 @@ export default function RecapSection() {
 
                 {/* Vue Tableau */}
                 <TabsContent value="table">
-                    <Table>
-                        <TableCaption>
-                            Récapitulatif des clôtures de caisse.
-                        </TableCaption>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead className="">Date</TableHead>
-                                <TableHead className="hidden md:table-cell">
-                                    Coffre (€)
-                                </TableHead>
-                                <TableHead className="hidden md:table-cell">
-                                    Caisse (€)
-                                </TableHead>
-                                <TableHead className="hidden md:table-cell">
-                                    ExtraFlow (€)
-                                </TableHead>
-                                <TableHead className="hidden md:table-cell">
-                                    Écart CB (€)
-                                </TableHead>
-                                <TableHead className="hidden md:table-cell">
-                                    Écart Cash (€)
-                                </TableHead>
-                                <TableHead className="md:hidden"></TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {chartData.map((entry) => {
-                                const isMissingData =
-                                    entry.cashToSafe == null &&
-                                    entry.cashToKeep == null &&
-                                    entry.cashDiscrepancy == null &&
-                                    entry.tpeDiscrepancy == null &&
-                                    (entry.extraFlow == null ||
-                                        entry.extraFlow === 0);
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Historique de cloture de caisse</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead className="">Date</TableHead>
+                                    <TableHead className="hidden md:table-cell">
+                                        Coffre (€)
+                                    </TableHead>
+                                    <TableHead className="hidden md:table-cell">
+                                        Caisse (€)
+                                    </TableHead>
+                                    <TableHead className="hidden md:table-cell">
+                                        ExtraFlow (€)
+                                    </TableHead>
+                                    <TableHead className="hidden md:table-cell">
+                                        Écart CB (€)
+                                    </TableHead>
+                                    <TableHead className="hidden md:table-cell">
+                                        Écart Cash (€)
+                                    </TableHead>
+                                    <TableHead className="md:hidden"></TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {paginatedData.map((entry) => {
+                                    const isMissingData =
+                                        entry.cashToSafe == null &&
+                                        entry.cashToKeep == null &&
+                                        entry.cashDiscrepancy == null &&
+                                        entry.tpeDiscrepancy == null &&
+                                        (entry.extraFlow == null ||
+                                            entry.extraFlow === 0);
 
-                                console.log("entry.date:", entry.date);
-                                console.log(
-                                    "entry.cashToSafe:",
-                                    entry.cashToSafe
-                                );
-                                console.log(
-                                    "entry.cashToKeep:",
-                                    entry.cashToKeep
-                                );
-                                console.log(
-                                    "entry.extraFlow:",
-                                    entry.extraFlow
-                                );
-                                console.log(
-                                    "entry.cashDiscrepancy:",
-                                    entry.cashDiscrepancy
-                                );
-                                console.log(
-                                    "entry.tpeDiscrepancy:",
-                                    entry.tpeDiscrepancy
-                                );
-                                console.log("isMissingData:", isMissingData);
+                                    console.log("entry.date:", entry.date);
+                                    console.log(
+                                        "entry.cashToSafe:",
+                                        entry.cashToSafe
+                                    );
+                                    console.log(
+                                        "entry.cashToKeep:",
+                                        entry.cashToKeep
+                                    );
+                                    console.log(
+                                        "entry.extraFlow:",
+                                        entry.extraFlow
+                                    );
+                                    console.log(
+                                        "entry.cashDiscrepancy:",
+                                        entry.cashDiscrepancy
+                                    );
+                                    console.log(
+                                        "entry.tpeDiscrepancy:",
+                                        entry.tpeDiscrepancy
+                                    );
+                                    console.log("isMissingData:", isMissingData);
 
-                                return (
-                                    <TableRow
-                                        key={entry.date}
-                                        className={`${
-                                            isMissingData
-                                                ? "text-gray-500"
-                                                : "bg-white dark:bg-black"
-                                        } md:table-row`}
-                                    >
-                                        <TableCell className="">
-                                            {entry.date}
-                                        </TableCell>
-                                        <TableCell className="hidden md:table-cell">
-                                            {entry.cashToSafe !== null
-                                                ? `${entry.cashToSafe} €`
-                                                : "N/A"}
-                                        </TableCell>
-                                        <TableCell className="hidden md:table-cell">
-                                            {entry.cashToKeep !== null
-                                                ? `${entry.cashToKeep} €`
-                                                : "N/A"}
-                                        </TableCell>
-                                        <TableCell className="hidden md:table-cell">
-                                            {entry.extraFlow !== null
-                                                ? `${entry.extraFlow} €`
-                                                : "N/A"}
-                                        </TableCell>
-                                        <TableCell className="hidden md:table-cell">
-                                            <Badge
-                                                variant={
-                                                    entry.tpeDiscrepancy ===
-                                                    null
-                                                        ? "default"
-                                                        : entry.tpeDiscrepancy <
-                                                          5
-                                                        ? "secondary"
-                                                        : "destructive"
-                                                }
-                                            >
-                                                {entry.tpeDiscrepancy !== null
-                                                    ? `${entry.tpeDiscrepancy} €`
+                                    return (
+                                        <TableRow
+                                            key={entry.date}
+                                            className={`${
+                                                isMissingData
+                                                    ? "text-gray-500 bg-background/40"
+                                                    : "bg-background hover:bg-accent hover:text-accent-foreground"
+                                            } md:table-row`}
+                                        >
+                                            <TableCell className="">
+                                                {entry.date}
+                                            </TableCell>
+                                            <TableCell className="hidden md:table-cell">
+                                                {entry.cashToSafe !== null
+                                                    ? `${entry.cashToSafe} €`
                                                     : "N/A"}
-                                            </Badge>
-                                        </TableCell>
-                                        <TableCell className="hidden md:table-cell">
-                                            <Badge
-                                                variant={
-                                                    entry.cashDiscrepancy ===
-                                                    null
-                                                        ? "default"
-                                                        : entry.cashDiscrepancy <
-                                                          5
-                                                        ? "secondary"
-                                                        : "destructive"
-                                                }
-                                            >
-                                                {entry.cashDiscrepancy !== null
-                                                    ? `${entry.cashDiscrepancy} €`
+                                            </TableCell>
+                                            <TableCell className="hidden md:table-cell">
+                                                {entry.cashToKeep !== null
+                                                    ? `${entry.cashToKeep} €`
                                                     : "N/A"}
-                                            </Badge>
-                                        </TableCell>
-                                        {/* Mobile: Bouton pour ouvrir le dialogue */}
-                                        <TableCell className="md:hidden">
-                                            <Dialog>
-                                                <DialogTrigger asChild>
-                                                    <Button>Détails</Button>
-                                                </DialogTrigger>
-                                                <DialogContent>
-                                                    <DialogHeader>
-                                                        <DialogTitle>
-                                                            Détails pour{" "}
-                                                            {entry.date}
-                                                        </DialogTitle>
-                                                    </DialogHeader>
-                                                    <div className="space-y-2">
-                                                        <p>
-                                                            <strong>
-                                                                Date :
-                                                            </strong>{" "}
-                                                            {entry.date}
-                                                        </p>
-                                                        <p>
-                                                            <strong>
-                                                                Coffre :
-                                                            </strong>{" "}
-                                                            {entry.cashToSafe !==
-                                                            null
-                                                                ? `${entry.cashToSafe} €`
-                                                                : "N/A"}
-                                                        </p>
-                                                        <p>
-                                                            <strong>
-                                                                Caisse :
-                                                            </strong>{" "}
-                                                            {entry.cashToKeep !==
-                                                            null
-                                                                ? `${entry.cashToKeep} €`
-                                                                : "N/A"}
-                                                        </p>
-                                                        <p>
-                                                            <strong>
-                                                                ExtraFlow :
-                                                            </strong>{" "}
-                                                            {entry.extraFlow !==
-                                                            null
-                                                                ? `${entry.extraFlow} €`
-                                                                : "N/A"}
-                                                        </p>
-                                                        <p>
-                                                            <strong>
-                                                                Écart CB :
-                                                            </strong>{" "}
-                                                            {entry.tpeDiscrepancy !==
-                                                            null
-                                                                ? `${entry.tpeDiscrepancy} €`
-                                                                : "N/A"}
-                                                        </p>
-                                                        <p>
-                                                            <strong>
-                                                                Écart Cash :
-                                                            </strong>{" "}
-                                                            {entry.cashDiscrepancy !==
-                                                            null
-                                                                ? `${entry.cashDiscrepancy} €`
-                                                                : "N/A"}
-                                                        </p>
-                                                    </div>
-                                                </DialogContent>
-                                            </Dialog>
-                                        </TableCell>
-                                    </TableRow>
-                                );
-                            })}
-                        </TableBody>
-                    </Table>
+                                            </TableCell>
+                                            <TableCell className="hidden md:table-cell">
+                                                {entry.extraFlow !== null
+                                                    ? `${entry.extraFlow} €`
+                                                    : "N/A"}
+                                            </TableCell>
+                                            <TableCell className="hidden md:table-cell">
+                                                <Badge
+                                                    variant={
+                                                        entry.tpeDiscrepancy ===
+                                                        null
+                                                            ? "default"
+                                                            : entry.tpeDiscrepancy <
+                                                            5
+                                                            ? "secondary"
+                                                            : "destructive"
+                                                    }
+                                                >
+                                                    {entry.tpeDiscrepancy !== null
+                                                        ? `${entry.tpeDiscrepancy} €`
+                                                        : "N/A"}
+                                                </Badge>
+                                            </TableCell>
+                                            <TableCell className="hidden md:table-cell">
+                                                <Badge
+                                                    variant={
+                                                        entry.cashDiscrepancy ===
+                                                        null
+                                                            ? "default"
+                                                            : entry.cashDiscrepancy <
+                                                            5
+                                                            ? "secondary"
+                                                            : "destructive"
+                                                    }
+                                                >
+                                                    {entry.cashDiscrepancy !== null
+                                                        ? `${entry.cashDiscrepancy} €`
+                                                        : "N/A"}
+                                                </Badge>
+                                            </TableCell>
+                                            {/* Mobile: Bouton pour ouvrir le dialogue */}
+                                            <TableCell className="md:hidden">
+                                                <Dialog>
+                                                    <DialogTrigger asChild>
+                                                        <Button>Détails</Button>
+                                                    </DialogTrigger>
+                                                    <DialogContent>
+                                                        <DialogHeader>
+                                                            <DialogTitle>
+                                                                Détails pour{" "}
+                                                                {entry.date}
+                                                            </DialogTitle>
+                                                        </DialogHeader>
+                                                        <div className="space-y-2">
+                                                            <p>
+                                                                <strong>
+                                                                    Date :
+                                                                </strong>{" "}
+                                                                {entry.date}
+                                                            </p>
+                                                            <p>
+                                                                <strong>
+                                                                    Coffre :
+                                                                </strong>{" "}
+                                                                {entry.cashToSafe !==
+                                                                null
+                                                                    ? `${entry.cashToSafe} €`
+                                                                    : "N/A"}
+                                                            </p>
+                                                            <p>
+                                                                <strong>
+                                                                    Caisse :
+                                                                </strong>{" "}
+                                                                {entry.cashToKeep !==
+                                                                null
+                                                                    ? `${entry.cashToKeep} €`
+                                                                    : "N/A"}
+                                                            </p>
+                                                            <p>
+                                                                <strong>
+                                                                    ExtraFlow :
+                                                                </strong>{" "}
+                                                                {entry.extraFlow !==
+                                                                null
+                                                                    ? `${entry.extraFlow} €`
+                                                                    : "N/A"}
+                                                            </p>
+                                                            <p>
+                                                                <strong>
+                                                                    Écart CB :
+                                                                </strong>{" "}
+                                                                {entry.tpeDiscrepancy !==
+                                                                null
+                                                                    ? `${entry.tpeDiscrepancy} €`
+                                                                    : "N/A"}
+                                                            </p>
+                                                            <p>
+                                                                <strong>
+                                                                    Écart Cash :
+                                                                </strong>{" "}
+                                                                {entry.cashDiscrepancy !==
+                                                                null
+                                                                    ? `${entry.cashDiscrepancy} €`
+                                                                    : "N/A"}
+                                                            </p>
+                                                        </div>
+                                                    </DialogContent>
+                                                </Dialog>
+                                            </TableCell>
+                                        </TableRow>
+                                    );
+                                })}
+                            </TableBody>
+                        </Table>
+                        {/* Pagination */}
+                        <Pagination>
+                            <PaginationContent>
+                                <PaginationItem>
+                                    <PaginationPrevious
+                                        className={`cursor-pointer${page === 1 ? " pointer-events-none opacity-50" : ""}`}
+                                        onClick={() => {
+                                            if (page > 1) setPage((p) => Math.max(1, p - 1));
+                                        }}
+                                    />
+                                </PaginationItem>
+                                <PaginationItem>
+                                    {page} / {pageCount}
+                                </PaginationItem>
+                                <PaginationItem>
+                                    <PaginationNext
+                                        className={`cursor-pointer${page === pageCount ? " pointer-events-none opacity-50" : ""}`}
+                                        onClick={() => {
+                                            if (page < pageCount) setPage((p) => Math.min(pageCount, p + 1));
+                                        }}
+                                    />
+                                </PaginationItem>
+                            </PaginationContent>
+                        </Pagination>
+                        </CardContent>
+                        <CardFooter />
+                    </Card>
                 </TabsContent>
 
                 {/* Graphique des écarts */}
