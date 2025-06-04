@@ -79,7 +79,7 @@ export default function RestaurantSelector() {
     return (
         <div className="flex flex-col justify-center items-center gap-8 grow">
             <h1 className="text-2xl font-bold">Sélectionnez un restaurant</h1>
-            <div className="flex gap-4">
+            <div className="flex flex-col md:flex-row gap-4">
                 {isLoading ? (
                     <div
                         className="animate-pulse flex flex-col items-center"

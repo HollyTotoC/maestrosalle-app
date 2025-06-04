@@ -10,13 +10,17 @@ interface UserStore {
     restaurantId: string | null;
     avatarUrl: string | null;
     displayName: string | null;
+    isAdmin: boolean;
+    since: string | null; // Date de création du compte ou autre info pertinente
     setUser: (
         userId: string | null,
         role: Role | null,
         email: string | null,
         restaurantId: string | null,
         avatarUrl: string | null,
-        displayName: string | null
+        displayName: string | null,
+        isAdmin?: boolean,
+        since?: string | null
     ) => void;
     logout: () => void;
 }
@@ -30,8 +34,10 @@ export const useUserStore = create(
             restaurantId: null,
             avatarUrl: null,
             displayName: null,
-            setUser: (userId, role, email, restaurantId, avatarUrl, displayName) =>
-                set({ userId, email, role, restaurantId, avatarUrl, displayName }),
+            isAdmin: false,
+            since: null,
+            setUser: (userId, role, email, restaurantId, avatarUrl, displayName, isAdmin, since) =>
+                set({ userId, email, role, restaurantId, avatarUrl, displayName, isAdmin, since }),
             logout: () =>
                 set({
                     userId: null,
@@ -40,6 +46,8 @@ export const useUserStore = create(
                     restaurantId: null,
                     avatarUrl: null,
                     displayName: null,
+                    isAdmin: false,
+                    since: null,
                 }),
               
         }),

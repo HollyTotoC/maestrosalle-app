@@ -20,6 +20,8 @@ import { Switch } from "@/components/ui/switch";
 import { logout } from "@/lib/firebase/client";
 import { useUserStore } from "@/store/useUserStore";
 import { useTheme } from "@/components/ThemeProvider";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faArrowLeft } from "@fortawesome/free-solid-svg-icons";
 
 const tools = [
   {
@@ -72,14 +74,33 @@ export default function Navbar() {
     return parts.map((part) => part[0]).join("").toUpperCase();
   };
 
-  const handleChangeRestaurant = () => {
+  const handleBackToLanding = () => {
     useAppStore.setState({ selectedRestaurant: null });
+  };
+  const handleGoToDashboard = () => {
+    if (selectedRestaurant) {
+      window.location.href = "/dashboard";
+    }
   };
 
   return (
     <nav className="flex items-center justify-between px-4 py-2 shadow-sm w-full bg-background border-b-2 border-primary sticky top-0 z-10">
-      <div className="text-xl font-bold cursor-pointer" onClick={handleChangeRestaurant}>
-        {selectedRestaurant ? selectedRestaurant.name : "MaestroSalle"}
+      <div className="flex items-center gap-2">
+        {selectedRestaurant && (
+          <button
+            aria-label="Changer de restaurant"
+            onClick={handleBackToLanding}
+            className="cursor-pointer text-primary hover:text-accent/80 hover:bg-primary transition p-1"
+          >
+            <FontAwesomeIcon icon={faArrowLeft} />
+          </button>
+        )}
+        <span
+          className={`text-xl text-primary/80 font-bold ${selectedRestaurant ? "cursor-pointer hover:text-primary/100" : "cursor-default"}`}
+          onClick={handleGoToDashboard}
+        >
+          {selectedRestaurant ? selectedRestaurant.name : "MaestroSalle"}
+        </span>
       </div>
 
       {selectedRestaurant && (
@@ -114,6 +135,9 @@ export default function Navbar() {
                 </ul>
               </NavigationMenuContent>
             </NavigationMenuItem>
+            <NavigationMenuItem>
+              <NavigationMenuLink href="/team">Équipe</NavigationMenuLink>
+            </NavigationMenuItem>
           </NavigationMenuList>
         </NavigationMenu>
       )}
@@ -133,6 +157,11 @@ export default function Navbar() {
             </Avatar>
           </DropdownMenuTrigger>
           <DropdownMenuContent>
+            <DropdownMenuItem
+              onClick={() => window.location.href = "/profil"}
+            >
+              Profil
+            </DropdownMenuItem>
             <DropdownMenuItem
               onClick={handleLogout}
               className="text-red-600 hover:bg-red-100"

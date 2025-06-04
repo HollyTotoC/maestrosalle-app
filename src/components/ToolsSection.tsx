@@ -54,7 +54,7 @@ export default function ToolsSection() {
     ];
 
     return (
-        <div className="p-4 border-2 shadow">
+        <div className="p-4 rounded border-2 shadow">
             <h2 className="text-xl font-bold mb-4">Outils</h2>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
                 {tools.map((tool) => (

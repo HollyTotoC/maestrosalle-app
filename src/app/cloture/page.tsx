@@ -37,7 +37,9 @@ export default function Cloture() {
 
     const router = useRouter();
 
+    const hasHydrated = useAppStore((state) => state.hasHydrated);
     const restaurantId = useAppStore((state) => state.selectedRestaurant?.id ?? "defaultRestaurantId");
+    if (!hasHydrated) return null; // Avoid UI flicker
 
     const nextStep = () => setStep((prev) => Math.min(prev + 1, 8));
     const prevStep = () => {

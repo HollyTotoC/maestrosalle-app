@@ -1,5 +1,3 @@
-"use client";
-
 import { useEffect } from "react";
 import { onAuthStateChanged } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
@@ -23,9 +21,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             data.email ?? user.email ?? null,
             data.restaurantId ?? null,
             data.avatarUrl ?? user.photoURL ?? null,
-            data.displayName ?? user.displayName ?? null,
-            data.isAdmin ?? false,
-            data.since ?? null
+            data.displayName ?? user.displayName ?? null
           );
         } else {
           setUser(
@@ -34,13 +30,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             user.email,
             null,
             user.photoURL,
-            user.displayName,
-            false,
-            null
+            user.displayName
           );
         }
       } else {
-        setUser(null, null, null, null, null, null, false, null);
+        setUser(null, null, null, null, null, null);
       }
     });
     return () => unsubscribe();

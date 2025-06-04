@@ -14,7 +14,7 @@ export default function TodoSection() {
   };
 
   return (
-    <div className="p-4 border-2 shadow">
+    <div className="p-4 rounded border-2 shadow">
       <h2 className="text-xl font-bold mb-4">À faire</h2>
       <div className="flex gap-2 mb-4">
         <Input

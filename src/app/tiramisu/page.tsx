@@ -7,10 +7,16 @@ import { Button } from "@/components/ui/button";
 import { Drawer, DrawerContent } from "@/components/ui/drawer";
 import UpdateTiramisuStockForm from "@/components/tiramisu/UpdateTiramisuStockForm";
 import TiramisuList from "@/components/tiramisu/TiramisuList";
+import { useAppStore } from "@/store/store";
 
 export default function TiramisuPage() {
   const [isAddBatchOpen, setIsAddBatchOpen] = useState(false);
   const [isUpdateServiceOpen, setIsUpdateServiceOpen] = useState(false);
+
+          const hasHydrated = useAppStore((state) => state.hasHydrated);
+      
+          if (!hasHydrated) return null; // Avoid UI flicker
+  
 
   return (
     <div className="flex flex-col min-h-screen">

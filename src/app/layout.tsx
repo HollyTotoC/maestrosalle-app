@@ -27,12 +27,13 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head />
-      <body className={`crt ${geistSans.variable} ${geistMono.variable}`}>
+      <body className={`crt min-h-[100dvh] ${geistSans.variable} ${geistMono.variable}`}>
         <ThemeProvider > {/* Injecte la logique du mode sombre */}
           <AuthProvider>
             {children}
           </AuthProvider>
         </ThemeProvider>
+
       </body>
     </html>
   );

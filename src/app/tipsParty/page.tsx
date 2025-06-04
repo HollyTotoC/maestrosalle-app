@@ -5,10 +5,16 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PieChart, Pie, Cell, Tooltip } from "recharts";
 import { Input } from "@/components/ui/input";
 import Navbar from "@/components/Navbar";
+import { useAppStore } from "@/store/store";
 
 export default function TipsParty() {
     const [staffCount, setStaffCount] = useState<number>(0);
     const [totalTips, setTotalTips] = useState<number>(0);
+
+            const hasHydrated = useAppStore((state) => state.hasHydrated);
+        
+            if (!hasHydrated) return null; // Avoid UI flicker
+    
 
     const calculateTips = (totalTips: number, staffCount: number) => {
         let kitchenShare = 0;
