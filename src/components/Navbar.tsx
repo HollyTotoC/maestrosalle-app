@@ -21,7 +21,11 @@ import { logout } from "@/lib/firebase/client";
 import { useUserStore } from "@/store/useUserStore";
 import { useTheme } from "@/components/ThemeProvider";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faArrowLeft } from "@fortawesome/free-solid-svg-icons";
+import { faArrowLeft, faBars, faGauge, faPeopleGroup } from "@fortawesome/free-solid-svg-icons";
+import { Button } from "./ui/button";
+import { Sheet, SheetTrigger, SheetContent } from "@/components/ui/sheet";
+import { faCashRegister, faChartPie, faListCheck, faCake, faBoxesStacked } from "@fortawesome/free-solid-svg-icons";
+import { DialogTitle } from "./ui/dialog";
 
 const tools = [
   {
@@ -83,6 +87,24 @@ export default function Navbar() {
     }
   };
 
+  // Ajoute une fonction pour obtenir l'icône du tool
+  const getToolIcon = (title: string) => {
+    switch (title) {
+      case "Clôture de caisse":
+        return faCashRegister;
+      case "Partage des pourboires":
+        return faChartPie;
+      case "Todo list":
+        return faListCheck;
+      case "Tiramisu":
+        return faCake;
+      case "Stock":
+        return faBoxesStacked;
+      default:
+        return faListCheck;
+    }
+  };
+
   return (
     <nav className="flex items-center justify-between px-4 py-2 shadow-sm w-full bg-background border-b-2 border-primary sticky top-0 z-10">
       <div className="flex items-center gap-2">
@@ -104,7 +126,7 @@ export default function Navbar() {
       </div>
 
       {selectedRestaurant && (
-        <NavigationMenu>
+        <NavigationMenu className="hidden md:flex">
           <NavigationMenuList>
             <NavigationMenuItem>
               <NavigationMenuLink href="/dashboard">Dashboard</NavigationMenuLink>
@@ -124,7 +146,10 @@ export default function Navbar() {
                               : "hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
                           }`}
                         >
-                          <div className="text-sm font-medium leading-none">{tool.title}</div>
+                          <div className="flex items-center gap-2 text-sm font-medium leading-none">
+                            <FontAwesomeIcon icon={getToolIcon(tool.title)} className="w-4 h-4 opacity-80" />
+                            {tool.title}
+                          </div>
                           <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
                             {tool.description}
                           </p>
@@ -136,7 +161,7 @@ export default function Navbar() {
               </NavigationMenuContent>
             </NavigationMenuItem>
             <NavigationMenuItem>
-              <NavigationMenuLink href="/team">Équipe</NavigationMenuLink>
+              <NavigationMenuLink href="/team">L&apos;équipe</NavigationMenuLink>
             </NavigationMenuItem>
           </NavigationMenuList>
         </NavigationMenu>
@@ -170,7 +195,51 @@ export default function Navbar() {
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
-      </div>
+
+        {/* Sheet menu mobile (md-) */}
+
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button size="icon">
+                <FontAwesomeIcon icon={faBars} className="h-6 w-6" />
+                <span className="sr-only">Ouvrir le menu</span>
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="left" className="p-5 sticky h-screen">
+              <DialogTitle>MENU</DialogTitle>
+              <nav className="flex flex-col gap-2 px-4">
+                {selectedRestaurant && (
+                  <>
+                    <a href="/dashboard" className="text-lg font-semibold py-2 flex items-center gap-2">
+                      <FontAwesomeIcon icon={faGauge} size="lg" className="w-4 h-4 opacity-80" fixedWidth />
+                      Dashboard
+                    </a>
+                    <div className="font-semibold mt-4 mb-1">Outils</div>
+                    <ul className="ml-3 flex flex-col gap-1">
+                      {tools.map((tool) => (
+                        <li key={tool.title}>
+                          <a
+                            href={tool.href}
+                            className={`flex items-center gap-2 text-base py-2 pl-2 rounded ${tool.comingSoon ? "cursor-not-allowed text-gray-400" : "hover:bg-accent/30"}`}
+                            tabIndex={tool.comingSoon ? -1 : 0}
+                            {...(tool.comingSoon ? { "aria-disabled": true } : {})}
+                          >
+                            <FontAwesomeIcon icon={getToolIcon(tool.title)} className="w-4 h-4 opacity-80" />
+                            {tool.title}
+                          </a>
+                        </li>
+                      ))}
+                    </ul>
+                    <a href="/team" className="text-lg font-semibold py-2 mt-4 flex items-center gap-2">
+                      <FontAwesomeIcon icon={faPeopleGroup} size="lg" className="w-4 h-4 opacity-80" fixedWidth />
+                      L&apos;équipe
+                    </a>
+                  </>
+                )}
+              </nav>
+            </SheetContent>
+          </Sheet>
+        </div>
     </nav>
   );
 }

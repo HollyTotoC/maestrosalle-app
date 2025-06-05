@@ -2,10 +2,12 @@ import React from "react";
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Pagination, PaginationContent, PaginationItem, PaginationPrevious, PaginationNext } from "@/components/ui/pagination";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Drawer, DrawerTrigger, DrawerContent, DrawerHeader, DrawerTitle, DrawerDescription } from "@/components/ui/drawer";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faVault, faCashRegister, faCreditCard, faCoins, faMoneyBill1Wave } from "@fortawesome/free-solid-svg-icons";
 
 interface RecapTableEntry {
   date: string;
@@ -125,26 +127,95 @@ const RecapTable: React.FC<RecapTableProps> = ({ paginatedData, closures, users,
                     <span className="text-gray-400">-</span>
                   )}
                 </TableCell>
-                {/* Mobile: Bouton pour ouvrir le dialogue */}
+                {/* Mobile: Bouton pour ouvrir le drawer */}
                 <TableCell className="md:hidden">
-                  <Dialog>
-                    <DialogTrigger asChild>
+                  <Drawer>
+                    <DrawerTrigger asChild>
                       <Button>Détails</Button>
-                    </DialogTrigger>
-                    <DialogContent>
-                      <DialogHeader>
-                        <DialogTitle>Détails pour {entry.date}</DialogTitle>
-                      </DialogHeader>
-                      <div className="space-y-2">
-                        <p><strong>Date :</strong> {entry.date}</p>
-                        <p><strong>Coffre :</strong> {entry.cashToSafe !== null ? `${entry.cashToSafe} €` : "N/A"}</p>
-                        <p><strong>Caisse :</strong> {entry.cashToKeep !== null ? `${entry.cashToKeep} €` : "N/A"}</p>
-                        <p><strong>ExtraFlow :</strong> {entry.extraFlow !== null ? `${entry.extraFlow} €` : "N/A"}</p>
-                        <p><strong>Écart CB :</strong> {entry.tpeDiscrepancy !== null ? `${entry.tpeDiscrepancy} €` : "N/A"}</p>
-                        <p><strong>Écart Cash :</strong> {entry.cashDiscrepancy !== null ? `${entry.cashDiscrepancy} €` : "N/A"}</p>
+                    </DrawerTrigger>
+                    <DrawerContent className="sticky p-4">
+                      <DrawerHeader>
+                        <DrawerTitle>Détails pour le {entry.date}</DrawerTitle>
+                        <DrawerDescription>
+                          {user ? (
+                            <div className="flex items-center gap-2">
+                              <Avatar className="h-6 w-6">
+                                {user.avatarUrl && <AvatarImage src={user.avatarUrl} alt={user.displayName} />}
+                                <AvatarFallback>
+                                  {user.displayName
+                                    .split(" ")
+                                    .map((n) => n[0])
+                                    .join("")
+                                    .toUpperCase()
+                                    .slice(0, 2)}
+                                </AvatarFallback>
+                              </Avatar>
+                              <span>{user.displayName}</span>
+                            </div>
+                          ) : (
+                            <span className="text-gray-400">-</span>
+                          )}
+                        </DrawerDescription>
+                      </DrawerHeader>
+                      <div className="space-y-2 mb-12">
+                        <ul className="divide-y divide-muted/40">
+                          <li className="flex items-center gap-3 py-2">
+                            <span className="w-7 flex justify-center text-primary">
+                              <FontAwesomeIcon icon={faVault} />
+                            </span>
+                            <span className="flex-1">Coffre</span>
+                            <span className="font-semibold text-right">
+                              {entry.cashToSafe !== null ? `${entry.cashToSafe} €` : "N/A"}
+                            </span>
+                          </li>
+                          <li className="flex items-center gap-3 py-2">
+                            <span className="w-7 flex justify-center">
+                              <FontAwesomeIcon icon={faCashRegister} />
+                            </span>
+                            <span className="flex-1">Caisse</span>
+                            <span className="font-semibold text-right">
+                              {entry.cashToKeep !== null ? `${entry.cashToKeep} €` : "N/A"}
+                            </span>
+                          </li>
+                          <li className="flex items-center gap-3 py-2">
+                            <span className="w-7 flex justify-center">
+                              <FontAwesomeIcon icon={faMoneyBill1Wave} />
+                            </span>
+                            <span className="flex-1">ExtraFlow</span>
+                            <span className="font-semibold text-right">
+                              {entry.extraFlow !== null ? `${entry.extraFlow} €` : "N/A"}
+                            </span>
+                          </li>
+                          <li className="flex items-center gap-3 py-2">
+                            <span className="w-7 flex justify-center">
+                              <FontAwesomeIcon icon={faCreditCard} />
+                            </span>
+                            <span className="flex-1">Écart CB</span>
+                            <span
+                              className={`font-semibold text-right ${
+                                entry.tpeDiscrepancy !== null && entry.tpeDiscrepancy >= 5 ? "text-destructive" : ""
+                              }`}
+                            >
+                              {entry.tpeDiscrepancy !== null ? `${entry.tpeDiscrepancy} €` : "N/A"}
+                            </span>
+                          </li>
+                          <li className="flex items-center gap-3 py-2">
+                            <span className="w-7 flex justify-center">
+                              <FontAwesomeIcon icon={faCoins} />
+                            </span>
+                            <span className="flex-1">Écart Cash</span>
+                            <span
+                              className={`font-semibold text-right ${
+                                entry.cashDiscrepancy !== null && entry.cashDiscrepancy >= 5 ? "text-destructive" : ""
+                              }`}
+                            >
+                              {entry.cashDiscrepancy !== null ? `${entry.cashDiscrepancy} €` : "N/A"}
+                            </span>
+                          </li>
+                        </ul>
                       </div>
-                    </DialogContent>
-                  </Dialog>
+                    </DrawerContent>
+                  </Drawer>
                 </TableCell>
               </TableRow>
             );
