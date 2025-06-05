@@ -199,7 +199,7 @@ export default function Navbar() {
         {/* Sheet menu mobile (md-) */}
 
           <Sheet>
-            <SheetTrigger asChild>
+            <SheetTrigger className="md:hidden" asChild>
               <Button size="icon">
                 <FontAwesomeIcon icon={faBars} className="h-6 w-6" />
                 <span className="sr-only">Ouvrir le menu</span>
