@@ -54,6 +54,11 @@ const tools = [
     description: "Suivez le stock manquant.",
     href: "/stocks",
   },
+  {
+    title: "Disponibilités Hebdo",
+    description: "Déclarez vos disponibilités ou visualisez le planning de l'équipe.",
+    href: "/dispos",
+  },
 ];
 
 export default function Navbar() {
@@ -100,6 +105,8 @@ export default function Navbar() {
         return faCake;
       case "Stock":
         return faBoxesStacked;
+      case "Disponibilités Hebdo":
+        return faPeopleGroup;
       default:
         return faListCheck;
     }

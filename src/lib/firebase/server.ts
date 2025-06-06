@@ -355,3 +355,54 @@ export function listenToUsers() {
     useUsersStore.getState().setUsers(users);
   });
 }
+
+// Enregistre les disponibilités hebdo d'un utilisateur pour une semaine donnée
+export const saveUserDispos = async ({
+  semaineStart,
+  semaineEnd,
+  userId,
+  data,
+}: {
+  semaineStart: Date;
+  semaineEnd: Date;
+  userId: string;
+  data: import("@/types/dispos").UserDispos;
+}) => {
+  // Génère l'UID de la semaine (YYYY-MM-DD du lundi)
+  const semaineUid = semaineStart.toISOString().slice(0, 10);
+  // Références Firestore
+  const semaineRef = doc(db, "disponibilites", semaineUid);
+  const userRef = doc(db, `disponibilites/${semaineUid}/users`, userId);
+
+  // 1. Stocke les métadonnées de la semaine (si besoin)
+  await setDoc(semaineRef, {
+    metadata: {
+      semaineStart: Timestamp.fromDate(semaineStart),
+      semaineEnd: Timestamp.fromDate(semaineEnd),
+    },
+  }, { merge: true });
+
+  // 2. Nettoyage strict des données utilisateur
+  const cleanDisponibilites: Record<string, { midi: { dispo: boolean; priorite: number }; soir: { dispo: boolean; priorite: number } }> = {};
+  for (const [dateISO, day] of Object.entries(data.disponibilites)) {
+    cleanDisponibilites[dateISO] = {
+      midi: {
+        dispo: Boolean(day.midi.dispo),
+        priorite: Number(day.midi.priorite),
+      },
+      soir: {
+        dispo: Boolean(day.soir.dispo),
+        priorite: Number(day.soir.priorite),
+      },
+    };
+  }
+  const cleanData = {
+    role: data.role,
+    shiftsSouhaites: Number(data.shiftsSouhaites),
+    preference: data.preference,
+    disponibilites: cleanDisponibilites,
+  };
+
+  // 3. Stocke les dispos de l'utilisateur
+  await setDoc(userRef, cleanData, { merge: true });
+};

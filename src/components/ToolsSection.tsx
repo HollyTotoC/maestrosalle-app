@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "./ui/card";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faCashRegister, faCoins, faListCheck, faCake, faBoxesStacked } from "@fortawesome/free-solid-svg-icons";
+import { faCashRegister, faCoins, faListCheck, faCake, faBoxesStacked, faPeopleGroup } from "@fortawesome/free-solid-svg-icons";
 
 
 export default function ToolsSection() {
@@ -50,13 +50,21 @@ export default function ToolsSection() {
             comingSoon: false,
             url: "/stocks",
         },
+        {
+            id: 6,
+            title: "Dispo Hebdo",
+            description: "Déclarez vos disponibilités ou visualisez le planning de l'équipe.",
+            icon: <FontAwesomeIcon icon={faPeopleGroup} fixedWidth />,
+            comingSoon: false,
+            url: "/dispos",
+        },
 
     ];
 
     return (
         <div className="p-4 rounded border-2 shadow">
             <h2 className="text-xl font-bold mb-4">Outils</h2>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
                 {tools.map((tool) => (
                     <Card key={tool.id}  className="gap-2">
                         <CardHeader className="flex flex-col md:flex-row items-center gap-2 px-4">
