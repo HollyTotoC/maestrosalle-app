@@ -26,6 +26,12 @@ import { Button } from "./ui/button";
 import { Sheet, SheetTrigger, SheetContent } from "@/components/ui/sheet";
 import { faCashRegister, faChartPie, faListCheck, faCake, faBoxesStacked } from "@fortawesome/free-solid-svg-icons";
 import { DialogTitle } from "./ui/dialog";
+import { useUsersStoreSync } from "@/store/useUsersStore";
+
+function UsersStoreSyncer() {
+  useUsersStoreSync();
+  return null;
+}
 
 const tools = [
   {
@@ -114,6 +120,7 @@ export default function Navbar() {
 
   return (
     <nav className="flex items-center justify-between px-4 py-2 shadow-sm w-full bg-background border-b-2 border-primary sticky top-0 z-10">
+      <UsersStoreSyncer />
       <div className="flex items-center gap-2">
         {selectedRestaurant && (
           <button

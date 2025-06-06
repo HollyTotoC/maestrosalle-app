@@ -2,6 +2,7 @@
 "use client";
 import React from "react";
 import DisposForm from "@/components/dispos/DisposForm";
+import DisposManagerTable from "@/components/dispos/DisposManagerTable";
 import Navbar from "@/components/Navbar";
 import { useAppStore } from "@/store/store";
 import { useUserStore } from "@/store/useUserStore";
@@ -52,11 +53,21 @@ export default function DisposPage() {
         }
     }
 
+    // Affichage conditionnel : manager/owner/admin
+    const isManager = ["manager", "owner"].includes(role || "") || useUserStore.getState().isAdmin;
+
     return (
         <>
             <Navbar />
-            <main className="max-w-2xl mx-auto p-4">
-                <DisposForm onSubmit={handleDisposSubmit} />
+            <main className="max-w-5xl mx-auto p-4">
+                {isManager ? (
+                    <>
+                        <DisposManagerTable />
+                        <DisposForm onSubmit={handleDisposSubmit} />
+                    </>
+                ) : (
+                    <DisposForm onSubmit={handleDisposSubmit} />
+                )}
             </main>
         </>
     );
