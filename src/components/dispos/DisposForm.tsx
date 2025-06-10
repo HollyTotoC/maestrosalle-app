@@ -168,6 +168,12 @@ const DisposForm: React.FC<DisposFormProps> = ({ initialData, onSubmit }) => {
         fetchUserDispos();
     }, [semaine, userId]);
 
+    // Découpage des jours pour le wrap mobile : 4 premiers jours puis 3 suivants
+    const joursLigne1 = jours.slice(0, 4);
+    const joursLigne2 = jours.slice(4);
+    const weekDatesLigne1 = weekDates.slice(0, 4);
+    const weekDatesLigne2 = weekDates.slice(4);
+
     return (
         <>
             <div className="mb-6 flex items-center gap-3">
@@ -282,106 +288,312 @@ const DisposForm: React.FC<DisposFormProps> = ({ initialData, onSubmit }) => {
                                 </select>
                             </div>
                         </div>
-                        <div className="overflow-x-auto">
-                            <table className="min-w-full border text-sm bg-white dark:bg-zinc-900 rounded shadow">
-                                <thead>
-                                    <tr>
-                                        <th className="border px-2 py-1 bg-muted/60">
-                                            &nbsp;
-                                        </th>
-                                        {jours.map((jour) => (
-                                            <th
-                                                key={jour}
-                                                className="border px-2 py-1 text-center bg-muted/60 font-semibold"
-                                            >
-                                                {jour}
+                        <div className="w-full">
+                            {/* Tableau complet : desktop (md+) */}
+                            <div className="hidden md:block overflow-x-auto">
+                                <table className="min-w-full border text-sm bg-white dark:bg-zinc-900 rounded shadow">
+                                    <thead>
+                                        <tr>
+                                            <th className="border px-2 py-1 bg-muted/60">
+                                                &nbsp;
                                             </th>
-                                        ))}
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {["midi", "soir"].map((shift) => (
-                                        <tr key={shift}>
-                                            <td className="border px-2 py-1 font-semibold text-right bg-muted/40">
-                                                {shift === "midi"
-                                                    ? "Midi"
-                                                    : "Soir"}
-                                            </td>
-                                            {weekDates.map((date) => {
-                                                const iso = date
-                                                    .toISOString()
-                                                    .slice(0, 10);
-                                                const s = shift as
-                                                    | "midi"
-                                                    | "soir";
-                                                return (
-                                                    <td
-                                                        key={iso}
-                                                        className="border px-2 py-1 text-center align-middle"
-                                                    >
-                                                        <div className="flex flex-col items-center gap-1">
-                                                            <Checkbox
-                                                                checked={
-                                                                    disponibilites[
-                                                                        iso
-                                                                    ]?.[s].dispo
-                                                                }
-                                                                onCheckedChange={(checked) =>
-                                                                    handleDispoChange(
-                                                                        iso,
-                                                                        s,
-                                                                        "dispo",
-                                                                        !!checked
-                                                                    )
-                                                                }
-                                                                aria-label={`Disponible ${shift}`}
-                                                            />
-                                                            <select
-                                                                title={`Priorité ${shift}`}
-                                                                value={
-                                                                    disponibilites[
-                                                                        iso
-                                                                    ]?.[s]
-                                                                        .priorite
-                                                                }
-                                                                onChange={(e) =>
-                                                                    handleDispoChange(
-                                                                        iso,
-                                                                        s,
-                                                                        "priorite",
-                                                                        Number(
-                                                                            e
-                                                                                .target
-                                                                                .value
-                                                                        )
-                                                                    )
-                                                                }
-                                                                className="w-full mt-1"
-                                                            >
-                                                                <option
-                                                                    value={1}
-                                                                >
-                                                                    Forte
-                                                                </option>
-                                                                <option
-                                                                    value={2}
-                                                                >
-                                                                    Normale
-                                                                </option>
-                                                                <option
-                                                                    value={3}
-                                                                >
-                                                                    Faible
-                                                                </option>
-                                                            </select>
-                                                        </div>
-                                                    </td>
-                                                );
-                                            })}
+                                            {jours.map((jour) => (
+                                                <th
+                                                    key={jour}
+                                                    className="border px-2 py-1 text-center bg-muted/60 font-semibold"
+                                                >
+                                                    {jour}
+                                                </th>
+                                            ))}
                                         </tr>
-                                    ))}
-                                </tbody>
-                            </table>
+                                    </thead>
+                                    <tbody>
+                                        {["midi", "soir"].map((shift) => (
+                                            <tr key={shift}>
+                                                <td className="border px-2 py-1 font-semibold text-right bg-muted/40">
+                                                    {shift === "midi"
+                                                        ? "Midi"
+                                                        : "Soir"}
+                                                </td>
+                                                {weekDates.map((date) => {
+                                                    const iso = date
+                                                        .toISOString()
+                                                        .slice(0, 10);
+                                                    const s = shift as
+                                                        | "midi"
+                                                        | "soir";
+                                                    return (
+                                                        <td
+                                                            key={iso}
+                                                            className="border px-2 py-1 text-center align-middle"
+                                                        >
+                                                            <div className="flex flex-col items-center gap-1">
+                                                                <Checkbox
+                                                                    checked={
+                                                                        disponibilites[
+                                                                            iso
+                                                                        ]?.[s].dispo
+                                                                    }
+                                                                    onCheckedChange={(checked) =>
+                                                                        handleDispoChange(
+                                                                            iso,
+                                                                            s,
+                                                                            "dispo",
+                                                                            !!checked
+                                                                        )
+                                                                    }
+                                                                    aria-label={`Disponible ${shift}`}
+                                                                />
+                                                                <select
+                                                                    title={`Priorité ${shift}`}
+                                                                    value={
+                                                                        disponibilites[
+                                                                            iso
+                                                                        ]?.[s]
+                                                                            .priorite
+                                                                    }
+                                                                    onChange={(e) =>
+                                                                        handleDispoChange(
+                                                                            iso,
+                                                                            s,
+                                                                            "priorite",
+                                                                            Number(
+                                                                                e
+                                                                                    .target
+                                                                                    .value
+                                                                            )
+                                                                        )
+                                                                    }
+                                                                    className="w-full mt-1"
+                                                                >
+                                                                    <option
+                                                                        value={1}
+                                                                    >
+                                                                        Forte
+                                                                    </option>
+                                                                    <option
+                                                                        value={2}
+                                                                    >
+                                                                        Normale
+                                                                    </option>
+                                                                    <option
+                                                                        value={3}
+                                                                    >
+                                                                        Faible
+                                                                    </option>
+                                                                </select>
+                                                            </div>
+                                                        </td>
+                                                    );
+                                                })}
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                            {/* Tableau wrap en 2 lignes : mobile (md-) */}
+                            <div className="block md:hidden overflow-x-auto w-full">
+                                {/* Ligne 1 : lundi à jeudi */}
+                                <table className="min-w-full border text-sm bg-white dark:bg-zinc-900 rounded shadow mb-4">
+                                    <thead>
+                                        <tr>
+                                            <th className="border px-2 py-1 bg-muted/60">
+                                                &nbsp;
+                                            </th>
+                                            {joursLigne1.map((jour) => (
+                                                <th
+                                                    key={jour}
+                                                    className="border px-2 py-1 text-center bg-muted/60 font-semibold"
+                                                >
+                                                    {jour}
+                                                </th>
+                                            ))}
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {["midi", "soir"].map((shift) => (
+                                            <tr key={shift}>
+                                                <td className="border px-2 py-1 font-semibold text-right bg-muted/40">
+                                                    {shift === "midi"
+                                                        ? "Midi"
+                                                        : "Soir"}
+                                                </td>
+                                                {weekDatesLigne1.map((date) => {
+                                                    const iso = date
+                                                        .toISOString()
+                                                        .slice(0, 10);
+                                                    const s = shift as
+                                                        | "midi"
+                                                        | "soir";
+                                                    return (
+                                                        <td
+                                                            key={iso}
+                                                            className="border px-2 py-1 text-center align-middle"
+                                                        >
+                                                            <div className="flex flex-col items-center gap-1">
+                                                                <Checkbox
+                                                                    checked={
+                                                                        disponibilites[
+                                                                            iso
+                                                                        ]?.[s].dispo
+                                                                    }
+                                                                    onCheckedChange={(checked) =>
+                                                                        handleDispoChange(
+                                                                            iso,
+                                                                            s,
+                                                                            "dispo",
+                                                                            !!checked
+                                                                        )
+                                                                    }
+                                                                    aria-label={`Disponible ${shift}`}
+                                                                />
+                                                                <select
+                                                                    title={`Priorité ${shift}`}
+                                                                    value={
+                                                                        disponibilites[
+                                                                            iso
+                                                                        ]?.[s]
+                                                                            .priorite
+                                                                    }
+                                                                    onChange={(e) =>
+                                                                        handleDispoChange(
+                                                                            iso,
+                                                                            s,
+                                                                            "priorite",
+                                                                            Number(
+                                                                                e
+                                                                                    .target
+                                                                                    .value
+                                                                            )
+                                                                        )
+                                                                    }
+                                                                    className="w-full mt-1"
+                                                                >
+                                                                    <option
+                                                                        value={1}
+                                                                    >
+                                                                        Forte
+                                                                    </option>
+                                                                    <option
+                                                                        value={2}
+                                                                    >
+                                                                        Normale
+                                                                    </option>
+                                                                    <option
+                                                                        value={3}
+                                                                    >
+                                                                        Faible
+                                                                    </option>
+                                                                </select>
+                                                            </div>
+                                                        </td>
+                                                    );
+                                                })}
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                                {/* Ligne 2 : vendredi à dimanche */}
+                                <table className="min-w-full border text-sm bg-white dark:bg-zinc-900 rounded shadow">
+                                    <thead>
+                                        <tr>
+                                            <th className="border px-2 py-1 bg-muted/60">
+                                                &nbsp;
+                                            </th>
+                                            {joursLigne2.map((jour) => (
+                                                <th
+                                                    key={jour}
+                                                    className="border px-2 py-1 text-center bg-muted/60 font-semibold"
+                                                >
+                                                    {jour}
+                                                </th>
+                                            ))}
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {["midi", "soir"].map((shift) => (
+                                            <tr key={shift}>
+                                                <td className="border px-2 py-1 font-semibold text-right bg-muted/40">
+                                                    {shift === "midi"
+                                                        ? "Midi"
+                                                        : "Soir"}
+                                                </td>
+                                                {weekDatesLigne2.map((date) => {
+                                                    const iso = date
+                                                        .toISOString()
+                                                        .slice(0, 10);
+                                                    const s = shift as
+                                                        | "midi"
+                                                        | "soir";
+                                                    return (
+                                                        <td
+                                                            key={iso}
+                                                            className="border px-2 py-1 text-center align-middle"
+                                                        >
+                                                            <div className="flex flex-col items-center gap-1">
+                                                                <Checkbox
+                                                                    checked={
+                                                                        disponibilites[
+                                                                            iso
+                                                                        ]?.[s].dispo
+                                                                    }
+                                                                    onCheckedChange={(checked) =>
+                                                                        handleDispoChange(
+                                                                            iso,
+                                                                            s,
+                                                                            "dispo",
+                                                                            !!checked
+                                                                        )
+                                                                    }
+                                                                    aria-label={`Disponible ${shift}`}
+                                                                />
+                                                                <select
+                                                                    title={`Priorité ${shift}`}
+                                                                    value={
+                                                                        disponibilites[
+                                                                            iso
+                                                                        ]?.[s]
+                                                                            .priorite
+                                                                    }
+                                                                    onChange={(e) =>
+                                                                        handleDispoChange(
+                                                                            iso,
+                                                                            s,
+                                                                            "priorite",
+                                                                            Number(
+                                                                                e
+                                                                                    .target
+                                                                                    .value
+                                                                            )
+                                                                        )
+                                                                    }
+                                                                    className="w-full mt-1"
+                                                                >
+                                                                    <option
+                                                                        value={1}
+                                                                    >
+                                                                        Forte
+                                                                    </option>
+                                                                    <option
+                                                                        value={2}
+                                                                    >
+                                                                        Normale
+                                                                    </option>
+                                                                    <option
+                                                                        value={3}
+                                                                    >
+                                                                        Faible
+                                                                    </option>
+                                                                </select>
+                                                            </div>
+                                                        </td>
+                                                    );
+                                                })}
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                         <div className="flex justify-end">
                             <Button type="submit" className="mt-4">

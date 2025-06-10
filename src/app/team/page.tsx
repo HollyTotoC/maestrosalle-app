@@ -66,7 +66,7 @@ export default function TeamPage() {
               <h2 className="text-xl font-semibold mb-4 capitalize flex items-center gap-2">
                 <Badge variant="outline" className="uppercase tracking-wide text-xs">{role}</Badge>
               </h2>
-              <div className="w-fit gap-6">
+              <div className="w-fit flex flex-wrap gap-6">
                 {users.map((user) => (
                   <Card key={user.email} className="p-6 cursor-pointer rounded flex flex-col items-center gap-4 cursor-pointe bg-accent/70 hover:bg-secondary-foreground/20 hover:shadow-lg  shadow-primary hover:scale-105 transition" onClick={() => handleCardClick(user)}>
                     <div className="flex items-center md:items-start w-full gap-6">

@@ -64,7 +64,7 @@ export default function DisposPage() {
                 {isManager ? (
                     <>
                         <DisposManagerTable />
-                        <SectionSeparatorStack />
+                        <SectionSeparatorStack space={4} className="my-4"/>
                         <DisposForm onSubmit={handleDisposSubmit} />
                     </>
                 ) : (

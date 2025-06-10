@@ -21,7 +21,7 @@ export default function Dashboard() {
         <>
             <div className="crt-dome flex flex-col min-h-screen">
                 <Navbar />
-                <main className="p-4 flex flex-col gap-4 grow">
+                <main className="p-4 flex flex-col gap-4 w-full grow max-w-6xl mx-auto">
                     <div>
                         <h1 className="text-3xl">Tableau de bord</h1>
                         <p>

@@ -7,8 +7,10 @@ import { useUserStore } from "@/store/useUserStore";
 import { faEnvelopeOpenText } from "@fortawesome/free-solid-svg-icons";
 import { useClosuresStore } from "@/store/useClosuresStore";
 import { useAppStore } from "@/store/store";
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { updateClosuresIfNeeded } from "@/hooks/useClosures";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { ChevronDown } from "lucide-react";
 
 
 export default function ToolsSection() {
@@ -16,6 +18,7 @@ export default function ToolsSection() {
     const isAdmin = useUserStore((s) => s.isAdmin);
     const selectedRestaurant = useAppStore((s) => s.selectedRestaurant);
     const closures = useClosuresStore((s) => s.closures);
+    const [open, setOpen] = useState(false);
 
     // Récupérer les clôtures à jour au chargement si un restaurant est sélectionné
     useEffect(() => {
@@ -104,36 +107,45 @@ export default function ToolsSection() {
     ].filter(tool => (!tool.adminOnly || isAdmin || userRole === "owner" || userRole === "manager") && !tool.hide);
 
     return (
-        <div className="p-4 rounded border-2 shadow">
-            <h2 className="text-xl font-bold mb-0">Outils</h2>
-            <SectionSeparatorStack space={2} className="mb-2" />
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-                {tools.map((tool) => (
-                    <Card key={tool.id}  className="gap-2">
-                        <CardHeader className="flex flex-col md:flex-row items-center gap-2 px-4">
-                            <span className="text-3xl">{tool.icon}</span>
-                            <CardTitle className="text-lg font-bold">{tool.title}</CardTitle>
-                        </CardHeader>
-                        <CardContent className="flex-1 pb-0 px-4">
-                            <p className="text-sm mt-2">{tool.description}</p>
-                        </CardContent>
-                        <CardFooter className=" px-4">
-                            <Button
-                                className="w-full cursor-pointer"
-                                variant={tool.comingSoon ? "outline" : undefined}
-                                disabled={tool.comingSoon}
-                                onClick={() => {
-                                    if (!tool.comingSoon) {
-                                        window.location.href = tool.url;
-                                    }
-                                }}
-                            >
-                                Accéder
-                            </Button>
-                        </CardFooter>
-                    </Card>
-                ))}
+        <Collapsible open={open} onOpenChange={setOpen} className="p-4 rounded border-2 shadow">
+            <div className="flex items-center justify-between">
+                <h2 className="text-xl font-bold mb-0">Outils</h2>
+                <CollapsibleTrigger asChild>
+                    <Button variant="ghost" size="icon" aria-label="Afficher/masquer les outils">
+                        <ChevronDown className={`transition-transform ${open ? '' : '-rotate-90'}`} />
+                    </Button>
+                </CollapsibleTrigger>
             </div>
-        </div>
+            <SectionSeparatorStack space={2} className="mb-2" />
+            <CollapsibleContent>
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                    {tools.map((tool) => (
+                        <Card key={tool.id}  className="gap-2">
+                            <CardHeader className="flex flex-col md:flex-row items-center gap-2 px-4">
+                                <span className="text-3xl">{tool.icon}</span>
+                                <CardTitle className="text-lg font-bold">{tool.title}</CardTitle>
+                            </CardHeader>
+                            <CardContent className="flex-1 pb-0 px-4">
+                                <p className="text-sm mt-2">{tool.description}</p>
+                            </CardContent>
+                            <CardFooter className=" px-4">
+                                <Button
+                                    className="w-full cursor-pointer"
+                                    variant={tool.comingSoon ? "outline" : undefined}
+                                    disabled={tool.comingSoon}
+                                    onClick={() => {
+                                        if (!tool.comingSoon) {
+                                            window.location.href = tool.url;
+                                        }
+                                    }}
+                                >
+                                    Accéder
+                                </Button>
+                            </CardFooter>
+                        </Card>
+                    ))}
+                </div>
+            </CollapsibleContent>
+        </Collapsible>
     );
 }
