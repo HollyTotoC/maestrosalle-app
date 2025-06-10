@@ -18,4 +18,6 @@ export interface UserDispos {
   disponibilites: {
     [dateISO: string]: DispoDay;
   };
+    semaineStart?: Date; // Date de début de la semaine
+    semaineEnd?: Date; // Date de fin de la semaine
 }

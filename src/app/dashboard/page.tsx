@@ -13,6 +13,7 @@ export default function Dashboard() {
     const displayName = useUserStore((state) => state.displayName);
     const selectedRestaurant = useAppStore((state) => state.selectedRestaurant);
     const hasHydrated = useAppStore((state) => state.hasHydrated);
+    const role = useUserStore((state) => state.role);
 
     if (!hasHydrated) return null; // Avoid UI flicker
 
@@ -34,7 +35,8 @@ export default function Dashboard() {
                         <div className="flex flex-col gap-6">
                             <ToolsSection />
                             <TodoSection />
-                            <RecapSection />
+                            {/* RecapSection visible uniquement si le rôle n'est pas extra */}
+                            {role !== "extra" && <RecapSection />}
                         </div>
                     )}
                 </main>

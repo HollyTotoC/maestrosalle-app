@@ -22,6 +22,7 @@ import RecapTable from "@/components/recap/RecapTable";
 import RecapLineChart from "@/components/recap/RecapLineChart";
 import RecapStackedBarChart from "@/components/recap/RecapStackedBarChart";
 import RecapSafeEvolutionChart from "@/components/recap/RecapSafeEvolutionChart";
+import { SectionSeparatorStack } from "./SectionSeparatorStack";
 
 const chartConfig = {
     primeDeNoel: {
@@ -166,8 +167,8 @@ export default function RecapSection() {
 
     return (
         <div className="p-4 rounded border-2 shadow">
-            <h2 className="text-xl font-bold mb-4">Récapitulatif</h2>
-
+            <h2 className="text-xl font-bold">Récapitulatif</h2>
+            <SectionSeparatorStack space={2} className="mb-2" />
             <Tabs defaultValue="table">
                 <TabsList className="flex items-center justify-start flex-wrap h-auto space-y-1">
                     <TabsTrigger value="table">Tableau</TabsTrigger>

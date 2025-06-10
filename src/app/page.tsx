@@ -1,22 +1,33 @@
 "use client";
 
-import { useEffect } from "react";
+import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { loginWithGoogle } from "@/lib/firebase/client";
-import { useUserStore } from "@/store/useUserStore";
 import { doc, getDoc, setDoc } from "firebase/firestore";
-import { db } from "@/lib/firebase/firebase"; // adapte le chemin si besoin
+import { db } from "@/lib/firebase/firebase";
+import { UserProfileModal } from "@/components/UserProfileModal";
+import { InvitationCodeModal } from "@/components/InvitationCodeModal";
+import { toast } from "sonner";
+
+interface PendingUserData {
+  user: {
+    uid: string;
+    displayName: string | null;
+    email: string | null;
+    photoURL: string | null;
+  };
+  role: string;
+  inviteRef: import("firebase/firestore").DocumentReference;
+  inviteSnap: import("firebase/firestore").DocumentData;
+}
 
 export default function Home() {
   const router = useRouter();
-  const userId = useUserStore((state) => state.userId);
-
-  useEffect(() => {
-    if (userId) {
-      router.push("/dashboard");
-    }
-  }, [userId, router]);
+  const [showProfileModal, setShowProfileModal] = useState(false);
+  const [showCodeModal, setShowCodeModal] = useState(false);
+  const [pendingUserData, setPendingUserData] = useState<PendingUserData | null>(null);
+  const [pendingGoogleUser, setPendingGoogleUser] = useState<PendingUserData["user"] | null>(null);
 
   const handleLogin = async () => {
     try {
@@ -26,56 +37,66 @@ export default function Home() {
       const userSnap = await getDoc(userRef);
 
       if (userSnap.exists()) {
-        // Utilisateur déjà enregistré, accès direct
         router.push("/dashboard");
       } else {
-        // Demander le code d’invitation
-        const code = prompt("Entrez votre code d'invitation :");
-        if (!code) return;
-
-        // Vérifier le code dans Firestore
-        const inviteRef = doc(db, "invitations", code);
-        const inviteSnap = await getDoc(inviteRef);
-
-        if (code === "666") {
-          // Création d'un admin sans passer par la collection invitations
-          await setDoc(userRef, {
-            displayName: user.displayName,
-            email: user.email,
-            avatarUrl: user.photoURL,
-            role: "admin",
-            createdAt: new Date(),
-          });
-          alert("Bienvenue admin !");
-          router.push("/dashboard");
-          return;
-        }
-
-        if (!inviteSnap.exists() || inviteSnap.data().used) {
-          alert("Code invalide ou déjà utilisé.");
-          return;
-        }
-
-        // Créer le user avec les infos du code
-        const { role } = inviteSnap.data();
-        await setDoc(userRef, {
-          displayName: user.displayName,
-          email: user.email,
-          avatarUrl: user.photoURL,
-          role,
-          createdAt: new Date(),
-        });
-
-        // Marquer le code comme utilisé
-        await setDoc(inviteRef, { ...inviteSnap.data(), used: true }, { merge: true });
-
-        alert("Bienvenue ! Votre compte est activé.");
-        router.push("/dashboard");
+        setPendingGoogleUser(user);
+        setShowCodeModal(true);
       }
     } catch (error) {
       console.error("Erreur de connexion :", error);
-      alert("Échec de connexion. Veuillez réessayer.");
+      toast.error("Échec de connexion. Veuillez réessayer.");
     }
+  };
+
+  // Gestion de la soumission du code d'invitation
+  const handleCodeSubmit = async (code: string) => {
+    if (!pendingGoogleUser) return;
+    setShowCodeModal(false);
+    const inviteRef = doc(db, "invitations", code);
+    const inviteSnap = await getDoc(inviteRef);
+
+    if (!inviteSnap.exists() || inviteSnap.data().usedBy || inviteSnap.data().used) {
+      toast.error("Code invalide ou déjà utilisé.");
+      return;
+    }
+
+    setPendingUserData({
+      user: pendingGoogleUser,
+      role: inviteSnap.data().role,
+      inviteRef,
+      inviteSnap,
+    });
+    setShowProfileModal(true);
+  };
+
+  // Soumission du formulaire de profil
+  const handleProfileSubmit = async (formData: {
+    displayName: string;
+    email: string;
+    avatarUrl: string;
+    phone: string;
+    birthday: string;
+    since: string;
+  }) => {
+    if (!pendingUserData) return;
+    const { user, role, inviteRef, inviteSnap } = pendingUserData;
+    const userRef = doc(db, "users", user.uid);
+    await setDoc(userRef, {
+      displayName: formData.displayName,
+      email: formData.email,
+      avatarUrl: formData.avatarUrl,
+      phone: formData.phone,
+      birthday: formData.birthday,
+      since: formData.since,
+      role,
+      isAdmin: role === "admin",
+      createdAt: new Date(),
+    });
+    await setDoc(inviteRef, { ...inviteSnap.data(), usedBy: user.uid, used: true }, { merge: true });
+    toast.success("Bienvenue ! Votre compte est activé.");
+    setTimeout(() => {
+      router.push("/dashboard");
+    }, 300);
   };
 
   return (
@@ -87,6 +108,21 @@ export default function Home() {
       <div className="mt-4">
         <Button onClick={handleLogin}>Login avec Google</Button>
       </div>
+      <InvitationCodeModal
+        open={showCodeModal}
+        onClose={() => setShowCodeModal(false)}
+        onSubmit={handleCodeSubmit}
+      />
+      <UserProfileModal
+        open={showProfileModal}
+        onClose={() => setShowProfileModal(false)}
+        onSubmit={handleProfileSubmit}
+        initialData={pendingUserData ? {
+          displayName: pendingUserData.user.displayName || "",
+          email: pendingUserData.user.email || "",
+          avatarUrl: pendingUserData.user.photoURL || "",
+        } : { displayName: "", email: "", avatarUrl: "" }}
+      />
     </div>
   );
 }

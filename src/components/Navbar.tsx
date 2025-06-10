@@ -65,6 +65,12 @@ const tools = [
     description: "Déclarez vos disponibilités ou visualisez le planning de l'équipe.",
     href: "/dispos",
   },
+  {
+    title: "Invitations",
+    description: "Générez des codes d'invitation à usage unique pour attribuer un rôle.",
+    href: "/tools/invitations",
+    adminOnly: true,
+  },
 ];
 
 export default function Navbar() {
@@ -91,6 +97,7 @@ export default function Navbar() {
 
   const handleBackToLanding = () => {
     useAppStore.setState({ selectedRestaurant: null });
+    window.location.href = "/dashboard";
   };
   const handleGoToDashboard = () => {
     if (selectedRestaurant) {
@@ -117,6 +124,9 @@ export default function Navbar() {
         return faListCheck;
     }
   };
+
+  const isAdmin = useUserStore((state) => state.isAdmin);
+  const role = useUserStore((state) => state.role as string | null);
 
   return (
     <nav className="flex items-center justify-between px-4 py-2 shadow-sm w-full bg-background border-b-2 border-primary sticky top-0 z-10">
@@ -149,28 +159,30 @@ export default function Navbar() {
               <NavigationMenuTrigger>Tools</NavigationMenuTrigger>
               <NavigationMenuContent>
                 <ul className="grid gap-3 p-4 w-[300px] md:w-[400px] lg:w-[500px] lg:grid-cols-2">
-                  {tools.map((tool) => (
-                    <li key={tool.title}>
-                      <NavigationMenuLink asChild>
-                        <a
-                          href={tool.href}
-                          className={`block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors ${
-                            tool.comingSoon
-                              ? "cursor-not-allowed text-gray-400"
-                              : "hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
-                          }`}
-                        >
-                          <div className="flex items-center gap-2 text-sm font-medium leading-none">
-                            <FontAwesomeIcon icon={getToolIcon(tool.title)} className="w-4 h-4 opacity-80" />
-                            {tool.title}
-                          </div>
-                          <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
-                            {tool.description}
-                          </p>
-                        </a>
-                      </NavigationMenuLink>
-                    </li>
-                  ))}
+                  {tools
+                    .filter((tool) => !tool.adminOnly || isAdmin || role === "owner" || role === "manager")
+                    .map((tool) => (
+                      <li key={tool.title}>
+                        <NavigationMenuLink asChild>
+                          <a
+                            href={tool.href}
+                            className={`block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors ${
+                              tool.comingSoon
+                                ? "cursor-not-allowed text-gray-400"
+                                : "hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground"
+                            }`}
+                          >
+                            <div className="flex items-center gap-2 text-sm font-medium leading-none">
+                              <FontAwesomeIcon icon={getToolIcon(tool.title)} className="w-4 h-4 opacity-80" />
+                              {tool.title}
+                            </div>
+                            <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
+                              {tool.description}
+                            </p>
+                          </a>
+                        </NavigationMenuLink>
+                      </li>
+                    ))}
                 </ul>
               </NavigationMenuContent>
             </NavigationMenuItem>
@@ -230,19 +242,21 @@ export default function Navbar() {
                     </a>
                     <div className="font-semibold mt-4 mb-1">Outils</div>
                     <ul className="ml-3 flex flex-col gap-1">
-                      {tools.map((tool) => (
-                        <li key={tool.title}>
-                          <a
-                            href={tool.href}
-                            className={`flex items-center gap-2 text-base py-2 pl-2 rounded ${tool.comingSoon ? "cursor-not-allowed text-gray-400" : "hover:bg-accent/30"}`}
-                            tabIndex={tool.comingSoon ? -1 : 0}
-                            {...(tool.comingSoon ? { "aria-disabled": true } : {})}
-                          >
-                            <FontAwesomeIcon icon={getToolIcon(tool.title)} className="w-4 h-4 opacity-80" />
-                            {tool.title}
-                          </a>
-                        </li>
-                      ))}
+                      {tools
+                        .filter((tool) => !tool.adminOnly || isAdmin || role === "owner" || role === "manager")
+                        .map((tool) => (
+                          <li key={tool.title}>
+                            <a
+                              href={tool.href}
+                              className={`flex items-center gap-2 text-base py-2 pl-2 rounded ${tool.comingSoon ? "cursor-not-allowed text-gray-400" : "hover:bg-accent/30"}`}
+                              tabIndex={tool.comingSoon ? -1 : 0}
+                              {...(tool.comingSoon ? { "aria-disabled": true } : {})}
+                            >
+                              <FontAwesomeIcon icon={getToolIcon(tool.title)} className="w-4 h-4 opacity-80" />
+                              {tool.title}
+                            </a>
+                          </li>
+                        ))}
                     </ul>
                     <a href="/team" className="text-lg font-semibold py-2 mt-4 flex items-center gap-2">
                       <FontAwesomeIcon icon={faPeopleGroup} size="lg" className="w-4 h-4 opacity-80" fixedWidth />

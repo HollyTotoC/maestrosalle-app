@@ -2,9 +2,42 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "./ui/card";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCashRegister, faCoins, faListCheck, faCake, faBoxesStacked, faPeopleGroup } from "@fortawesome/free-solid-svg-icons";
+import { SectionSeparatorStack } from "./SectionSeparatorStack";
+import { useUserStore } from "@/store/useUserStore";
+import { faEnvelopeOpenText } from "@fortawesome/free-solid-svg-icons";
+import { useClosuresStore } from "@/store/useClosuresStore";
+import { useAppStore } from "@/store/store";
+import { useEffect, useMemo } from "react";
+import { updateClosuresIfNeeded } from "@/hooks/useClosures";
 
 
 export default function ToolsSection() {
+    const userRole = useUserStore((s) => s.role as string | null);
+    const isAdmin = useUserStore((s) => s.isAdmin);
+    const selectedRestaurant = useAppStore((s) => s.selectedRestaurant);
+    const closures = useClosuresStore((s) => s.closures);
+
+    // Récupérer les clôtures à jour au chargement si un restaurant est sélectionné
+    useEffect(() => {
+        if (selectedRestaurant?.id) {
+            updateClosuresIfNeeded(selectedRestaurant.id);
+        }
+    }, [selectedRestaurant?.id]);
+
+    // Vérifier si une clôture existe pour aujourd'hui
+    const hasClosureToday = useMemo(() => {
+        if (!closures || closures.length === 0) return false;
+        const today = new Date();
+        return closures.some((closure) => {
+            const closureDate = new Date(closure.date.seconds * 1000);
+            return (
+                closureDate.getFullYear() === today.getFullYear() &&
+                closureDate.getMonth() === today.getMonth() &&
+                closureDate.getDate() === today.getDate()
+            );
+        });
+    }, [closures]);
+
     const tools = [
         {
             id: 1,
@@ -14,6 +47,7 @@ export default function ToolsSection() {
             icon: <FontAwesomeIcon icon={faCashRegister} fixedWidth />,
             comingSoon: false,
             url: "/cloture",
+            hide: hasClosureToday,
         },
         {
             id: 2,
@@ -58,12 +92,21 @@ export default function ToolsSection() {
             comingSoon: false,
             url: "/dispos",
         },
-
-    ];
+        {
+            id: 7,
+            title: "Invitations",
+            description: "Générez des codes d'invitation à usage unique pour attribuer un rôle.",
+            icon: <FontAwesomeIcon icon={faEnvelopeOpenText} fixedWidth />, 
+            comingSoon: false,
+            url: "/tools/invitations",
+            adminOnly: true,
+        },
+    ].filter(tool => (!tool.adminOnly || isAdmin || userRole === "owner" || userRole === "manager") && !tool.hide);
 
     return (
         <div className="p-4 rounded border-2 shadow">
-            <h2 className="text-xl font-bold mb-4">Outils</h2>
+            <h2 className="text-xl font-bold mb-0">Outils</h2>
+            <SectionSeparatorStack space={2} className="mb-2" />
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
                 {tools.map((tool) => (
                     <Card key={tool.id}  className="gap-2">

@@ -4,11 +4,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import type { DispoDay, DispoPreference, UserDispos } from "@/types/dispos";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPeopleGroup } from "@fortawesome/free-solid-svg-icons";
 import { Checkbox } from "@/components/ui/checkbox";
+import { doc, getDoc } from "firebase/firestore";
+import { db } from "@/lib/firebase/firebase";
+import { useUserStore } from "@/store/useUserStore";
 
 const jours = [
     "Lundi",
@@ -25,13 +28,6 @@ const preferenceOptions = [
     { value: "aucune", label: "Sans préférence" },
 ];
 
-function getNextMonday(date = new Date()) {
-    const d = new Date(date);
-    d.setDate(d.getDate() + ((8 - d.getDay()) % 7 || 7));
-    d.setHours(0, 0, 0, 0);
-    return d;
-}
-
 // Correction : typage strict des props du composant DisposForm
 interface DisposFormProps {
     initialData?: UserDispos;
@@ -39,8 +35,20 @@ interface DisposFormProps {
 }
 
 const DisposForm: React.FC<DisposFormProps> = ({ initialData, onSubmit }) => {
-    // Semaine sélectionnée (par défaut semaine prochaine)
-    const [semaine, setSemaine] = useState(() => getNextMonday());
+    // Semaine sélectionnée (par défaut semaine courante, toujours lundi)
+    const [semaine, setSemaine] = useState(() => {
+        const today = new Date();
+        // On veut le lundi de la semaine courante OU prochaine si on est dimanche
+        const day = today.getDay();
+        // Si dimanche (0), on passe au lundi suivant
+        if (day === 0) {
+            today.setDate(today.getDate() + 1);
+        } else {
+            today.setDate(today.getDate() - (day - 1));
+        }
+        today.setHours(0, 0, 0, 0);
+        return today;
+    });
     // Nombre de shifts souhaités
     const [shiftsSouhaites, setShiftsSouhaites] = useState(
         initialData?.shiftsSouhaites || 5
@@ -90,7 +98,8 @@ const DisposForm: React.FC<DisposFormProps> = ({ initialData, onSubmit }) => {
     const handleChangeSemaine = (offset: number) => {
         setSemaine((prev) => {
             const d = new Date(prev);
-            d.setDate(d.getDate() + offset * 7);
+            d.setDate(prev.getDate() + offset * 7);
+            d.setHours(0, 0, 0, 0);
             return d;
         });
     };
@@ -103,16 +112,61 @@ const DisposForm: React.FC<DisposFormProps> = ({ initialData, onSubmit }) => {
             shiftsSouhaites,
             preference,
             disponibilites,
+            semaineStart: monday,
+            semaineEnd: weekDates[6],
         });
     };
 
-    // Génère les dates de la semaine sélectionnée
+    // Génère les dates de la semaine sélectionnée (toujours lundi-dimanche)
     const monday = new Date(semaine);
     const weekDates = Array.from({ length: 7 }, (_, i) => {
         const d = new Date(monday);
         d.setDate(monday.getDate() + i);
+        d.setHours(0, 0, 0, 0);
         return d;
     });
+
+    // Ajout : chargement des dispos Firestore pour la semaine et l'utilisateur
+    const userId = useUserStore((state) => state.userId);
+    useEffect(() => {
+        console.log("[DisposForm] useEffect triggered", { semaine });
+        async function fetchUserDispos() {
+            if (!userId) {
+                console.log("[DisposForm] Aucun userId trouvé dans useUserStore, fetch annulé");
+                return;
+            }
+            const semaineUid = semaine.toISOString().slice(0, 10);
+            const userRef = doc(db, `disponibilites/${semaineUid}/users`, userId);
+            console.log("[DisposForm] fetchUserDispos: userId", userId, "semaineUid", semaineUid);
+            const snap = await getDoc(userRef);
+            console.log("[DisposForm] Firestore snap.exists()", snap.exists(), snap.data());
+            if (snap.exists()) {
+                const data = snap.data() as UserDispos;
+                console.log("[DisposForm] Data loaded from Firestore:", data);
+                setShiftsSouhaites(data.shiftsSouhaites || 5);
+                setPreference(data.preference || "aucune");
+                setDisponibilites(data.disponibilites || {});
+            } else {
+                // Reset si pas de données
+                console.log("[DisposForm] Aucune donnée trouvée pour cette semaine, reset du formulaire");
+                const base: { [dateISO: string]: DispoDay } = {};
+                const monday = new Date(semaine);
+                for (let i = 0; i < 7; i++) {
+                    const d = new Date(monday);
+                    d.setDate(monday.getDate() + i);
+                    const iso = d.toISOString().slice(0, 10);
+                    base[iso] = {
+                        midi: { dispo: false, priorite: 1 },
+                        soir: { dispo: false, priorite: 1 },
+                    };
+                }
+                setShiftsSouhaites(5);
+                setPreference("aucune");
+                setDisponibilites(base);
+            }
+        }
+        fetchUserDispos();
+    }, [semaine, userId]);
 
     return (
         <>
@@ -138,6 +192,7 @@ const DisposForm: React.FC<DisposFormProps> = ({ initialData, onSubmit }) => {
                                 type="button"
                                 variant="outline"
                                 onClick={() => handleChangeSemaine(-1)}
+                                aria-label="Semaine précédente"
                             >
                                 &lt;
                             </Button>
@@ -149,6 +204,7 @@ const DisposForm: React.FC<DisposFormProps> = ({ initialData, onSubmit }) => {
                                 type="button"
                                 variant="outline"
                                 onClick={() => handleChangeSemaine(1)}
+                                aria-label="Semaine suivante"
                             >
                                 &gt;
                             </Button>
@@ -203,7 +259,7 @@ const DisposForm: React.FC<DisposFormProps> = ({ initialData, onSubmit }) => {
                             <div>
                                 <Label htmlFor="preference" className="block mb-2">
                                     Préférence de disponibilité
-                                </Label>  
+                                </Label>
                                 <select
                                     id="preference"
                                     value={preference}

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { SectionSeparatorStack } from "./SectionSeparatorStack";
 
 export default function TodoSection() {
   const [todos, setTodos] = useState<string[]>([]);
@@ -15,7 +16,8 @@ export default function TodoSection() {
 
   return (
     <div className="p-4 rounded border-2 shadow">
-      <h2 className="text-xl font-bold mb-4">À faire</h2>
+      <h2 className="text-xl font-bold">À faire</h2>
+      <SectionSeparatorStack space={2} className="mb-2" />
       <div className="flex gap-2 mb-4">
         <Input
           value={newTodo}

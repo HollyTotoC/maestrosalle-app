@@ -9,6 +9,7 @@ import { useUserStore } from "@/store/useUserStore";
 import { saveUserDispos } from "@/lib/firebase/server";
 import { toast } from "sonner";
 import type { UserDispos, DispoRole } from "@/types/dispos";
+import { SectionSeparatorStack } from "@/components/SectionSeparatorStack";
 
 export default function DisposPage() {
     const hasHydrated = useAppStore((state) => state.hasHydrated);
@@ -24,16 +25,16 @@ export default function DisposPage() {
     }
 
     // Handler pour la soumission du formulaire
-    async function handleDisposSubmit(data: UserDispos) {
+    async function handleDisposSubmit(data: UserDispos & { semaineStart?: Date; semaineEnd?: Date }) {
         console.log("%c[page.tsx] #1 handleDisposSubmit called", "color: #0984e3; font-weight: bold", data);
         if (!userId) {
             toast.error("Utilisateur non connecté");
             return;
         }
-        // Calcule le lundi et dimanche de la semaine sélectionnée
-        const semaineStart = new Date(Object.keys(data.disponibilites)[0]);
-        const semaineEnd = new Date(Object.keys(data.disponibilites)[6]);
-        console.log("%c[page.tsx] #2 semaineStart/semaineEnd", "color: #0984e3; font-weight: bold", { semaineStart, semaineEnd });
+        // Utilise explicitement les bornes de semaine transmises par le formulaire
+        const semaineStart = data.semaineStart ? new Date(data.semaineStart) : new Date(Object.keys(data.disponibilites)[0]);
+        const semaineEnd = data.semaineEnd ? new Date(data.semaineEnd) : new Date(Object.keys(data.disponibilites)[6]);
+        console.log("%c[page.tsx] #2 semaineStart/semaineEnd (depuis props)", "color: #0984e3; font-weight: bold", { semaineStart, semaineEnd });
         const userRole: DispoRole = mapRoleToDispoRole(role);
         try {
             console.log("%c[page.tsx] #3 calling saveUserDispos", "color: #0984e3; font-weight: bold", { semaineStart, semaineEnd, userId, data: { ...data, role: userRole } });
@@ -59,10 +60,11 @@ export default function DisposPage() {
     return (
         <>
             <Navbar />
-            <main className="max-w-5xl mx-auto p-4">
+            <main className="max-w-5xl mx-auto gap-4 p-4">
                 {isManager ? (
                     <>
                         <DisposManagerTable />
+                        <SectionSeparatorStack />
                         <DisposForm onSubmit={handleDisposSubmit} />
                     </>
                 ) : (

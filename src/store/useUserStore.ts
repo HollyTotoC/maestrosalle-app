@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
-type Role = "admin" | "serveur" | "manager" | "cuisine" | null;
+type Role = "admin" | "CDI" | "manager" | "cuisine" | "extra" | null;
 
 interface UserStore {
     userId: string | null;
@@ -11,7 +11,9 @@ interface UserStore {
     avatarUrl: string | null;
     displayName: string | null;
     isAdmin: boolean;
-    since: string | null; // Date de création du compte ou autre info pertinente
+    since: string | null;
+    phone: string | null;
+    birthday: string | null;
     setUser: (
         userId: string | null,
         role: Role | null,
@@ -20,7 +22,9 @@ interface UserStore {
         avatarUrl: string | null,
         displayName: string | null,
         isAdmin?: boolean,
-        since?: string | null
+        since?: string | null,
+        phone?: string | null,
+        birthday?: string | null
     ) => void;
     logout: () => void;
 }
@@ -36,8 +40,10 @@ export const useUserStore = create(
             displayName: null,
             isAdmin: false,
             since: null,
-            setUser: (userId, role, email, restaurantId, avatarUrl, displayName, isAdmin, since) =>
-                set({ userId, email, role, restaurantId, avatarUrl, displayName, isAdmin, since }),
+            phone: null,
+            birthday: null,
+            setUser: (userId, role, email, restaurantId, avatarUrl, displayName, isAdmin, since, phone, birthday) =>
+                set({ userId, email, role, restaurantId, avatarUrl, displayName, isAdmin, since, phone, birthday }),
             logout: () =>
                 set({
                     userId: null,
@@ -48,8 +54,9 @@ export const useUserStore = create(
                     displayName: null,
                     isAdmin: false,
                     since: null,
+                    phone: null,
+                    birthday: null,
                 }),
-              
         }),
         {
             name: "user-store", // Key for localStorage

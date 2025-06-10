@@ -7,14 +7,12 @@ import { Label } from "@/components/ui/label";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
     faCalendarDays,
-    faTriangleExclamation,
 } from "@fortawesome/free-solid-svg-icons";
-import { collection, getDocs } from "firebase/firestore";
+import { collection, onSnapshot } from "firebase/firestore";
 import { db } from "@/lib/firebase/firebase";
 import type { UserDispos } from "@/types/dispos";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useUsersStore } from "@/store/useUsersStore";
-import { Badge } from "@/components/ui/badge";
+import { DisposCardsPlanning } from "@/components/dispos/DisposCardsPlanning";
 
 const jours = [
     "Lundi",
@@ -55,42 +53,35 @@ export default function DisposManagerTable() {
         return d;
     });
 
-    // Récupère les dispos Firestore pour la semaine
+    // Récupère les dispos Firestore pour la semaine (écoute temps réel)
     useEffect(() => {
-        async function fetchDispos() {
-            setLoading(true);
-            setError(null);
-            try {
-                const semaineUid = semaine.toISOString().slice(0, 10);
-                const usersCol = collection(
-                    db,
-                    `disponibilites/${semaineUid}/users`
-                );
-                const snap = await getDocs(usersCol);
-                const data: Record<
-                    string,
-                    { userId: string; data: UserDispos }[]
-                > = {};
+        setLoading(true);
+        setError(null);
+        const semaineUid = semaine.toISOString().slice(0, 10);
+        const usersCol = collection(db, `disponibilites/${semaineUid}/users`);
+        const unsubscribe = onSnapshot(
+            usersCol,
+            (snap) => {
+                const data: Record<string, { userId: string; data: UserDispos }[]> = {};
                 snap.forEach((doc) => {
                     const userData = doc.data() as UserDispos;
-                    Object.entries(userData.disponibilites).forEach(
-                        ([dateISO]) => {
-                            if (!data[dateISO]) data[dateISO] = [];
-                            data[dateISO].push({
-                                userId: doc.id,
-                                data: userData,
-                            });
-                        }
-                    );
+                    Object.entries(userData.disponibilites).forEach(([dateISO]) => {
+                        if (!data[dateISO]) data[dateISO] = [];
+                        data[dateISO].push({
+                            userId: doc.id,
+                            data: userData,
+                        });
+                    });
                 });
                 setDispos(data);
-            } catch {
+                setLoading(false);
+            },
+            () => {
                 setError("Erreur lors du chargement des disponibilités");
-            } finally {
                 setLoading(false);
             }
-        }
-        fetchDispos();
+        );
+        return () => unsubscribe();
     }, [semaine]);
 
     // Semaine suivante/précédente
@@ -107,6 +98,31 @@ export default function DisposManagerTable() {
         if (!filterRole) return users;
         return users.filter((u) => u.data.role === filterRole);
     };
+
+    // Nouvelle fonction utilitaire pour la vue cards
+    function getShiftUsers(iso: string, shift: string) {
+        const users = filterByRole(dispos[iso] || []);
+        return users
+            .filter(
+                (u) =>
+                    u.data.disponibilites[iso]?.[shift as "midi" | "soir"]?.dispo
+            )
+            .sort(
+                (a, b) =>
+                    (a.data.disponibilites[iso][shift as "midi" | "soir"].priorite || 3) -
+                    (b.data.disponibilites[iso][shift as "midi" | "soir"].priorite || 3)
+            )
+            .map((u) => {
+                const userMeta = usersStore.users[u.userId];
+                return {
+                    userId: u.userId,
+                    displayName: userMeta?.displayName || u.userId,
+                    avatarUrl: userMeta?.avatarUrl || undefined,
+                    role: u.data.role,
+                    priorite: u.data.disponibilites[iso][shift as "midi" | "soir"].priorite,
+                };
+            });
+    }
 
     return (
         <>
@@ -125,43 +141,39 @@ export default function DisposManagerTable() {
                         filtrage par rôle disponibles.
                     </p>
                 </div>
-                {/* Navigation semaine */}
-                <div className="flex items-center gap-2 ml-auto">
-                    <Button
-                        type="button"
-                        variant="outline"
-                        size="icon"
-                        onClick={() => handleChangeSemaine(-1)}
-                        aria-label="Semaine précédente"
-                    >
-                        &lt;
-                    </Button>
-                    <span className="font-semibold text-sm">
-                        {weekDates[0].toLocaleDateString()} au{" "}
-                        {weekDates[6].toLocaleDateString()}
-                    </span>
-                    <Button
-                        type="button"
-                        variant="outline"
-                        size="icon"
-                        onClick={() => handleChangeSemaine(1)}
-                        aria-label="Semaine suivante"
-                    >
-                        &gt;
-                    </Button>
-                </div>
             </div>
             <Card className="max-w-5xl mx-auto mt-6">
-                <CardContent className="px-6 py-4">
+                <CardContent className="px-6 flex flex-col justify-center py-4">
+                    {/* Navigation semaine */}
+                    <div className="flex items-center justify-center w-full gap-4 mb-4">
+                        <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => handleChangeSemaine(-1)}
+                            aria-label="Semaine précédente"
+                        >
+                            &lt;
+                        </Button>
+                        <span className="font-semibold">
+                            {weekDates[0].toLocaleDateString()} au{" "}
+                            {weekDates[6].toLocaleDateString()}
+                        </span>
+                        <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => handleChangeSemaine(1)}
+                            aria-label="Semaine suivante"
+                        >
+                            &gt;
+                        </Button>
+                    </div>
                     {/* Filtres et actions */}
-                    <div className="flex gap-4 mb-2 items-center">
+                    <div className="flex gap-4 mb-4 items-center">
                         <Label>Filtrer par rôle :</Label>
                         {roles.map((r) => (
                             <Button
                                 key={r}
-                                variant={
-                                    filterRole === r ? "default" : "outline"
-                                }
+                                variant={filterRole === r ? "default" : "outline"}
                                 size="sm"
                                 onClick={() =>
                                     setFilterRole(filterRole === r ? null : r)
@@ -171,155 +183,14 @@ export default function DisposManagerTable() {
                             </Button>
                         ))}
                     </div>
-                    <div className="overflow-x-auto">
-                        <table className="min-w-full border text-sm bg-white dark:bg-zinc-900 rounded shadow">
-                            <thead>
-                                <tr>
-                                    <th className="border px-2 py-1 bg-muted/60">
-                                        Service
-                                    </th>
-                                    {jours.map((jour, i) => (
-                                        <th
-                                            key={jour}
-                                            className="border px-2 py-1 text-center bg-muted/60 font-semibold"
-                                        >
-                                            {jour}
-                                            <br />
-                                            <span className="text-xs text-muted-foreground">
-                                                {weekDates[
-                                                    i
-                                                ].toLocaleDateString()}
-                                            </span>
-                                        </th>
-                                    ))}
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {shifts.map((shift) => (
-                                    <tr key={shift}>
-                                        <td className="border px-2 py-1 font-semibold text-right bg-muted/40">
-                                            {shift === "midi" ? "Midi" : "Soir"}
-                                        </td>
-                                        {weekDates.map((date) => {
-                                            const iso = date
-                                                .toISOString()
-                                                .slice(0, 10);
-                                            const users = filterByRole(
-                                                dispos[iso] || []
-                                            );
-                                            const staffCount = users.filter(
-                                                (u) =>
-                                                    u.data.disponibilites[
-                                                        iso
-                                                    ]?.[
-                                                        shift as "midi" | "soir"
-                                                    ]?.dispo
-                                            ).length;
-                                            const isAlert =
-                                                staffCount < STAFF_MIN;
-                                            return (
-                                                <td
-                                                    key={iso}
-                                                    className={`border px-2 py-1 align-top ${
-                                                        isAlert
-                                                            ? "bg-red-100 dark:bg-red-900"
-                                                            : ""
-                                                    }`}
-                                                >
-                                                    {isAlert && (
-                                                        <span className="text-red-500 flex items-center gap-1 text-xs mb-1">
-                                                            <FontAwesomeIcon
-                                                                icon={
-                                                                    faTriangleExclamation
-                                                                }
-                                                            />{" "}
-                                                            Sous-effectif
-                                                        </span>
-                                                    )}
-                                                    <ul className="space-y-1">
-                                                        {users
-                                                            .filter(
-                                                                (u) =>
-                                                                    u.data
-                                                                        .disponibilites[
-                                                                        iso
-                                                                    ]?.[
-                                                                        shift as
-                                                                            | "midi"
-                                                                            | "soir"
-                                                                    ]?.dispo
-                                                            )
-                                                            .sort(
-                                                                (a, b) =>
-                                                                    (a.data
-                                                                        .disponibilites[
-                                                                        iso
-                                                                    ][
-                                                                        shift as
-                                                                            | "midi"
-                                                                            | "soir"
-                                                                    ]
-                                                                        .priorite ||
-                                                                        3) -
-                                                                    (b.data
-                                                                        .disponibilites[
-                                                                        iso
-                                                                    ][
-                                                                        shift as
-                                                                            | "midi"
-                                                                            | "soir"
-                                                                    ]
-                                                                        .priorite ||
-                                                                        3)
-                                                            )
-                                                            .map((u) => {
-                                                                const userMeta =
-                                                                    usersStore.users[u.userId];
-                                                                const displayName =
-                                                                    userMeta?.displayName ||
-                                                                    u.userId;
-                                                                const avatarUrl =
-                                                                    userMeta?.avatarUrl ||
-                                                                    undefined;
-                                                                const role = u.data.role;
-                                                                const priorite =
-                                                                    u.data
-                                                                        .disponibilites[
-                                                                        iso
-                                                                    ][
-                                                                        shift as
-                                                                            | "midi"
-                                                                            | "soir"
-                                                                    ].priorite;
-                                                                return (
-                                                                    <li key={u.userId}>
-  <Badge className={`inline-flex items-center gap-2 px-2 py-1 border text-xs font-medium min-w-[110px] ${priorite === 1 ? "bg-green-200 text-green-800" : priorite === 2 ? "bg-yellow-200 text-yellow-800" : "bg-gray-200 text-gray-800"}`}>
-    <Avatar className="w-5 h-5">
-      {avatarUrl ? (
-        <AvatarImage src={avatarUrl} alt={displayName} />
-      ) : (
-        <AvatarFallback className="flex">
-          {displayName.slice(0, 2).toUpperCase()}
-        </AvatarFallback>
-      )}
-    </Avatar>
-    <span className="font-semibold leading-tight">{displayName}</span>
-    <Badge variant="secondary" className="ml-1  text-[11px] font-semibold uppercase tracking-wide shadow-sm border-blue-700">
-      {role}
-    </Badge>
-  </Badge>
-</li>
-                                                                );
-                                                            })}
-                                                    </ul>
-                                                </td>
-                                            );
-                                        })}
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
+                    {/* Vue cards planning */}
+                    <DisposCardsPlanning
+                        weekDates={weekDates}
+                        jours={jours}
+                        shifts={shifts}
+                        getShiftUsers={getShiftUsers}
+                        STAFF_MIN={STAFF_MIN}
+                    />
                     {loading && (
                         <div className="text-center text-muted-foreground mt-2">
                             Chargement…
