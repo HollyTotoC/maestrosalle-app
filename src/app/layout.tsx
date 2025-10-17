@@ -28,14 +28,15 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head />
-      <body className={`crt min-h-[100dvh] ${geistSans.variable} ${geistMono.variable}`}>
-        <ThemeProvider > {/* Injecte la logique du mode sombre */}
-          <AuthProvider>
-            {children}
-            <Toaster />
-          </AuthProvider>
-        </ThemeProvider>
-
+      <body className={`min-h-[100dvh] ${geistSans.variable} ${geistMono.variable}`}>
+        <div className="crt min-h-[100dvh]">
+          <ThemeProvider > {/* Injecte la logique du mode sombre */}
+            <AuthProvider>
+              {children}
+              <Toaster />
+            </AuthProvider>
+          </ThemeProvider>
+        </div>
       </body>
     </html>
   );

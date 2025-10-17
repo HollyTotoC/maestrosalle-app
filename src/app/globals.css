@@ -380,7 +380,7 @@ body {
   /* text-shadow: 0 0 .2px var(--primary); */
 }
 
-body, .crt {
+.crt {
   /* ...autres styles... */
   filter: url(#crt-dome);
 }
