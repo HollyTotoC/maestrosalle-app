@@ -6,6 +6,7 @@ import TodoSelector from "@/components/todo/TodoSelector";
 import TodoChecklist from "@/components/todo/TodoChecklist";
 import { Moment, Jour } from "@/types/todo";
 import { useAppStore } from "@/store/store";
+import { useTodoStoreSync } from "@/store/useTodoStore";
 
 // Fonction pour détecter automatiquement le moment
 function getAutoMoment(): Moment {
@@ -31,9 +32,13 @@ function getJourFromDate(date: Date): Jour {
 
 export default function TodoPage() {
   const hasHydrated = useAppStore((state) => state.hasHydrated);
+  const selectedRestaurant = useAppStore((state) => state.selectedRestaurant);
 
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [selectedMoment, setSelectedMoment] = useState<Moment>(getAutoMoment());
+
+  // Synchroniser les todos avec Firebase pour le restaurant sélectionné
+  useTodoStoreSync(selectedRestaurant?.id || "", selectedDate);
 
   const handleResetToNow = () => {
     setSelectedDate(new Date());
@@ -64,7 +69,7 @@ export default function TodoPage() {
           onResetToNow={handleResetToNow}
         />
 
-        <TodoChecklist selectedMoment={selectedMoment} selectedJour={selectedJour} />
+        <TodoChecklist selectedMoment={selectedMoment} selectedJour={selectedJour} selectedDate={selectedDate} />
       </main>
     </div>
   );
