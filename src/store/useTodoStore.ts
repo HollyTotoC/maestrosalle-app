@@ -152,6 +152,9 @@ export const useTodoStore = create<TodoStore>((set, get) => ({
  * @param centerDate - Date centrale pour charger les complétions (±3 jours)
  */
 export function useTodoStoreSync(restaurantId: string, centerDate: Date = new Date()) {
+  // Extraire la date en string pour la dépendance
+  const centerDateString = centerDate.toDateString();
+
   useEffect(() => {
     if (!restaurantId) return;
 
@@ -196,5 +199,6 @@ export function useTodoStoreSync(restaurantId: string, centerDate: Date = new Da
       unsubscribeCompletions();
       unsubscribeSpecialTasks();
     };
-  }, [restaurantId, centerDate.toDateString()]); // Re-sync si le restaurant ou la date change
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [restaurantId, centerDateString]); // Re-sync si le restaurant ou la date change
 }
