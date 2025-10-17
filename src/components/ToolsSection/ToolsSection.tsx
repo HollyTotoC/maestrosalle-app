@@ -1,8 +1,8 @@
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "./ui/card";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "../ui/card";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCashRegister, faCoins, faListCheck, faCake, faBoxesStacked, faPeopleGroup } from "@fortawesome/free-solid-svg-icons";
-import { SectionSeparatorStack } from "./SectionSeparatorStack";
+import { SectionSeparatorStack } from "../SectionSeparatorStack";
 import { useUserStore } from "@/store/useUserStore";
 import { faEnvelopeOpenText } from "@fortawesome/free-solid-svg-icons";
 import { useClosuresStore } from "@/store/useClosuresStore";

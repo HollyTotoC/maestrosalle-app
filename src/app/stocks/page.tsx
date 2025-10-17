@@ -4,8 +4,13 @@ import Navbar from "@/components/Navbar";
 import StockTickets from "@/components/StockTickets";
 // Le module des tickets de stock
 import { Toaster } from "@/components/ui/sonner"; // Notifications
+import { useAppStore } from "@/store/store";
 
 export default function StocksPage() {
+  const hasHydrated = useAppStore((state) => state.hasHydrated);
+
+  if (!hasHydrated) return null; // Avoid UI flicker
+
   return (
     <>
       <div className="flex flex-col min-h-screen">

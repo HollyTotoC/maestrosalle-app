@@ -8,6 +8,7 @@ import { addBatch } from "@/lib/firebase/server"; // Import de la fonction centr
 import { useUserStore } from "@/store/useUserStore"; // Import du store utilisateur
 import { DialogTitle } from "../ui/dialog";
 import { DialogDescription } from "@radix-ui/react-dialog";
+import { toast } from "sonner";
 
 export default function AddBatchForm({ onClose }: { onClose: () => void }) {
   const displayName = useUserStore((state) => state.displayName); // Récupérer le displayName
@@ -27,20 +28,20 @@ export default function AddBatchForm({ onClose }: { onClose: () => void }) {
 
   const handleSubmit = async () => {
     if (!createdBy) {
-      alert("Veuillez renseigner le nom du préparateur.");
+      toast.error("Veuillez renseigner le nom du préparateur.");
       return;
     }
 
     try {
       await addBatch({ createdBy, totalBacs });
-      alert("Batch ajouté avec succès !");
+      toast.success("Batch ajouté avec succès !");
       onClose();
     } catch (error) {
       console.error("Erreur lors de l'ajout du batch :", error);
       if (error instanceof Error) {
-        alert("Erreur lors de l'ajout du batch : " + error.message);
+        toast.error("Erreur lors de l'ajout du batch : " + error.message);
       } else {
-        alert("Erreur lors de l'ajout du batch.");
+        toast.error("Erreur lors de l'ajout du batch.");
       }
     }
   };

@@ -7,6 +7,7 @@ import { Slider } from "@/components/ui/slider"; // Import du slider ShadCN
 import { listenToBatchesFiltered, updateTiramisuStock } from "@/lib/firebase/server";
 import { TiramisuBatch } from "@/types/tiramisu";
 import { DialogDescription, DialogTitle } from "../ui/dialog";
+import { toast } from "sonner";
 
 export default function UpdateTiramisuStockForm({ onClose }: { onClose: () => void }) {
   const [initialStock, setInitialStock] = useState<number>(0); // Stock initial (en %)
@@ -50,11 +51,11 @@ export default function UpdateTiramisuStockForm({ onClose }: { onClose: () => vo
         partialConsumption,
       });
 
-      alert("Stock mis à jour avec succès !");
+      toast.success("Stock mis à jour avec succès !");
       onClose();
     } catch (error) {
       console.error("Erreur lors de la mise à jour du stock :", error);
-      alert("Erreur lors de la mise à jour du stock.");
+      toast.error("Erreur lors de la mise à jour du stock.");
     }
   };
 
@@ -76,7 +77,7 @@ export default function UpdateTiramisuStockForm({ onClose }: { onClose: () => vo
               step={10} // Pas de 0.1 pour inclure des consommations plus précises
               className="w-full"
             />
-            <span className="text-sm text-gray-700">{(remainingStock / 100).toFixed(2)} bacs</span>
+            <span className="text-sm text-gray-700">{(remainingStock / 100).toFixed(1).replace('.', ',')} bacs</span>
           </div>
         </div>
         <Button onClick={handleSubmit}>Mettre à jour</Button>

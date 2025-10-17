@@ -14,6 +14,8 @@ import { Ticket, TicketStatus } from "@/types/ticket";
 import { Separator } from "./ui/separator";
 import { collection, onSnapshot, query, where, orderBy } from "firebase/firestore";
 import { db } from "@/lib/firebase/firebase";
+import { Trash2 } from "lucide-react";
+import { toast } from "sonner";
 
 
 const statuses: Record<TicketStatus, string> = {
@@ -48,12 +50,13 @@ export const listenToTickets = (restaurantId: string, callback: (tickets: Ticket
 };
 
 export default function StockTickets() {
-  const { tickets, addTicket, updateTicket } = useTicketStore();
+  const { tickets, addTicket, updateTicket, deleteTicket } = useTicketStore();
   const [isLoading, setIsLoading] = useState(true); // Ajout de l'état de chargement
   const [newTicket, setNewTicket] = useState({ item: "", note: "" });
   const [currentTicket, setCurrentTicket] = useState<string | null>(null); // Ticket en cours de modification
   const [deliveryNote, setDeliveryNote] = useState("");
   const [expectedDeliveryAt, setExpectedDeliveryAt] = useState("");
+  const [ticketToDelete, setTicketToDelete] = useState<string | null>(null); // Ticket à supprimer
 
   useEffect(() => {
     const restaurantId = "exampleRestaurantId"; // Remplacez par l'ID du restaurant actuel
@@ -100,6 +103,19 @@ export default function StockTickets() {
     setCurrentTicket(null); // Ferme la modale
     setDeliveryNote("");
     setExpectedDeliveryAt("");
+  };
+
+  const handleDeleteTicket = async () => {
+    if (!ticketToDelete) return;
+    try {
+      await deleteTicket(ticketToDelete);
+      toast.success("Ticket supprimé avec succès !");
+      setTicketToDelete(null);
+    } catch (error) {
+      console.error("Erreur lors de la suppression du ticket :", error);
+      toast.error("Erreur lors de la suppression du ticket.");
+      setTicketToDelete(null);
+    }
   };
 
   return (
@@ -154,6 +170,26 @@ export default function StockTickets() {
         </DialogContent>
       </Dialog>
 
+      {/* Modale de confirmation de suppression */}
+      <Dialog open={!!ticketToDelete} onOpenChange={() => setTicketToDelete(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Confirmer la suppression</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-gray-600 dark:text-gray-400">
+            Êtes-vous sûr de vouloir supprimer ce ticket ? Cette action est irréversible.
+          </p>
+          <div className="flex gap-2 justify-end mt-4">
+            <Button variant="outline" onClick={() => setTicketToDelete(null)}>
+              Annuler
+            </Button>
+            <Button variant="destructive" onClick={handleDeleteTicket}>
+              Supprimer
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       {/* Affichage des tickets */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         {Object.keys(statuses).map((statusKey) => (
@@ -178,7 +214,19 @@ export default function StockTickets() {
             ) : (
               // Affichage des tickets une fois chargés
               tickets
-                .filter((ticket) => ticket.status === statusKey)
+                .filter((ticket) => {
+                  // Filtrer par statut
+                  if (ticket.status !== statusKey) return false;
+
+                  // Masquer les tickets résolus depuis plus de 30 jours
+                  if (ticket.status === "resolved" && ticket.resolvedAt) {
+                    const thirtyDaysAgo = Date.now() - (30 * 24 * 60 * 60 * 1000);
+                    const resolvedDate = ticket.resolvedAt.toDate().getTime();
+                    if (resolvedDate < thirtyDaysAgo) return false;
+                  }
+
+                  return true;
+                })
                 .map((ticket) => (
                   <div
                     key={ticket.id}
@@ -220,22 +268,36 @@ export default function StockTickets() {
                         </p>
                       )}
                     </div>
-                    <div className="mt-2">
+                    <div className="mt-2 flex gap-2">
                       <Select
                         value={ticket.status}
                         onValueChange={(value) => updateTicketStatus(ticket.id, value as TicketStatus)}
                       >
-                        <SelectTrigger className="w-full">
+                        <SelectTrigger className="flex-1">
                           <SelectValue placeholder="Changer l'état" />
                         </SelectTrigger>
                         <SelectContent>
-                          {Object.keys(statuses).map((key) => (
-                            <SelectItem key={key} value={key}>
-                              <Badge className="w-full">{statuses[key as TicketStatus]}</Badge>
-                            </SelectItem>
-                          ))}
+                          {Object.keys(statuses)
+                            .filter((key) => {
+                              // Empêcher de revenir à "nouveau" si le ticket a déjà été vu
+                              if (key === "new" && ticket.status !== "new") return false;
+                              return true;
+                            })
+                            .map((key) => (
+                              <SelectItem key={key} value={key}>
+                                <Badge className="w-full">{statuses[key as TicketStatus]}</Badge>
+                              </SelectItem>
+                            ))}
                         </SelectContent>
                       </Select>
+                      <Button
+                        variant="destructive"
+                        size="icon"
+                        onClick={() => setTicketToDelete(ticket.id)}
+                        title="Supprimer le ticket"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
                     </div>
                   </div>
                 ))

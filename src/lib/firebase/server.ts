@@ -5,6 +5,7 @@ import {
   getDocs,
   doc,
   setDoc,
+  deleteDoc,
   query,
   where,
   orderBy,
@@ -132,6 +133,11 @@ export const updateTicket = async (ticketId: string, updates: Partial<Ticket>): 
   await setDoc(ticketRef, updates, { merge: true });
 };
 
+export const deleteTicket = async (ticketId: string): Promise<void> => {
+  const ticketRef = doc(db, "tickets", ticketId);
+  await deleteDoc(ticketRef);
+};
+
 export const hideOldResolvedTickets = async (): Promise<void> => {
   const now = Timestamp.now();
   const ticketsRef = collection(db, "tickets");
@@ -221,7 +227,11 @@ export const listenToBatchesFiltered = (callback: (batches: TiramisuBatch[]) => 
           ...data,
         } as TiramisuBatch;
       })
-      .filter((batch) => batch.consumedBacs < batch.totalBacs); // Filtrer les batches avec du stock restant
+      .filter((batch) => {
+        // Filtrer les batches qui ont encore du stock restant
+        const remaining = batch.totalBacs - batch.consumedBacs - batch.partialConsumption;
+        return remaining > 0;
+      });
 
     callback(batches);
   });
@@ -239,12 +249,15 @@ export const updateTiramisuStock = async (update: {
   const q = query(batchesRef, orderBy("createdAt", "asc")); // FIFO : traiter les plus anciens en premier
 
   const snapshot = await getDocs(q);
-  const totalInitialBacs = snapshot.docs.reduce((acc, doc) => {
+
+  // Calculer le stock ACTUELLEMENT restant (pas le total initial)
+  const currentRemainingBacs = snapshot.docs.reduce((acc, doc) => {
     const batch = doc.data() as TiramisuBatch;
-    return acc + batch.totalBacs;
+    return acc + (batch.totalBacs - batch.consumedBacs - batch.partialConsumption);
   }, 0);
-  
-  let toConsumePercentage = (totalInitialBacs - update.remainingBacs - update.partialConsumption) * 100;
+
+  // Calculer combien on doit consommer par rapport au stock actuel
+  let toConsumePercentage = (currentRemainingBacs - update.remainingBacs - update.partialConsumption) * 100;
   const batchUpdates: BatchUpdate[] = [];
 
   snapshot.forEach((doc) => {

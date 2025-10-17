@@ -5,9 +5,9 @@ import RestaurantSelector from "@/components/RestaurantSelector";
 import { useUserStore } from "@/store/useUserStore"; // Import Zustand store
 import { useAppStore } from "@/store/store"; // Import Zustand store for app state
 import { Toaster } from "@/components/ui/sonner"; // Import Sonner's Toaster component
-import ToolsSection from "@/components/ToolsSection";
+import ToolsSection from "@/components/ToolsSection/ToolsSection";
 import TodoSection from "@/components/TodoSection";
-import RecapSection from "@/components/RecapSection";
+import RecapSection from "@/components/recap/RecapSection";
 
 export default function Dashboard() {
     const displayName = useUserStore((state) => state.displayName);

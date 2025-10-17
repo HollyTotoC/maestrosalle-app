@@ -22,7 +22,7 @@ import RecapTable from "@/components/recap/RecapTable";
 import RecapLineChart from "@/components/recap/RecapLineChart";
 import RecapStackedBarChart from "@/components/recap/RecapStackedBarChart";
 import RecapSafeEvolutionChart from "@/components/recap/RecapSafeEvolutionChart";
-import { SectionSeparatorStack } from "./SectionSeparatorStack";
+import { SectionSeparatorStack } from "../SectionSeparatorStack";
 
 const chartConfig = {
     primeDeNoel: {

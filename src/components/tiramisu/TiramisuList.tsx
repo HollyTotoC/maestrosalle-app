@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { listenToBatchesFiltered } from "@/lib/firebase/server";
+import { listenToBatchesFiltered, listenToUsers } from "@/lib/firebase/server";
 import { Bac, TiramisuBatch } from "@/types/tiramisu";
 import {
   Tooltip,
@@ -10,9 +10,14 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { format } from "date-fns";
+import { fr } from "date-fns/locale";
+import { useUsersStore } from "@/store/useUsersStore";
 
 export default function TiramisuList() {
   const [batches, setBatches] = useState<TiramisuBatch[]>([]);
+  const users = useUsersStore((state) => state.users);
 
   useEffect(() => {
     const unsubscribe = listenToBatchesFiltered((fetchedBatches) => {
@@ -21,6 +26,11 @@ export default function TiramisuList() {
     });
 
     return () => unsubscribe(); // Arrêter l'écoute en cas de démontage
+  }, []);
+
+  useEffect(() => {
+    const unsubscribe = listenToUsers();
+    return () => unsubscribe();
   }, []);
 
   // Calculer tous les bacs restants (y compris les partiels)
@@ -48,10 +58,13 @@ export default function TiramisuList() {
   // Calculer le résumé global
   const totalBacs = batches.reduce((sum, batch) => sum + batch.totalBacs, 0);
   const totalConsumed = batches.reduce(
-    (sum, batch) => sum + batch.consumedBacs,
+    (sum, batch) => sum + batch.consumedBacs + batch.partialConsumption,
     0
   );
-  const totalRemaining = totalBacs - totalConsumed;
+  const totalRemaining = batches.reduce(
+    (sum, batch) => sum + (batch.totalBacs - batch.consumedBacs - batch.partialConsumption),
+    0
+  );
 
   // Calculer le nombre d'étagères vides nécessaires
   const emptyShelvesCount = Math.max(0, 10 - sortedBacs.length);
@@ -60,14 +73,58 @@ export default function TiramisuList() {
     <TooltipProvider>
       <div className="flex flex-col gap-4 md:gap-10 md:flex-row">
         {/* Résumé global */}
-        <Card className="hidden md:flex w-full">
+        <Card className="hidden md:flex w-full flex-col">
           <CardHeader>
             <CardTitle className="text-xl font-bold">Résumé du frigo</CardTitle>
           </CardHeader>
-          <CardContent>
-            <p>Total de bacs : {totalBacs}</p>
-            <p>Bacs consommés : {totalConsumed}</p>
-            <p>Bacs restants : {totalRemaining}</p>
+          <CardContent className="space-y-4">
+            <div className="space-y-1">
+              <p className="font-semibold">Total de bacs : {totalBacs.toFixed(1).replace('.', ',')}</p>
+              <p>Bacs consommés : {totalConsumed.toFixed(1).replace('.', ',')}</p>
+              <p>Bacs restants : {totalRemaining.toFixed(1).replace('.', ',')}</p>
+            </div>
+
+            {batches.length > 0 && (
+              <div className="border-t pt-4">
+                <p className="font-semibold mb-2">Batches en stock :</p>
+                <div className="space-y-3">
+                  {batches.map((batch) => {
+                    const remaining = batch.totalBacs - batch.consumedBacs - batch.partialConsumption;
+                    const user = users[batch.createdBy];
+                    return (
+                      <div key={batch.id} className="text-sm bg-gray-100 dark:bg-gray-800 p-2 rounded">
+                        <div className="flex items-center gap-2 mb-1">
+                          {user ? (
+                            <>
+                              <Avatar className="h-6 w-6">
+                                {user.avatarUrl && <AvatarImage src={user.avatarUrl} alt={user.displayName} />}
+                                <AvatarFallback>
+                                  {user.displayName
+                                    .split(" ")
+                                    .map((n) => n[0])
+                                    .join("")
+                                    .toUpperCase()
+                                    .slice(0, 2)}
+                                </AvatarFallback>
+                              </Avatar>
+                              <p className="font-medium">{user.displayName}</p>
+                            </>
+                          ) : (
+                            <p className="font-medium text-gray-400">{batch.createdBy}</p>
+                          )}
+                        </div>
+                        <p className="text-xs text-gray-600 dark:text-gray-400">
+                          {format(batch.createdAt.toDate(), "dd/MM/yyyy 'à' HH:mm", { locale: fr })}
+                        </p>
+                        <p className="text-xs">
+                          Restants : {remaining.toFixed(1).replace('.', ',')} / {batch.totalBacs} bacs
+                        </p>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
 
