@@ -164,19 +164,18 @@ export default function TiramisuList() {
                     ) : (
                       <>
                         <div className="h-0.5 w-full"></div> {/* Couvercle */}
+                        {/* Style inline nécessaire pour largeur dynamique basée sur bac.width */}
+                        {/* webhint-disable no-inline-styles */}
                         <div
                           className="h-4 bg-yellow-50"
-                          style={{
-                            width: `${bac.width * 100}%`,
-                          }}
+                          style={{ width: `${bac.width * 100}%` }}
                         ></div>{" "}
                         {/* Crème */}
                         <div
                           className="h-1.5 bg-yellow-700"
-                          style={{
-                            width: `${bac.width * 100}%`,
-                          }}
-                        ></div>{" "}
+                          style={{ width: `${bac.width * 100}%` }}
+                        ></div>
+                        {/* webhint-enable no-inline-styles */}
                         {/* Biscuit */}
                       </>
                     )}
