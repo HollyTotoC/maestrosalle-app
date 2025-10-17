@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DatePicker } from "@/components/ui/date-picker";
-import { TaskTemplate, Moment, Jour } from "@/types/todo";
+import { TaskTemplate, SpecialTask, Moment, Jour } from "@/types/todo";
 import { Plus, X, PartyPopper } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Timestamp } from "firebase/firestore";
@@ -46,6 +46,7 @@ export default function TodoChecklist({ selectedMoment, selectedJour, selectedDa
   // Récupérer les stores
   const users = useUsersStore((state) => state.users);
   const selectedRestaurant = useAppStore((state) => state.selectedRestaurant);
+  const selectedRestaurantId = selectedRestaurant?.id ?? "";
   const currentUserId = useUserStore((state) => state.userId);
   const currentUserName = useUserStore((state) => state.displayName);
 
@@ -135,7 +136,7 @@ export default function TodoChecklist({ selectedMoment, selectedJour, selectedDa
           moment: selectedMoment,
           jour: selectedJour,
           date: Timestamp.fromDate(selectedDate),
-          restaurantId: selectedRestaurant?.id || "",
+          restaurantId: selectedRestaurantId,
         });
       } else {
         // Marquer comme non complétée (annuler la complétion)
@@ -172,7 +173,7 @@ export default function TodoChecklist({ selectedMoment, selectedJour, selectedDa
       console.log("🆕 Création d'une tâche spéciale:", {
         tâche: newSpecialTask,
         assignedTo: finalAssignedToUserId,
-        restaurantId: selectedRestaurant?.id || "",
+        restaurantId: selectedRestaurantId,
         date: taskDate,
         moment: taskMoment,
       });
@@ -183,7 +184,7 @@ export default function TodoChecklist({ selectedMoment, selectedJour, selectedDa
         createdBy: currentUserId || "unknown",
         createdByName: currentUserName || "Utilisateur inconnu",
         completed: false,
-        restaurantId: selectedRestaurant?.id || "",
+        restaurantId: selectedRestaurantId,
         // Champs optionnels
         ...(finalAssignedToUserId && { assignedTo: finalAssignedToUserId }),
         ...(assignedUser?.displayName && { assignedToName: assignedUser.displayName }),
