@@ -12,6 +12,7 @@ import {
   Timestamp,
   onSnapshot,
   limit,
+  FieldValue,
 } from "firebase/firestore";
 import { Restaurant } from "@/types/restaurant";
 import { ClosureData } from "@/types/cloture";
@@ -418,4 +419,298 @@ export const saveUserDispos = async ({
 
   // 3. Stocke les dispos de l'utilisateur
   await setDoc(userRef, cleanData, { merge: true });
+};
+
+// ============================================================
+// FONCTIONS TODO
+// ============================================================
+
+/**
+ * Écoute en temps réel les templates de tâches actifs pour un restaurant
+ * @param restaurantId - ID du restaurant ou "all" pour tous les templates globaux
+ * @param callback - Fonction appelée avec les templates mis à jour
+ * @returns Fonction de désabonnement
+ */
+export const listenToTaskTemplates = (
+  restaurantId: string,
+  callback: (templates: import("@/types/todo").TaskTemplate[]) => void
+) => {
+  const templatesRef = collection(db, "taskTemplates");
+  const q = query(
+    templatesRef,
+    where("isActive", "==", true),
+    orderBy("checklist_id", "asc")
+  );
+
+  const unsubscribe = onSnapshot(q, (snapshot) => {
+    const templates = snapshot.docs
+      .map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      })) as import("@/types/todo").TaskTemplate[];
+
+    // Filtrer pour ne garder que les templates pour ce restaurant
+    const filteredTemplates = templates.filter(
+      (template) =>
+        template.restaurantIds.includes("all") ||
+        template.restaurantIds.includes(restaurantId)
+    );
+
+    callback(filteredTemplates);
+  });
+
+  return unsubscribe;
+};
+
+/**
+ * Crée un nouveau template de tâche
+ * @param template - Données du template (sans id)
+ * @returns Le template créé avec son ID
+ */
+export const createTaskTemplate = async (
+  template: Omit<import("@/types/todo").TaskTemplate, "id">
+): Promise<import("@/types/todo").TaskTemplate> => {
+  const docRef = await addDoc(collection(db, "taskTemplates"), {
+    ...template,
+    createdAt: Timestamp.now(),
+    isActive: true,
+  });
+  return { id: docRef.id, ...template };
+};
+
+/**
+ * Met à jour un template de tâche existant
+ * @param templateId - ID du template à mettre à jour
+ * @param updates - Champs à mettre à jour
+ */
+export const updateTaskTemplate = async (
+  templateId: string,
+  updates: Partial<import("@/types/todo").TaskTemplate>
+): Promise<void> => {
+  const templateRef = doc(db, "taskTemplates", templateId);
+  await setDoc(templateRef, updates, { merge: true });
+};
+
+/**
+ * Crée un enregistrement de complétion de tâche
+ * @param completion - Données de complétion (sans id)
+ * @returns La complétion créée avec son ID
+ */
+export const createTaskCompletion = async (
+  completion: Omit<import("@/types/todo").TaskCompletion, "id">
+): Promise<import("@/types/todo").TaskCompletion> => {
+  const docRef = await addDoc(collection(db, "taskCompletions"), {
+    ...completion,
+    completedAt: Timestamp.now(),
+  });
+  return { id: docRef.id, ...completion };
+};
+
+/**
+ * Écoute en temps réel les complétions de tâches pour une période donnée (±3 jours)
+ * @param restaurantId - ID du restaurant
+ * @param startDate - Date de début (date actuelle - 3 jours)
+ * @param endDate - Date de fin (date actuelle + 3 jours)
+ * @param callback - Fonction appelée avec les complétions mises à jour
+ * @returns Fonction de désabonnement
+ */
+export const listenToTaskCompletions = (
+  restaurantId: string,
+  startDate: Date,
+  endDate: Date,
+  callback: (completions: import("@/types/todo").TaskCompletion[]) => void
+) => {
+  const completionsRef = collection(db, "taskCompletions");
+  const q = query(
+    completionsRef,
+    where("restaurantId", "==", restaurantId),
+    where("date", ">=", Timestamp.fromDate(startDate)),
+    where("date", "<=", Timestamp.fromDate(endDate)),
+    orderBy("date", "desc")
+  );
+
+  const unsubscribe = onSnapshot(q, (snapshot) => {
+    const completions = snapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    })) as import("@/types/todo").TaskCompletion[];
+    callback(completions);
+  });
+
+  return unsubscribe;
+};
+
+/**
+ * Supprime une complétion de tâche (pour "décocher" une tâche)
+ * @param completionId - ID de la complétion à supprimer
+ */
+export const deleteTaskCompletion = async (completionId: string): Promise<void> => {
+  const completionRef = doc(db, "taskCompletions", completionId);
+  await deleteDoc(completionRef);
+};
+
+/**
+ * Supprime les complétions de tâches datant de plus de 30 jours
+ * (Fonction manuelle à appeler périodiquement - pas de Cloud Function)
+ * @param restaurantId - ID du restaurant (optionnel, sinon tous les restaurants)
+ */
+export const deleteOldTaskCompletions = async (
+  restaurantId?: string
+): Promise<void> => {
+  const completionsRef = collection(db, "taskCompletions");
+  const thirtyDaysAgo = new Date();
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+  let q;
+  if (restaurantId) {
+    q = query(
+      completionsRef,
+      where("restaurantId", "==", restaurantId),
+      where("date", "<", Timestamp.fromDate(thirtyDaysAgo))
+    );
+  } else {
+    q = query(
+      completionsRef,
+      where("date", "<", Timestamp.fromDate(thirtyDaysAgo))
+    );
+  }
+
+  const snapshot = await getDocs(q);
+  const deletePromises = snapshot.docs.map((doc) => deleteDoc(doc.ref));
+
+  await Promise.all(deletePromises);
+  console.log(`✅ ${snapshot.docs.length} anciennes complétions supprimées`);
+};
+
+/**
+ * Crée une nouvelle tâche spéciale
+ * @param task - Données de la tâche (sans id)
+ * @returns La tâche créée avec son ID
+ */
+export const createSpecialTask = async (
+  task: Omit<import("@/types/todo").SpecialTask, "id" | "isDeleted">
+): Promise<import("@/types/todo").SpecialTask> => {
+  const docRef = await addDoc(collection(db, "specialTasks"), {
+    ...task,
+    createdAt: Timestamp.now(),
+    isDeleted: false,
+  });
+  return { id: docRef.id, isDeleted: false, ...task };
+};
+
+/**
+ * Type pour les mises à jour de tâches spéciales
+ * Permet d'utiliser deleteField() pour supprimer des champs optionnels
+ */
+type SpecialTaskUpdate = Partial<{
+  [K in keyof import("@/types/todo").SpecialTask]:
+    import("@/types/todo").SpecialTask[K] | FieldValue;
+}>;
+
+/**
+ * Met à jour une tâche spéciale (généralement pour la marquer comme complétée)
+ * @param taskId - ID de la tâche à mettre à jour
+ * @param updates - Champs à mettre à jour (peut inclure deleteField() pour les champs optionnels)
+ */
+export const updateSpecialTask = async (
+  taskId: string,
+  updates: SpecialTaskUpdate
+): Promise<void> => {
+  const taskRef = doc(db, "specialTasks", taskId);
+  await setDoc(taskRef, updates, { merge: true });
+};
+
+/**
+ * Supprime une tâche spéciale (soft delete)
+ * @param taskId - ID de la tâche à supprimer
+ */
+export const deleteSpecialTask = async (taskId: string): Promise<void> => {
+  const taskRef = doc(db, "specialTasks", taskId);
+  await setDoc(taskRef, { isDeleted: true }, { merge: true });
+};
+
+/**
+ * Écoute en temps réel les tâches spéciales actives (non supprimées)
+ * Inclut les tâches complétées depuis moins de 7 jours
+ * @param restaurantId - ID du restaurant
+ * @param callback - Fonction appelée avec les tâches mises à jour
+ * @returns Fonction de désabonnement
+ */
+export const listenToSpecialTasks = (
+  restaurantId: string,
+  callback: (tasks: import("@/types/todo").SpecialTask[]) => void
+) => {
+  const tasksRef = collection(db, "specialTasks");
+  const q = query(
+    tasksRef,
+    where("restaurantId", "==", restaurantId),
+    where("isDeleted", "==", false),
+    orderBy("createdAt", "desc")
+  );
+
+  const unsubscribe = onSnapshot(q, (snapshot) => {
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    const sevenDaysAgoTimestamp = Timestamp.fromDate(sevenDaysAgo);
+
+    const tasks = snapshot.docs
+      .map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }))
+      .filter((task) => {
+        const t = task as import("@/types/todo").SpecialTask;
+        // Inclure toutes les tâches non complétées
+        if (!t.completed) return true;
+        // Inclure les tâches complétées il y a moins de 7 jours
+        if (t.completedAt && t.completedAt.seconds >= sevenDaysAgoTimestamp.seconds) {
+          return true;
+        }
+        return false;
+      }) as import("@/types/todo").SpecialTask[];
+
+    callback(tasks);
+  });
+
+  return unsubscribe;
+};
+
+/**
+ * Marque comme supprimées les tâches spéciales complétées il y a plus de 30 jours
+ * (Fonction manuelle à appeler périodiquement - pas de Cloud Function)
+ * @param restaurantId - ID du restaurant (optionnel, sinon tous les restaurants)
+ */
+export const cleanupOldSpecialTasks = async (
+  restaurantId?: string
+): Promise<void> => {
+  const tasksRef = collection(db, "specialTasks");
+  const thirtyDaysAgo = new Date();
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+  const thirtyDaysAgoTimestamp = Timestamp.fromDate(thirtyDaysAgo);
+
+  let q;
+  if (restaurantId) {
+    q = query(
+      tasksRef,
+      where("restaurantId", "==", restaurantId),
+      where("completed", "==", true),
+      where("completedAt", "<", thirtyDaysAgoTimestamp),
+      where("isDeleted", "==", false)
+    );
+  } else {
+    q = query(
+      tasksRef,
+      where("completed", "==", true),
+      where("completedAt", "<", thirtyDaysAgoTimestamp),
+      where("isDeleted", "==", false)
+    );
+  }
+
+  const snapshot = await getDocs(q);
+  const updatePromises = snapshot.docs.map((doc) =>
+    setDoc(doc.ref, { isDeleted: true }, { merge: true })
+  );
+
+  await Promise.all(updatePromises);
+  console.log(`✅ ${snapshot.docs.length} anciennes tâches spéciales marquées comme supprimées`);
 };
