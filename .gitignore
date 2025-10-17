@@ -43,3 +43,7 @@ next-env.d.ts
 # Claude AI files
 /CLAUDE.md
 /.claude
+
+firebase.json
+.vscode/
+firestore.rules
