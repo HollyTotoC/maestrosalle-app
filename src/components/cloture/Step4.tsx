@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 import {
     Card,
     CardContent,
@@ -133,15 +134,13 @@ export default function Step4({
                                 className="flex items-center gap-2"
                             >
                                 <div className="flex-1">
-                                    <Label htmlFor={`label-${index}`}>
+                                    <Label htmlFor={`extraflow-label-${index}`}>
                                         Label
                                     </Label>
-                                    <input
-                                        id={`label-${index}`}
+                                    <Input
+                                        id={`extraflow-label-${index}`}
                                         type="text"
-                                        title={`label-${index}`}
                                         placeholder="Ex: Remboursement"
-                                        className="w-full border rounded-md p-2"
                                         value={entry.label}
                                         onChange={(e) =>
                                             handleEntryChange(
@@ -153,14 +152,13 @@ export default function Step4({
                                     />
                                 </div>
                                 <div className="flex-1">
-                                    <Label htmlFor={`amount-${index}`}>
+                                    <Label htmlFor={`extraflow-amount-${index}`}>
                                         Montant
                                     </Label>
-                                    <input
-                                        id={`amount-${index}`}
+                                    <Input
+                                        id={`extraflow-amount-${index}`}
                                         type="number"
                                         placeholder="Ex: -50"
-                                        className="w-full border rounded-md p-2"
                                         value={entry.amount}
                                         onChange={(e) =>
                                             handleEntryChange(
