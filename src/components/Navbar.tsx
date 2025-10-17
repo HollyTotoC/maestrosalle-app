@@ -38,38 +38,44 @@ const tools = [
     title: "Clôture de caisse",
     description: "Gérez votre clôture : TPE, cash, Zelty, écarts et pourboires.",
     href: "/cloture",
+    comingSoon: false,
   },
   {
     title: "Partage des pourboires",
     description: "Calculez et répartissez les pourboires entre les serveurs et la cuisine.",
     href: "/tipsParty",
+    comingSoon: false,
   },
   {
     title: "Todo list",
     description: "Organisez vos tâches de la journée.",
     href: "/todo",
-    comingSoon: true,
+    comingSoon: false,
   },
   {
     title: "Tiramisu",
     description: "Suivez le stock de tiramisu et prévenez si y en a plus.",
     href: "/tiramisu",
+    comingSoon: false,
   },
   {
     title: "Stock",
     description: "Suivez le stock manquant.",
     href: "/stocks",
+    comingSoon: false,
   },
   {
     title: "Disponibilités Hebdo",
     description: "Déclarez vos disponibilités ou visualisez le planning de l'équipe.",
     href: "/dispos",
+    comingSoon: false,
   },
   {
     title: "Invitations",
     description: "Générez des codes d'invitation à usage unique pour attribuer un rôle.",
     href: "/tools/invitations",
     adminOnly: true,
+    comingSoon: false,
   },
 ];
 
