@@ -14,7 +14,7 @@ import { useEffect, useState } from "react";
 import { useClosuresStore } from "@/store/useClosuresStore";
 import { useAppStore } from "@/store/store";
 
-import { listenToClosures, listenToUsers } from "@/lib/firebase/server";
+import { listenToClosures } from "@/lib/firebase/server";
 
 import { useUsersStore } from "@/store/useUsersStore";
 
@@ -52,12 +52,6 @@ export default function RecapSection() {
     }, [selectedRestaurant]);
 
     const users = useUsersStore((state) => state.users);
-
-    useEffect(() => {
-        const unsubscribe = listenToUsers();
-        return () => unsubscribe();
-    }, []);
-
 
     // Fonction pour générer une plage de dates
     function getDateRange(start: Date, end: Date): string[] {

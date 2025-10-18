@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
     Card,
@@ -13,6 +14,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton"; // Import du composant Skeleton
 import { useState } from "react";
 import { FormData } from "@/types/cloture"; // Import des types
+import { toast } from "sonner";
 
 export default function Step3({
     nextStep,
@@ -39,13 +41,13 @@ export default function Step3({
 
     const handleNext = () => {
         if (cbZelty === undefined || cashZelty === undefined) {
-            alert("Veuillez remplir tous les champs avant de continuer.");
+            toast.error("Veuillez remplir tous les champs avant de continuer.");
             return;
         }
-        setFormData({ 
-            cbZelty, 
-            cashZelty, 
-            cashOutZelty: cashOutZelty === "" ? undefined : cashOutZelty 
+        setFormData({
+            cbZelty,
+            cashZelty,
+            cashOutZelty: cashOutZelty === "" ? undefined : cashOutZelty
         });
         nextStep();
     };
@@ -91,11 +93,10 @@ export default function Step3({
                     <div className="grid gap-4">
                         <div>
                             <Label htmlFor="cbZelty">Montant CB (Zelty)</Label>
-                            <input
+                            <Input
                                 id="cbZelty"
                                 type="number"
                                 placeholder="Ex: 1050"
-                                className="w-full border rounded-md p-2"
                                 value={cbZelty ?? ""}
                                 onChange={(e) =>
                                     setCbZelty(Number(e.target.value))
@@ -106,11 +107,10 @@ export default function Step3({
                             <Label htmlFor="cashZelty">
                                 Montant Cash (Zelty)
                             </Label>
-                            <input
+                            <Input
                                 id="cashZelty"
                                 type="number"
                                 placeholder="Ex: 800"
-                                className="w-full border rounded-md p-2"
                                 value={cashZelty ?? ""}
                                 onChange={(e) =>
                                     setCashZelty(Number(e.target.value))
@@ -121,11 +121,10 @@ export default function Step3({
                             <Label htmlFor="cashOutZelty">
                                 Montant Cash Sortant (Zelty)
                             </Label>
-                            <input
+                            <Input
                                 id="cashOutZelty"
                                 type="number"
                                 placeholder="Ex: 800"
-                                className="w-full border rounded-md p-2"
                                 value={cashOutZelty ?? ""}
                                 onChange={(e) =>
                                     setCashOutZelty(Number(e.target.value))

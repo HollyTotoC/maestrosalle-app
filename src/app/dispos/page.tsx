@@ -26,7 +26,6 @@ export default function DisposPage() {
 
     // Handler pour la soumission du formulaire
     async function handleDisposSubmit(data: UserDispos & { semaineStart?: Date; semaineEnd?: Date }) {
-        console.log("%c[page.tsx] #1 handleDisposSubmit called", "color: #0984e3; font-weight: bold", data);
         if (!userId) {
             toast.error("Utilisateur non connecté");
             return;
@@ -34,10 +33,8 @@ export default function DisposPage() {
         // Utilise explicitement les bornes de semaine transmises par le formulaire
         const semaineStart = data.semaineStart ? new Date(data.semaineStart) : new Date(Object.keys(data.disponibilites)[0]);
         const semaineEnd = data.semaineEnd ? new Date(data.semaineEnd) : new Date(Object.keys(data.disponibilites)[6]);
-        console.log("%c[page.tsx] #2 semaineStart/semaineEnd (depuis props)", "color: #0984e3; font-weight: bold", { semaineStart, semaineEnd });
         const userRole: DispoRole = mapRoleToDispoRole(role);
         try {
-            console.log("%c[page.tsx] #3 calling saveUserDispos", "color: #0984e3; font-weight: bold", { semaineStart, semaineEnd, userId, data: { ...data, role: userRole } });
             await saveUserDispos({
                 semaineStart,
                 semaineEnd,
@@ -49,7 +46,6 @@ export default function DisposPage() {
             });
             toast.success("Disponibilités enregistrées !");
         } catch (err) {
-            console.log("%c[page.tsx] #4 error", "color: #d63031; font-weight: bold", err);
             toast.error("Erreur lors de l'enregistrement");
         }
     }

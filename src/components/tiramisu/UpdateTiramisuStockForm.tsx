@@ -42,9 +42,7 @@ export default function UpdateTiramisuStockForm({ onClose }: { onClose: () => vo
       // Convertir la consommation en bacs pleins et partiels
       const remainingBacs = Math.floor(remainingStock / 100); // Bacs pleins restants
       const partialConsumption = (remainingStock % 100) / 100; // Bac partiellement restant
-      console.log("Bacs restants :", remainingBacs);
-      console.log("Consommation partielle :", partialConsumption);
-      
+
       await updateTiramisuStock({
         updatedBy: "Utilisateur", // Remplacez par l'utilisateur connecté
         remainingBacs,

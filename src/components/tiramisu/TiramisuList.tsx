@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { listenToBatchesFiltered, listenToUsers } from "@/lib/firebase/server";
+import { listenToBatchesFiltered } from "@/lib/firebase/server";
 import { Bac, TiramisuBatch } from "@/types/tiramisu";
 import {
   Tooltip,
@@ -21,16 +21,10 @@ export default function TiramisuList() {
 
   useEffect(() => {
     const unsubscribe = listenToBatchesFiltered((fetchedBatches) => {
-      console.log("📦 Batches received in component:", fetchedBatches);
       setBatches(fetchedBatches);
     });
 
     return () => unsubscribe(); // Arrêter l'écoute en cas de démontage
-  }, []);
-
-  useEffect(() => {
-    const unsubscribe = listenToUsers();
-    return () => unsubscribe();
   }, []);
 
   // Calculer tous les bacs restants (y compris les partiels)

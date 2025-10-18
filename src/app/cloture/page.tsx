@@ -2,7 +2,7 @@
 
 import { FormData, ClosureData } from "@/types/cloture"; // Import des types
 import Navbar from "@/components/Navbar";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Step1 from "@/components/cloture/Step1";
 import Step2 from "@/components/cloture/Step2";
 import Step3 from "@/components/cloture/Step3";
@@ -15,30 +15,52 @@ import { Progress } from "@/components/ui/progress";
 import { useRouter } from "next/navigation";
 import { saveClosureData } from "@/lib/firebase/server";
 import { useAppStore } from "@/store/store";
+import { toast } from "sonner";
+
+const DRAFT_KEY_PREFIX = "cloture-draft-";
 
 export default function Cloture() {
-    const [step, setStep] = useState(1);
-    const [formData, setFormData] = useState<FormData>({
-        date: undefined,
-        cashCounted: undefined,
-        tpeAmounts: [],
-        cbZelty: undefined,
-        cashZelty: undefined,
-        cashOutZelty: undefined,
-        extraFlowEntries: [],
-        previousCash: undefined,
-        cashToKeep: undefined,
-        cashToSafe: undefined,
-        tpeDiscrepancy: undefined,
-        cashDiscrepancy: undefined,
-        cbStatus: undefined,
-        cashStatus: undefined,
-    });
-
     const router = useRouter();
-
     const hasHydrated = useAppStore((state) => state.hasHydrated);
     const restaurantId = useAppStore((state) => state.selectedRestaurant?.id ?? "defaultRestaurantId");
+
+    const [step, setStep] = useState(1);
+    const [formData, setFormData] = useState<FormData>(() => {
+        // Charger le draft depuis localStorage au démarrage
+        if (typeof window !== 'undefined') {
+            const draftKey = `${DRAFT_KEY_PREFIX}${restaurantId}`;
+            const savedDraft = localStorage.getItem(draftKey);
+
+            if (savedDraft) {
+                try {
+                    const parsed = JSON.parse(savedDraft);
+                    toast.info("Brouillon restauré. Vous pouvez reprendre où vous en étiez.");
+                    return parsed;
+                } catch (error) {
+                    // Erreur silencieuse, on utilise l'état par défaut
+                }
+            }
+        }
+
+        // État initial par défaut
+        return {
+            date: undefined,
+            cashCounted: undefined,
+            tpeAmounts: [],
+            cbZelty: undefined,
+            cashZelty: undefined,
+            cashOutZelty: undefined,
+            extraFlowEntries: [],
+            previousCash: undefined,
+            cashToKeep: undefined,
+            cashToSafe: undefined,
+            tpeDiscrepancy: undefined,
+            cashDiscrepancy: undefined,
+            cbStatus: undefined,
+            cashStatus: undefined,
+        };
+    });
+
     if (!hasHydrated) return null; // Avoid UI flicker
 
     const nextStep = () => setStep((prev) => Math.min(prev + 1, 8));
@@ -51,27 +73,34 @@ export default function Cloture() {
     };
 
     const handleSave = async (closureData: ClosureData) => {
-        console.log("Données de clôture :", closureData);
         if (!closureData.date) {
-            alert("La date est manquante. Veuillez vérifier les données.");
+            toast.error("La date est manquante. Veuillez vérifier les données.");
             return;
         }
 
         try {
-            console.log("Enregistrement des données dans Firestore...");
             await saveClosureData({ ...closureData, restaurantId: restaurantId });
-            console.log("Données sauvegardées avec succès !");
+
+            // ✅ Nettoyer le brouillon après succès
+            const draftKey = `${DRAFT_KEY_PREFIX}${restaurantId}`;
+            localStorage.removeItem(draftKey);
+
+            toast.success("Clôture enregistrée avec succès !");
             router.push("/dashboard");
         } catch (error) {
             console.error("Erreur lors de la sauvegarde des données :", error);
-            alert("Erreur lors de la sauvegarde des données.");
+            toast.error("Erreur lors de la sauvegarde des données.");
         }
     };
 
     const updateFormData = (data: Partial<FormData>) => {
         setFormData((prev) => {
             const updatedData = { ...prev, ...data };
-            console.table({ Step: step, ...updatedData });
+
+            // 💾 Sauvegarder automatiquement dans localStorage
+            const draftKey = `${DRAFT_KEY_PREFIX}${restaurantId}`;
+            localStorage.setItem(draftKey, JSON.stringify(updatedData));
+
             return updatedData;
         });
     };

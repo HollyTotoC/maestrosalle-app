@@ -129,26 +129,20 @@ const DisposForm: React.FC<DisposFormProps> = ({ initialData, onSubmit }) => {
     // Ajout : chargement des dispos Firestore pour la semaine et l'utilisateur
     const userId = useUserStore((state) => state.userId);
     useEffect(() => {
-        console.log("[DisposForm] useEffect triggered", { semaine });
         async function fetchUserDispos() {
             if (!userId) {
-                console.log("[DisposForm] Aucun userId trouvé dans useUserStore, fetch annulé");
                 return;
             }
             const semaineUid = semaine.toISOString().slice(0, 10);
             const userRef = doc(db, `disponibilites/${semaineUid}/users`, userId);
-            console.log("[DisposForm] fetchUserDispos: userId", userId, "semaineUid", semaineUid);
             const snap = await getDoc(userRef);
-            console.log("[DisposForm] Firestore snap.exists()", snap.exists(), snap.data());
             if (snap.exists()) {
                 const data = snap.data() as UserDispos;
-                console.log("[DisposForm] Data loaded from Firestore:", data);
                 setShiftsSouhaites(data.shiftsSouhaites || 5);
                 setPreference(data.preference || "aucune");
                 setDisponibilites(data.disponibilites || {});
             } else {
                 // Reset si pas de données
-                console.log("[DisposForm] Aucune donnée trouvée pour cette semaine, reset du formulaire");
                 const base: { [dateISO: string]: DispoDay } = {};
                 const monday = new Date(semaine);
                 for (let i = 0; i < 7; i++) {

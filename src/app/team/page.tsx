@@ -28,10 +28,7 @@ function groupByRole(users: User[]): GroupedUsers {
 export default function TeamPage() {
   const usersObj = useUsersStore((s) => s.users);
   const users = Object.values(usersObj);
-  console.log("TEAM DEBUG usersObj:", usersObj);
-  console.log("TEAM DEBUG users:", users);
   const grouped = groupByRole(users);
-  console.log("TEAM DEBUG grouped:", grouped);
 
   useEffect(() => {
     const unsubscribe = listenToUsers();

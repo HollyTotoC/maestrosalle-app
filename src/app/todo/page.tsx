@@ -6,7 +6,7 @@ import TodoSelector from "@/components/todo/TodoSelector";
 import TodoChecklist from "@/components/todo/TodoChecklist";
 import { Moment, Jour } from "@/types/todo";
 import { useAppStore } from "@/store/store";
-import { useTodoStoreSync } from "@/store/useTodoStore";
+import { useTodoStoreSync } from "@/hooks/useTodoStoreSync";
 
 // Fonction pour détecter automatiquement le moment
 function getAutoMoment(): Moment {

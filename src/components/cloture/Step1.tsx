@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
   Card,
@@ -13,6 +14,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton"; // Import du composant Skeleton
 import { useState } from "react";
 import { FormData, FirestoreTimestamp } from "@/types/cloture"; // Import des types
+import { toast } from "sonner";
 
 export default function Step1({
   nextStep,
@@ -46,7 +48,7 @@ export default function Step1({
 
   const handleNext = () => {
     if (!date || !cashCounted) {
-      alert("Veuillez remplir tous les champs avant de continuer.");
+      toast.error("Veuillez remplir tous les champs avant de continuer.");
       return;
     }
 
@@ -103,22 +105,20 @@ export default function Step1({
           <div className="grid gap-4">
             <div>
               <Label htmlFor="date">Date</Label>
-              <input
+              <Input
                 id="date"
                 type="date"
                 title="Date de la clôture"
-                className="w-full border rounded-md p-2"
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
               />
             </div>
             <div>
               <Label htmlFor="cashCounted">Espèces comptées</Label>
-              <input
+              <Input
                 id="cashCounted"
                 type="number"
                 placeholder="Ex: 800"
-                className="w-full border rounded-md p-2"
                 value={cashCounted}
                 onChange={(e) => setCashCounted(Number(e.target.value))}
               />

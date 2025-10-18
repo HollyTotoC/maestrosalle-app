@@ -17,7 +17,7 @@ export const useAppStore = create(
       setHasHydrated: (state) => set({ hasHydrated: state }),
     }),
     {
-      name: "selectedRestautant-store",
+      name: "selectedRestaurant-store",
       onRehydrateStorage: () => (state) => {
         state?.setHasHydrated(true);
       },

@@ -15,7 +15,8 @@ import { Plus, X, PartyPopper } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Timestamp } from "firebase/firestore";
 import confetti from "canvas-confetti";
-import { useUsersStore, useUsersStoreSync } from "@/store/useUsersStore";
+import { useUsersStore } from "@/store/useUsersStore";
+import { useUsersStoreSync } from "@/hooks/useUsersStoreSync";
 import { useAppStore } from "@/store/store";
 import { useUserStore } from "@/store/useUserStore";
 import { useTodoStore } from "@/store/useTodoStore";
@@ -169,14 +170,6 @@ export default function TodoChecklist({ selectedMoment, selectedJour, selectedDa
       const finalAssignedToUserId = assignedToUserId && assignedToUserId !== "none" ? assignedToUserId : undefined;
       const assignedUser = finalAssignedToUserId ? users[finalAssignedToUserId] : undefined;
 
-      console.log("🆕 Création d'une tâche spéciale:", {
-        tâche: newSpecialTask,
-        assignedTo: finalAssignedToUserId,
-        restaurantId: selectedRestaurant,
-        date: taskDate,
-        moment: taskMoment,
-      });
-
       // Construire l'objet sans les champs undefined (Firestore n'accepte pas undefined)
       const taskData: Omit<SpecialTask, "id" | "isDeleted" | "createdAt"> = {
         tâche: newSpecialTask,
@@ -201,8 +194,6 @@ export default function TodoChecklist({ selectedMoment, selectedJour, selectedDa
       }
 
       await addSpecialTaskToStore(taskData);
-
-      console.log("✅ Tâche spéciale créée avec succès");
 
       // Réinitialiser le formulaire
       setNewSpecialTask("");

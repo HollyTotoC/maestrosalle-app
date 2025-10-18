@@ -14,6 +14,7 @@ interface UserStore {
     since: string | null;
     phone: string | null;
     birthday: string | null;
+    hasHydrated: boolean;
     setUser: (
         userId: string | null,
         role: Role | null,
@@ -26,6 +27,7 @@ interface UserStore {
         phone?: string | null,
         birthday?: string | null
     ) => void;
+    setHasHydrated: (hydrated: boolean) => void;
     logout: () => void;
 }
 
@@ -42,8 +44,10 @@ export const useUserStore = create(
             since: null,
             phone: null,
             birthday: null,
+            hasHydrated: false,
             setUser: (userId, role, email, restaurantId, avatarUrl, displayName, isAdmin, since, phone, birthday) =>
                 set({ userId, email, role, restaurantId, avatarUrl, displayName, isAdmin, since, phone, birthday }),
+            setHasHydrated: (hydrated) => set({ hasHydrated: hydrated }),
             logout: () =>
                 set({
                     userId: null,
@@ -60,6 +64,9 @@ export const useUserStore = create(
         }),
         {
             name: "user-store", // Key for localStorage
+            onRehydrateStorage: () => (state) => {
+                state?.setHasHydrated(true);
+            },
         }
     )
 );

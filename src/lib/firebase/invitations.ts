@@ -48,9 +48,6 @@ export async function createInvitation({
   if (params && Object.keys(params).length > 0) {
     invitationData.params = params;
   }
-  console.log("[createInvitation] code:", code);
-  console.log("[createInvitation] ref:", ref.path);
-  console.log("[createInvitation] invitationData:", JSON.stringify(invitationData, null, 2));
   try {
     await setDoc(ref, invitationData);
     return code;

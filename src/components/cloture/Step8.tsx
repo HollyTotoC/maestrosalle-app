@@ -22,6 +22,7 @@ import { Progress } from "@/components/ui/progress";
 import { FormData, ClosureData, FirestoreTimestamp } from "@/types/cloture"; // Import des types
 import { useUserStore } from "@/store/useUserStore";
 import { useAppStore } from "@/store/store"; // Import useAppStore
+import { toast } from "sonner";
 
 export default function Step8({
     prevStep,
@@ -86,7 +87,7 @@ export default function Step8({
             onSave(closureData);
         } catch (error) {
             console.error("Erreur lors de la sauvegarde des données :", error);
-            alert("Une erreur est survenue lors de la sauvegarde. Veuillez réessayer.");
+            toast.error("Une erreur est survenue lors de la sauvegarde. Veuillez réessayer.");
         }
     };
 

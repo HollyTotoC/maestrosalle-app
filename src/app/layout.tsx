@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { AuthProvider } from "@/components/AuthProvider";
+import HydrationGuard from "@/components/HydrationGuard";
 import { Toaster } from "sonner";
 
 const geistSans = Geist({
@@ -32,7 +33,9 @@ export default function RootLayout({
         <div className="crt min-h-[100dvh]">
           <ThemeProvider > {/* Injecte la logique du mode sombre */}
             <AuthProvider>
-              {children}
+              <HydrationGuard>
+                {children}
+              </HydrationGuard>
               <Toaster />
             </AuthProvider>
           </ThemeProvider>

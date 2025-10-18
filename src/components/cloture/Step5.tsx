@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
     Card,
@@ -15,6 +16,7 @@ import { useEffect, useState } from "react";
 import { FormData } from "@/types/cloture"; // Import des types
 import { fetchPreviousCashToKeep } from "@/lib/firebase/server";
 import { useAppStore } from "@/store/store"; // Pour récupérer `restaurantId`
+import { toast } from "sonner";
 
 export default function Step5({
     nextStep,
@@ -34,30 +36,21 @@ export default function Step5({
     useEffect(() => {
         const fetchPreviousCash = async () => {
             if (!restaurantId || !formData.date) {
-                console.log("%ccomponent: Missing restaurantId or formData.date", "color: red");
                 return;
             }
 
-            console.log("%ccomponent: Fetching previous cash for restaurantId: " + restaurantId, "color: green");
-            console.log("%ccomponent: FormData : " + JSON.stringify(formData), "color: green");
-            console.log("%ccomponent: FormData date: " + JSON.stringify(formData.date), "color: green");
-
             try {
                 const cashToKeep = await fetchPreviousCashToKeep(restaurantId, formData.date);
-                console.log("%ccomponent: Fetched cashToKeep: " + cashToKeep, "color: green");
 
                 if (cashToKeep !== null) {
                     setPreviousCash(cashToKeep); // Utiliser la valeur trouvée
-                    console.log("%ccomponent: Set previousCash to fetched value: " + cashToKeep, "color: green");
                 } else {
                     setPreviousCash(300); // Valeur par défaut si aucune valeur connue
-                    console.log("%ccomponent: Set previousCash to default value: 300", "color: green");
                 }
 
                 setIsLoading(false);
-                console.log("%ccomponent: Set isLoading to false", "color: green");
             } catch (error) {
-                console.error("%ccomponent: Error fetching previous cash: " + error, "color: red");
+                console.error("Error fetching previous cash:", error);
             }
         };
 
@@ -66,7 +59,7 @@ export default function Step5({
 
     const handleNext = () => {
         if (previousCash === undefined || previousCash < 0) {
-            alert("Veuillez vérifier le montant de la caisse de la veille.");
+            toast.error("Veuillez vérifier le montant de la caisse de la veille.");
             return;
         }
         setFormData({ previousCash });
@@ -115,11 +108,10 @@ export default function Step5({
                             <Label htmlFor="previousCash">
                                 Montant laissé en caisse (veille)
                             </Label>
-                            <input
+                            <Input
                                 id="previousCash"
                                 type="number"
                                 placeholder="Ex: 500"
-                                className="w-full border rounded-md p-2"
                                 value={previousCash ?? ""}
                                 onChange={(e) =>
                                     setPreviousCash(Number(e.target.value))

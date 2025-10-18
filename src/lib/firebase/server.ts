@@ -18,7 +18,6 @@ import { Restaurant } from "@/types/restaurant";
 import { ClosureData } from "@/types/cloture";
 import { Ticket } from "@/types/ticket";
 import { BatchUpdate, TiramisuBatch } from "@/types/tiramisu";
-import { useUsersStore } from "@/store/useUsersStore";
 import { User } from "@/types/user";
 
 export const listenToRestaurants = (callback: (restaurants: Restaurant[]) => void) => {
@@ -47,7 +46,6 @@ export const saveClosureData = async (closureData: ClosureData) => {
       ...closureData,
       date: Timestamp.fromDate(new Date(closureData.date.seconds * 1000)),
     });
-    console.log("Données sauvegardées avec succès !");
   } catch (error) {
     console.error("Erreur lors de la sauvegarde des données :", error);
     throw error;
@@ -186,7 +184,7 @@ export const fetchPreviousCashToKeep = async (restaurantId: string, date: { seco
 
     return null; // Aucune valeur trouvée
   } catch (error) {
-    console.error("%cserver: Error fetching previous cash: " + error, "color: red");
+    console.error("Error fetching previous cash:", error);
     throw error;
   }
 };
@@ -207,7 +205,6 @@ export const addBatch = async (batch: {
 
   try {
     await addDoc(collection(db, "batches"), newBatch);
-    console.log("Batch ajouté avec succès :", newBatch);
   } catch (error) {
     console.error("Erreur lors de l'ajout du batch :", error);
     throw error;
@@ -245,7 +242,6 @@ export const updateTiramisuStock = async (update: {
   remainingBacs: number; // Stock restant déclaré par l'utilisateur
   partialConsumption: number; // Pourcentage du bac partiellement consommé
 }): Promise<void> => {
-  console.log("Mise à jour du stock :", update);
   const batchesRef = collection(db, "batches");
   const q = query(batchesRef, orderBy("createdAt", "asc")); // FIFO : traiter les plus anciens en premier
 
@@ -268,14 +264,6 @@ export const updateTiramisuStock = async (update: {
     const batchConsumedPercentage =
       batch.consumedBacs * 100 + batch.partialConsumption * 100; // Stock consommé en %
     const batchRemainingPercentage = batchTotalPercentage - batchConsumedPercentage; // Stock restant en %
-
-    console.log("Processing batch:", {
-      id: doc.id,
-      batchTotalPercentage,
-      batchConsumedPercentage,
-      batchRemainingPercentage,
-      toConsumePercentage,
-    });
 
     if (toConsumePercentage <= 0) {
       // Si toute la consommation a été appliquée, arrêter
@@ -343,8 +331,6 @@ export const updateTiramisuStock = async (update: {
     }
   });
 
-  console.log("Batch updates to apply:", batchUpdates);
-
   // Appliquer les mises à jour
   const batchPromises = batchUpdates.map(({ batchRef, update }) =>
     setDoc(batchRef, update, { merge: true })
@@ -352,23 +338,11 @@ export const updateTiramisuStock = async (update: {
 
   try {
     await Promise.all(batchPromises);
-    console.log("✅ Stock mis à jour avec succès !");
   } catch (error) {
     console.error("Erreur lors de la mise à jour du stock :", error);
     throw error;
   }
 };
-
-export function listenToUsers() {
-  const usersRef = collection(db, "users");
-  return onSnapshot(usersRef, (snapshot) => {
-    const users: Record<string, User> = {};
-    snapshot.forEach((doc) => {
-      users[doc.id] = doc.data() as User;
-    });
-    useUsersStore.getState().setUsers(users);
-  });
-}
 
 // Enregistre les disponibilités hebdo d'un utilisateur pour une semaine donnée
 export const saveUserDispos = async ({
@@ -579,7 +553,6 @@ export const deleteOldTaskCompletions = async (
   const deletePromises = snapshot.docs.map((doc) => deleteDoc(doc.ref));
 
   await Promise.all(deletePromises);
-  console.log(`✅ ${snapshot.docs.length} anciennes complétions supprimées`);
 };
 
 /**
@@ -712,5 +685,4 @@ export const cleanupOldSpecialTasks = async (
   );
 
   await Promise.all(updatePromises);
-  console.log(`✅ ${snapshot.docs.length} anciennes tâches spéciales marquées comme supprimées`);
 };

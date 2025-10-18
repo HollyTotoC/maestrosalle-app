@@ -29,7 +29,6 @@ export const useTicketStore = create<TicketStore>((set, get) => ({
 
     // Si les données ont été synchronisées récemment, ne pas refetch
     if (lastFetchedAt && now.seconds - lastFetchedAt.seconds < 60) {
-      console.log("Les données sont déjà à jour.");
       return;
     }
 

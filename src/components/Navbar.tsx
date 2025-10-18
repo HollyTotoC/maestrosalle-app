@@ -26,7 +26,7 @@ import { Button } from "./ui/button";
 import { Sheet, SheetTrigger, SheetContent } from "@/components/ui/sheet";
 import { faCashRegister, faChartPie, faListCheck, faCake, faBoxesStacked } from "@fortawesome/free-solid-svg-icons";
 import { DialogTitle } from "./ui/dialog";
-import { useUsersStoreSync } from "@/store/useUsersStore";
+import { useUsersStoreSync } from "@/hooks/useUsersStoreSync";
 
 function UsersStoreSyncer() {
   useUsersStoreSync();

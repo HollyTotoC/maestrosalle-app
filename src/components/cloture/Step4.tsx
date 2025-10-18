@@ -14,6 +14,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton"; // Import du composant Skeleton
 import { useState } from "react";
 import { FormData } from "@/types/cloture"; // Import des types
+import { toast } from "sonner";
 
 export default function Step4({
     nextStep,
@@ -76,7 +77,7 @@ export default function Step4({
                     Number(entry.amount) === 0
             )
         ) {
-            alert("Veuillez remplir tous les champs avant de continuer.");
+            toast.error("Veuillez remplir tous les champs avant de continuer.");
             return;
         }
         setFormData({

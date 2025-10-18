@@ -56,15 +56,6 @@ export function calculateCashDiscrepancy(
   const expectedCash = previousCash + cashZelty + extraFlow - cashOutZelty;
   const cashDiscrepancy = countedCash - expectedCash;
 
-  console.log("Calcul des écarts de caisse :");
-  console.log("countedCash :", countedCash);
-  console.log("cashOutZelty :", cashOutZelty);
-  console.log("extraFlow :", extraFlow);
-  console.log("cashZelty :", cashZelty);
-  console.log("previousCash :", previousCash);
-  console.log("expectedCash :", expectedCash);
-  console.log("cashDiscrepancy :", cashDiscrepancy);
-
   return {
     cashDiscrepancy: parseFloat(cashDiscrepancy.toFixed(2)),
     expectedCash: parseFloat(expectedCash.toFixed(2)),

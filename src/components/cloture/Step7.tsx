@@ -13,6 +13,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton"; // Import du composant Skeleton
 import { useState } from "react";
 import { FormData } from "@/types/cloture"; // Import des types
+import { toast } from "sonner";
 
 export default function Step7({
     nextStep,
@@ -39,7 +40,7 @@ export default function Step7({
             cashToKeep < 0 ||
             cashToKeep > cashCounted
         ) {
-            alert(
+            toast.error(
                 "Le montant à laisser en caisse doit être compris entre 0 et le montant total compté."
             );
             return;

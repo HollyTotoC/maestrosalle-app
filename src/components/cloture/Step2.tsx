@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
     Card,
@@ -13,6 +14,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { useState } from "react";
 import { FormData } from "@/types/cloture"; // Import des types
+import { toast } from "sonner";
 
 export default function Step2({
     nextStep,
@@ -55,7 +57,7 @@ export default function Step2({
 
     const handleNext = () => {
         if (tpeAmounts.some((amount) => !amount || Number(amount) <= 0)) {
-            alert("Veuillez remplir tous les montants TPE avant de continuer.");
+            toast.error("Veuillez remplir tous les montants TPE avant de continuer.");
             return;
         }
         setFormData({ tpeAmounts: tpeAmounts.map(Number) });
@@ -110,11 +112,10 @@ export default function Step2({
                                     <Label htmlFor={`tpe-${index}`}>
                                         Montant TPE {index + 1}
                                     </Label>
-                                    <input
+                                    <Input
                                         id={`tpe-${index}`}
                                         type="number"
                                         placeholder="Ex: 500"
-                                        className="w-full border rounded-md p-2"
                                         value={amount === 0 ? "" : amount}
                                         onChange={(e) =>
                                             handleTpeChange(index, e.target.value)
