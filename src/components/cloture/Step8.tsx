@@ -70,6 +70,7 @@ export default function Step8({
                 date: dateToUse, // Utiliser le FirestoreTimestamp
                 validatedBy: userId || "unknown",
                 timestamp,
+                cashCounted: formData.cashCounted ?? 0, // Argent physiquement compté en caisse
                 tpeAmounts: formData.tpeAmounts || [], // Valeur par défaut : tableau vide
                 cbZelty: formData.cbZelty ?? 0, // Valeur par défaut : 0
                 cashZelty: formData.cashZelty ?? 0, // Valeur par défaut : 0
@@ -165,7 +166,7 @@ export default function Step8({
                     {/* Écart CB */}
                     <div className="mb-4">
                         <div className="flex items-center justify-between w-full gap-2">
-                            <p className="font-semibold">Écart CD :</p>
+                            <p className="font-semibold">Écart CB :</p>
                             <p
                                 className={
                                     formData.cbStatus === "OK"

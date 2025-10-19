@@ -26,6 +26,7 @@ export type ClosureData = {
   id: string;
   restaurantId: string;
   date: FirestoreTimestamp;
+  cashCounted?: number; // Argent physiquement compté en caisse (optionnel pour rétro-compatibilité)
   tpeAmounts: number[];
   cbZelty: number;
   cashZelty: number;
