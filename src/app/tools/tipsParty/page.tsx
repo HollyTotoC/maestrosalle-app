@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
 import { PieChart, Pie, Cell, Tooltip } from "recharts";
 import { Input } from "@/components/ui/input";
 import Navbar from "@/components/Navbar";
@@ -70,27 +71,30 @@ export default function TipsParty() {
     return (
         <div className="flex flex-col min-h-screen w-full">
             <Navbar />
-            <main className="p-4 flex flex-col gap-4 grow max-w-4xl mx-auto w-full">
-                <div className="mb-6">
-                    <h1 className="text-3xl font-bold flex items-center gap-2">
-                        <FontAwesomeIcon icon={faHandHoldingDollar} />
-                        Partage des Pourboires
-                    </h1>
-                    <p className="text-muted-foreground">
-                        Calculez la répartition équitable des pourboires entre la salle et la cuisine
-                    </p>
-                </div>
-                <div className="flex flex-col items-center gap-4">
-                <Card className="max-w-md w-full">
+            <main className="p-4 md:p-6 flex flex-col gap-4 grow max-w-4xl mx-auto w-full">
+                {/* Container glassmorphism - Mini-App wrapper */}
+                <div className="bg-card/60 backdrop-blur-xl backdrop-saturate-150 dark:bg-card dark:backdrop-blur-none p-6 md:p-8 rounded-2xl dark:rounded border border-border/40 dark:border-2 shadow-2xl dark:shadow-none transition-all duration-200 dark:duration-300">
+                    <div className="mb-6">
+                        <h1 className="text-3xl font-bold flex items-center gap-2 text-foreground">
+                            <FontAwesomeIcon icon={faHandHoldingDollar} className="text-primary" />
+                            Partage des Pourboires
+                        </h1>
+                        <p className="text-muted-foreground mt-2">
+                            Calculez la répartition équitable des pourboires entre la salle et la cuisine
+                        </p>
+                    </div>
+                    <div className="flex flex-col items-center gap-4">
+                <Card className="max-w-md w-full bg-card/80 backdrop-blur-lg backdrop-saturate-150 dark:bg-card/90 dark:backdrop-blur-none rounded-xl dark:rounded-lg border border-border/50 dark:border-2 shadow-lg dark:shadow-sm transition-all duration-200 dark:duration-300">
                     <CardHeader>
                         <CardTitle>Partage des Pourboires</CardTitle>
                     </CardHeader>
                     <CardContent className="flex flex-col gap-4">
                         <div>
-                            <label className="block font-semibold mb-1">
+                            <Label htmlFor="staffCount">
                                 Nombre de serveurs
-                            </label>
+                            </Label>
                             <Input
+                                id="staffCount"
                                 type="number"
                                 value={staffCount}
                                 onChange={(e) =>
@@ -100,10 +104,11 @@ export default function TipsParty() {
                             />
                         </div>
                         <div>
-                            <label className="block font-semibold mb-1">
+                            <Label htmlFor="totalTips">
                                 Montant total des pourboires
-                            </label>
+                            </Label>
                             <Input
+                                id="totalTips"
                                 type="number"
                                 value={totalTips}
                                 onChange={(e) =>
@@ -117,7 +122,7 @@ export default function TipsParty() {
 
                 {/* Affiche la deuxième carte uniquement si les champs sont remplis */}
                 {staffCount > 0 && totalTips > 0 && (
-                    <Card className="max-w-md w-full mb-5">
+                    <Card className="max-w-md w-full mb-5 bg-card/80 backdrop-blur-lg backdrop-saturate-150 dark:bg-card/90 dark:backdrop-blur-none rounded-xl dark:rounded-lg border border-border/50 dark:border-2 shadow-lg dark:shadow-sm transition-all duration-200 dark:duration-300">
                         <CardHeader>
                             <CardTitle>Répartition des Pourboires</CardTitle>
                         </CardHeader>
@@ -163,6 +168,7 @@ export default function TipsParty() {
                         </CardContent>
                     </Card>
                 )}
+                    </div>
                 </div>
             </main>
         </div>

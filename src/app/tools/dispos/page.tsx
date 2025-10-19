@@ -58,35 +58,38 @@ export default function DisposPage() {
     return (
         <>
             <Navbar />
-            <main className="max-w-4xl mx-auto p-4">
-                <div className="mb-6">
-                    <h1 className="text-3xl font-bold flex items-center gap-2">
-                        <FontAwesomeIcon icon={faCalendarWeek} />
-                        Planning des Disponibilités
-                    </h1>
-                    <p className="text-muted-foreground">
-                        Indiquez vos disponibilités hebdomadaires pour faciliter la planification des services
-                    </p>
-                </div>
+            <main className="max-w-4xl mx-auto p-4 md:p-6">
+                {/* Container glassmorphism - Mini-App wrapper */}
+                <div className="bg-card/60 backdrop-blur-xl backdrop-saturate-150 dark:bg-card dark:backdrop-blur-none p-6 md:p-8 rounded-2xl dark:rounded border border-border/40 dark:border-2 shadow-2xl dark:shadow-none transition-all duration-200 dark:duration-300">
+                    <div className="mb-6">
+                        <h1 className="text-3xl font-bold flex items-center gap-2 text-foreground">
+                            <FontAwesomeIcon icon={faCalendarWeek} className="text-primary" />
+                            Planning des Disponibilités
+                        </h1>
+                        <p className="text-muted-foreground mt-2">
+                            Indiquez vos disponibilités hebdomadaires pour faciliter la planification des services
+                        </p>
+                    </div>
 
-                {isManager ? (
-                    /* Managers/Admins : Tabs avec Planning (par défaut) et Dispos */
-                    <Tabs defaultValue="planning" className="w-full">
-                        <TabsList className="grid w-full grid-cols-2">
-                            <TabsTrigger value="planning">Planning</TabsTrigger>
-                            <TabsTrigger value="dispos">Mes Dispos</TabsTrigger>
-                        </TabsList>
-                        <TabsContent value="planning" className="space-y-4">
-                            <DisposManagerTable />
-                        </TabsContent>
-                        <TabsContent value="dispos" className="space-y-4">
-                            <DisposForm onSubmit={handleDisposSubmit} />
-                        </TabsContent>
-                    </Tabs>
-                ) : (
-                    /* CDI/Extra : Directement le formulaire, pas de tab Planning */
-                    <DisposForm onSubmit={handleDisposSubmit} />
-                )}
+                    {isManager ? (
+                        /* Managers/Admins : Tabs avec Planning (par défaut) et Dispos */
+                        <Tabs defaultValue="planning" className="w-full">
+                            <TabsList className="grid w-full grid-cols-2">
+                                <TabsTrigger value="planning">Planning</TabsTrigger>
+                                <TabsTrigger value="dispos">Mes Dispos</TabsTrigger>
+                            </TabsList>
+                            <TabsContent value="planning" className="space-y-4">
+                                <DisposManagerTable />
+                            </TabsContent>
+                            <TabsContent value="dispos" className="space-y-4">
+                                <DisposForm onSubmit={handleDisposSubmit} />
+                            </TabsContent>
+                        </Tabs>
+                    ) : (
+                        /* CDI/Extra : Directement le formulaire, pas de tab Planning */
+                        <DisposForm onSubmit={handleDisposSubmit} />
+                    )}
+                </div>
             </main>
         </>
     );

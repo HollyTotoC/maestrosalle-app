@@ -110,21 +110,23 @@ export default function Cloture() {
     return (
         <div className="min-h-screen">
             <Navbar />
-            <main className="max-w-4xl mx-auto p-4 flex flex-col gap-4 grow">
-                <div className="mb-6">
-                    <h1 className="text-3xl font-bold flex items-center gap-2">
-                        <FontAwesomeIcon icon={faCashRegister} />
-                        Clôture de caisse
-                    </h1>
-                    <p className="text-muted-foreground">
-                        Processus en 8 étapes pour réconcilier vos flux de caisse et CB du jour
-                    </p>
-                </div>
-                <Progress
-                    value={(step / 8) * 100}
-                    className="mx-auto w-full max-w-md"
-                />
-                <div className="">
+            <main className="max-w-4xl mx-auto p-4 md:p-6 flex flex-col gap-4 grow">
+                {/* Container glassmorphism - Mini-App wrapper */}
+                <div className="bg-card/60 backdrop-blur-xl backdrop-saturate-150 dark:bg-card dark:backdrop-blur-none p-6 md:p-8 rounded-2xl dark:rounded border border-border/40 dark:border-2 shadow-2xl dark:shadow-none transition-all duration-200 dark:duration-300">
+                    <div className="mb-6">
+                        <h1 className="text-3xl font-bold flex items-center gap-2 text-foreground">
+                            <FontAwesomeIcon icon={faCashRegister} className="text-primary" />
+                            Clôture de caisse
+                        </h1>
+                        <p className="text-muted-foreground mt-2">
+                            Processus en 8 étapes pour réconcilier vos flux de caisse et CB du jour
+                        </p>
+                    </div>
+                    <Progress
+                        value={(step / 8) * 100}
+                        className="mx-auto w-full max-w-md mb-6"
+                    />
+                    <div className="">
                     {step === 1 && (
                         <Step1
                             nextStep={nextStep}
@@ -190,6 +192,7 @@ export default function Cloture() {
                             }
                         />
                     )}
+                </div>
                 </div>
             </main>
         </div>
