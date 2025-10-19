@@ -18,8 +18,10 @@ interface RecapTableEntry {
   cashDiscrepancy: number | null;
 }
 
+type CompactedEntry = RecapTableEntry | { type: 'gap'; startDate: string; endDate: string };
+
 interface RecapTableProps {
-  paginatedData: RecapTableEntry[];
+  paginatedData: CompactedEntry[];
   closures: {
     date: { seconds: number };
     validatedBy: string;
@@ -31,7 +33,9 @@ interface RecapTableProps {
   setPage: (p: number) => void;
 }
 
-const RecapTable: React.FC<RecapTableProps> = ({ paginatedData, closures, users, page, pageCount, setPage }) => (
+const RecapTable: React.FC<RecapTableProps> = ({ paginatedData, closures, users, page, pageCount, setPage }) => {
+  // Les données sont déjà compactées dans RecapSection
+  return (
   <Card>
     <CardHeader>
       <CardTitle>Historique de cloture de caisse</CardTitle>
@@ -51,7 +55,20 @@ const RecapTable: React.FC<RecapTableProps> = ({ paginatedData, closures, users,
           </TableRow>
         </TableHeader>
         <TableBody>
-          {paginatedData.map((entry) => {
+          {paginatedData.map((item, index) => {
+            // Vérifier si c'est une ligne "gap" (période sans données)
+            if ('type' in item && item.type === 'gap') {
+              return (
+                <TableRow key={`gap-${item.startDate}-${item.endDate}`} className="text-muted-foreground italic bg-background/20">
+                  <TableCell colSpan={7} className="text-center py-4">
+                    Du {item.startDate} au {item.endDate} - Aucune donnée
+                  </TableCell>
+                </TableRow>
+              );
+            }
+
+            // C'est une entrée normale
+            const entry = item as RecapTableEntry;
             const isMissingData =
               entry.cashToSafe == null &&
               entry.cashToKeep == null &&
@@ -249,6 +266,7 @@ const RecapTable: React.FC<RecapTableProps> = ({ paginatedData, closures, users,
     </CardContent>
     <CardFooter />
   </Card>
-);
+  );
+};
 
 export default RecapTable;
