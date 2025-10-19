@@ -4,7 +4,7 @@ import "./globals.css";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { AuthProvider } from "@/components/AuthProvider";
 import HydrationGuard from "@/components/HydrationGuard";
-import { Toaster } from "sonner";
+import ClientToaster from "@/components/ClientToaster";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -27,8 +27,27 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <head />
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        {/* Script inline pour appliquer le thème AVANT le premier render (évite le flash) */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                try {
+                  var theme = document.cookie.split('; ').find(row => row.startsWith('theme='))?.split('=')[1];
+                  if (!theme) {
+                    theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+                  }
+                  if (theme === 'dark') {
+                    document.documentElement.classList.add('dark');
+                  }
+                } catch (e) {}
+              })();
+            `,
+          }}
+        />
+      </head>
       <body className={`min-h-[100dvh] ${geistSans.variable} ${geistMono.variable}`}>
         <div className="crt min-h-[100dvh]">
           <ThemeProvider > {/* Injecte la logique du mode sombre */}
@@ -36,7 +55,7 @@ export default function RootLayout({
               <HydrationGuard>
                 {children}
               </HydrationGuard>
-              <Toaster />
+              <ClientToaster />
             </AuthProvider>
           </ThemeProvider>
         </div>

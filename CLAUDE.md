@@ -140,6 +140,51 @@ Firebase configuration in `.env.local`:
 
 All Firebase env vars must be prefixed with `NEXT_PUBLIC_` for client-side access.
 
+## Design System
+
+MaestroSalle implements a dual-theme design system with distinct philosophies for Light and Dark modes.
+
+### Theme Philosophy
+
+**Light Mode** (iOS-inspired, Liquid Glass):
+- Modern, mobile-first design with glassmorphism effects
+- Rounded corners (`rounded-2xl`), backdrop blur, vibrant gradients
+- Target: Daily usage, bright environments, quick access
+
+**Dark Mode** (Retro-terminal, lumonOs):
+- 80s-90s terminal aesthetic, brutalist design, CRT effects
+- Sharp edges (`rounded`), opaque surfaces, monospace fonts
+- Target: Extended sessions, low-light environments, nostalgic feel
+
+### Key Design Guidelines
+
+1. **Glassmorphism**: Light mode ONLY (`bg-card/60 backdrop-blur-xl backdrop-saturate-150`)
+2. **Opaque surfaces**: Dark mode ONLY (`dark:bg-card dark:backdrop-blur-none`)
+3. **Borders**: Light uses subtle borders, Dark uses bold `dark:border-2`
+4. **Transitions**: `duration-200` for Light, `duration-300` for Dark
+5. **CRT Effect**: Applied only in Dark mode (`.dark .crt`)
+6. **Typography**: Standard fonts in Light, `font-mono` in Dark
+
+See `.claude/DESIGN_SYSTEM.md` for complete specifications.
+
+### Component Patterns
+
+- **Cards**: Use glassmorphism in Light, opaque surfaces in Dark
+- **Buttons**: Rounded in Light (`rounded-2xl`), sharp in Dark (`rounded-sm`)
+- **Icons**: Always use `text-primary` for consistency
+- **Modals**: Glassmorphic backdrop in Light, solid in Dark
+- **Navigation**: iOS-style in Light, terminal-style in Dark
+
+### RestaurantSelector
+
+The restaurant selection screen (`src/components/RestaurantSelector.tsx`) implements the full design system:
+- Grid layout: 2 cols mobile → 4 cols desktop
+- Cards with hover effects (scale-105 Light, border changes Dark)
+- Avatar rings with color transitions
+- Conditional titles and styling based on theme
+
+---
+
 ## Important Notes
 
 - This is a French-language application - all UI text, comments, and commit messages are in French
@@ -148,3 +193,4 @@ All Firebase env vars must be prefixed with `NEXT_PUBLIC_` for client-side acces
 - All currency amounts are in euros (€)
 - The cloture system expects Zelty POS integration data
 - User permissions are role-based - check `role` and `isAdmin` flags before allowing operations
+- **Design Guidelines**: Always refer to `.claude/DESIGN_SYSTEM.md` before modifying UI components
