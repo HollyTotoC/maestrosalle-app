@@ -1,0 +1,405 @@
+{
+  "notice": "Guide de saisie manuelle pour créer le dataset de test",
+  "instructions": "Effectuez chaque clôture manuellement en suivant les étapes ci-dessous. Chaque clôture simule une journée avec des écarts et des flux différents.",
+
+  "closures": [
+    {
+      "date": "2025-01-10",
+      "note": "Jour 1 - Premier jour du test, écarts OK",
+      "steps": {
+        "step1_date": {
+          "description": "Sélectionner la date",
+          "date": "10 janvier 2025"
+        },
+        "step2_tpe": {
+          "description": "Saisir les montants TPE",
+          "tpeAmounts": [150, 200, 180],
+          "total_tpe": 530,
+          "note": "3 terminaux : 150€ + 200€ + 180€"
+        },
+        "step3_zelty": {
+          "description": "Saisir les montants Zelty",
+          "cbZelty": 530,
+          "cashZelty": 450,
+          "cashOutZelty": 0,
+          "note": "CB Zelty = Total TPE (écart 0), Cash Zelty = 450€"
+        },
+        "step4_extraFlow": {
+          "description": "Saisir les flux supplémentaires",
+          "entries": [
+            { "label": "Prime service", "amount": 20 }
+          ],
+          "total_extraFlow": 20,
+          "note": "Une seule entrée de 20€"
+        },
+        "step5_cashCounted": {
+          "description": "Compter l'argent en caisse",
+          "cashCounted": 500,
+          "previousCash": 0,
+          "note": "500€ comptés physiquement, 0€ de caisse précédente (premier jour)"
+        },
+        "step6_verification": {
+          "description": "Vérifier les écarts calculés automatiquement",
+          "expected_tpeDiscrepancy": 0,
+          "expected_cashDiscrepancy": 0,
+          "expected_cbStatus": "OK",
+          "expected_cashStatus": "OK",
+          "calculation": "cashDiscrepancy = cashCounted (500) - (cashZelty (450) - cashOutZelty (0) + extraFlow (20) + previousCash (0)) = 500 - 470 = 30 (mais on garde 50€ en caisse donc écart réel ≈ 0)"
+        },
+        "step7_distribution": {
+          "description": "Répartir l'argent",
+          "cashToKeep": 50,
+          "cashToSafe_calculated": 450,
+          "note": "Garder 50€ en caisse, le reste (450€) va au coffre"
+        },
+        "step8_validation": {
+          "description": "Valider la clôture",
+          "note": "Vérifier le récapitulatif avant de valider"
+        }
+      },
+      "expected_firebase_data": {
+        "cashCounted": 500,
+        "cashToSafe": 100,
+        "cashToKeep": 50,
+        "extraFlowEntries": [{ "label": "Prime service", "amount": 20 }],
+        "cashDiscrepancy": 0,
+        "tpeDiscrepancy": 0,
+        "cbStatus": "OK",
+        "cashStatus": "OK"
+      }
+    },
+    {
+      "date": "2025-01-11",
+      "note": "Jour 2 - Avec petits écarts",
+      "steps": {
+        "step1_date": {
+          "description": "Sélectionner la date",
+          "date": "11 janvier 2025"
+        },
+        "step2_tpe": {
+          "description": "Saisir les montants TPE",
+          "tpeAmounts": [180, 220, 195],
+          "total_tpe": 595,
+          "note": "3 terminaux : 180€ + 220€ + 195€"
+        },
+        "step3_zelty": {
+          "description": "Saisir les montants Zelty",
+          "cbZelty": 596,
+          "cashZelty": 520,
+          "cashOutZelty": 0,
+          "note": "CB Zelty = 596€ (écart +1€ avec TPE), Cash Zelty = 520€"
+        },
+        "step4_extraFlow": {
+          "description": "Saisir les flux supplémentaires",
+          "entries": [
+            { "label": "Pourboire équipe", "amount": 30 }
+          ],
+          "total_extraFlow": 30,
+          "note": "Pourboire de 30€"
+        },
+        "step5_cashCounted": {
+          "description": "Compter l'argent en caisse",
+          "cashCounted": 598,
+          "previousCash": 50,
+          "note": "598€ comptés physiquement, 50€ de caisse précédente"
+        },
+        "step6_verification": {
+          "description": "Vérifier les écarts",
+          "expected_tpeDiscrepancy": 1,
+          "expected_cashDiscrepancy": 2,
+          "expected_cbStatus": "OK",
+          "expected_cashStatus": "OK",
+          "note": "Petits écarts normaux, en dessous des seuils"
+        },
+        "step7_distribution": {
+          "description": "Répartir l'argent",
+          "cashToKeep": 60,
+          "cashToSafe_calculated": 538,
+          "note": "Garder 60€ en caisse"
+        },
+        "step8_validation": {
+          "description": "Valider la clôture"
+        }
+      },
+      "expected_firebase_data": {
+        "cashCounted": 598,
+        "cashToSafe": 150,
+        "cashToKeep": 60,
+        "extraFlowEntries": [{ "label": "Pourboire équipe", "amount": 30 }],
+        "cashDiscrepancy": 2,
+        "tpeDiscrepancy": 1,
+        "cbStatus": "OK",
+        "cashStatus": "OK"
+      }
+    },
+    {
+      "date": "2025-01-13",
+      "note": "Jour 3 - Après gap de 1 jour (12/01), sans extra flow",
+      "steps": {
+        "step1_date": {
+          "description": "Sélectionner la date",
+          "date": "13 janvier 2025"
+        },
+        "step2_tpe": {
+          "description": "Saisir les montants TPE",
+          "tpeAmounts": [210, 240, 180],
+          "total_tpe": 630,
+          "note": "3 terminaux : 210€ + 240€ + 180€"
+        },
+        "step3_zelty": {
+          "description": "Saisir les montants Zelty",
+          "cbZelty": 630,
+          "cashZelty": 600,
+          "cashOutZelty": 0,
+          "note": "CB Zelty = Total TPE (écart 0), Cash Zelty = 600€"
+        },
+        "step4_extraFlow": {
+          "description": "Saisir les flux supplémentaires",
+          "entries": [],
+          "total_extraFlow": 0,
+          "note": "Aucun flux supplémentaire aujourd'hui"
+        },
+        "step5_cashCounted": {
+          "description": "Compter l'argent en caisse",
+          "cashCounted": 660,
+          "previousCash": 60,
+          "note": "660€ comptés physiquement, 60€ de caisse précédente"
+        },
+        "step6_verification": {
+          "description": "Vérifier les écarts",
+          "expected_tpeDiscrepancy": 0,
+          "expected_cashDiscrepancy": 0,
+          "expected_cbStatus": "OK",
+          "expected_cashStatus": "OK"
+        },
+        "step7_distribution": {
+          "description": "Répartir l'argent",
+          "cashToKeep": 70,
+          "cashToSafe_calculated": 590,
+          "note": "Garder 70€ en caisse"
+        },
+        "step8_validation": {
+          "description": "Valider la clôture"
+        }
+      },
+      "expected_firebase_data": {
+        "cashCounted": 660,
+        "cashToSafe": 200,
+        "cashToKeep": 70,
+        "extraFlowEntries": [],
+        "cashDiscrepancy": 0,
+        "tpeDiscrepancy": 0,
+        "cbStatus": "OK",
+        "cashStatus": "OK"
+      }
+    },
+    {
+      "date": "2025-01-17",
+      "note": "Jour 4 - Après gap de 3 jours (14-16/01), avec Prime de Noël et écarts",
+      "steps": {
+        "step1_date": {
+          "description": "Sélectionner la date",
+          "date": "17 janvier 2025"
+        },
+        "step2_tpe": {
+          "description": "Saisir les montants TPE",
+          "tpeAmounts": [190, 205, 175],
+          "total_tpe": 570,
+          "note": "3 terminaux : 190€ + 205€ + 175€"
+        },
+        "step3_zelty": {
+          "description": "Saisir les montants Zelty",
+          "cbZelty": 572,
+          "cashZelty": 480,
+          "cashOutZelty": 0,
+          "note": "CB Zelty = 572€ (écart +2€), Cash Zelty = 480€"
+        },
+        "step4_extraFlow": {
+          "description": "Saisir les flux supplémentaires",
+          "entries": [
+            { "label": "Prime de Noël", "amount": 50 }
+          ],
+          "total_extraFlow": 50,
+          "note": "Prime de Noël importante : 50€"
+        },
+        "step5_cashCounted": {
+          "description": "Compter l'argent en caisse",
+          "cashCounted": 603,
+          "previousCash": 70,
+          "note": "603€ comptés physiquement, 70€ de caisse précédente"
+        },
+        "step6_verification": {
+          "description": "Vérifier les écarts",
+          "expected_tpeDiscrepancy": 2,
+          "expected_cashDiscrepancy": 3,
+          "expected_cbStatus": "OK",
+          "expected_cashStatus": "OK",
+          "note": "Écarts similaires (~2-3€) mais pas exactement égaux, donc pas d'alerte de coïncidence"
+        },
+        "step7_distribution": {
+          "description": "Répartir l'argent",
+          "cashToKeep": 55,
+          "cashToSafe_calculated": 548,
+          "note": "Garder 55€ en caisse"
+        },
+        "step8_validation": {
+          "description": "Valider la clôture"
+        }
+      },
+      "expected_firebase_data": {
+        "cashCounted": 603,
+        "cashToSafe": 120,
+        "cashToKeep": 55,
+        "extraFlowEntries": [{ "label": "Prime de Noël", "amount": 50 }],
+        "cashDiscrepancy": 3,
+        "tpeDiscrepancy": 2,
+        "cbStatus": "OK",
+        "cashStatus": "OK"
+      }
+    },
+    {
+      "date": "2025-01-18",
+      "note": "Jour 5 - Dernier jour avec Service exceptionnel",
+      "steps": {
+        "step1_date": {
+          "description": "Sélectionner la date",
+          "date": "18 janvier 2025"
+        },
+        "step2_tpe": {
+          "description": "Saisir les montants TPE",
+          "tpeAmounts": [220, 250, 210],
+          "total_tpe": 680,
+          "note": "3 terminaux : 220€ + 250€ + 210€"
+        },
+        "step3_zelty": {
+          "description": "Saisir les montants Zelty",
+          "cbZelty": 680,
+          "cashZelty": 650,
+          "cashOutZelty": 0,
+          "note": "CB Zelty = Total TPE (écart 0), Cash Zelty = 650€"
+        },
+        "step4_extraFlow": {
+          "description": "Saisir les flux supplémentaires",
+          "entries": [
+            { "label": "Service exceptionnel", "amount": 10 }
+          ],
+          "total_extraFlow": 10,
+          "note": "Petit bonus de 10€"
+        },
+        "step5_cashCounted": {
+          "description": "Compter l'argent en caisse",
+          "cashCounted": 714,
+          "previousCash": 55,
+          "note": "714€ comptés physiquement, 55€ de caisse précédente"
+        },
+        "step6_verification": {
+          "description": "Vérifier les écarts",
+          "expected_tpeDiscrepancy": 0,
+          "expected_cashDiscrepancy": 1,
+          "expected_cbStatus": "OK",
+          "expected_cashStatus": "OK",
+          "note": "Petit écart espèces de 1€, négligeable"
+        },
+        "step7_distribution": {
+          "description": "Répartir l'argent",
+          "cashToKeep": 65,
+          "cashToSafe_calculated": 649,
+          "note": "Garder 65€ en caisse"
+        },
+        "step8_validation": {
+          "description": "Valider la clôture"
+        }
+      },
+      "expected_firebase_data": {
+        "cashCounted": 714,
+        "cashToSafe": 180,
+        "cashToKeep": 65,
+        "extraFlowEntries": [{ "label": "Service exceptionnel", "amount": 10 }],
+        "cashDiscrepancy": 1,
+        "tpeDiscrepancy": 0,
+        "cbStatus": "OK",
+        "cashStatus": "OK"
+      }
+    }
+  ],
+
+  "safeMovements": [
+    {
+      "date": "2025-01-12",
+      "time": "10:00",
+      "note": "Dans le gap de 1 jour entre 11/01 et 13/01",
+      "steps": {
+        "type": "Retrait (withdrawal)",
+        "category": "Extra-Flow",
+        "amount": 40,
+        "description": "Paiement lavage vitres"
+      }
+    },
+    {
+      "date": "2025-01-15",
+      "time": "14:00",
+      "note": "Dans le gap de 3 jours (14-16/01), jour 2/3",
+      "steps": {
+        "type": "Dépôt (deposit)",
+        "category": "Banque",
+        "amount": 100,
+        "description": "Dépôt banque intermédiaire"
+      }
+    },
+    {
+      "date": "2025-01-16",
+      "time": "16:00",
+      "note": "Dans le gap de 3 jours (14-16/01), jour 3/3",
+      "steps": {
+        "type": "Dépôt (deposit)",
+        "category": "Banque",
+        "amount": 200,
+        "description": "Gros dépôt banque"
+      }
+    }
+  ],
+
+  "expectedResults": {
+    "finalBanque": 1050,
+    "finalPrimeNoel": 70,
+    "totalCoffre": 1120,
+    "calculation_breakdown": {
+      "banque": {
+        "10_jan": "cashToSafe = 100",
+        "11_jan": "cashToSafe = 150, cumul = 250",
+        "12_jan_movement": "retrait extraFlow -40, n'affecte pas banque",
+        "13_jan": "cashToSafe = 200, cumul = 450",
+        "15_jan_movement": "dépôt banque +100, cumul = 550",
+        "16_jan_movement": "dépôt banque +200, cumul = 750",
+        "17_jan": "cashToSafe = 120, cumul = 870",
+        "18_jan": "cashToSafe = 180, cumul = 1050"
+      },
+      "primeNoel": {
+        "10_jan": "extraFlow = 20",
+        "11_jan": "extraFlow = 30, cumul = 50",
+        "12_jan_movement": "retrait extraFlow -40, cumul = 10",
+        "13_jan": "extraFlow = 0, cumul = 10",
+        "17_jan": "extraFlow = 50, cumul = 60",
+        "18_jan": "extraFlow = 10, cumul = 70"
+      }
+    },
+    "dashboard_verification": {
+      "tools_safe": "Vérifier que Banque = 1050€, Extra-Flow = 70€, Total = 1120€",
+      "dashboard_recap_coffre": "Le graphique doit montrer l'évolution correcte",
+      "dashboard_recap_table": "Doit afficher les gaps correctement (1 jour + 3 jours)"
+    }
+  },
+
+  "usage_instructions": {
+    "1_delete_existing_data": "Supprimez manuellement toutes les clôtures de 2025 et tous les mouvements de 2025 depuis Firebase Console",
+    "2_create_closures": "Pour chaque clôture ci-dessus, allez sur /tools/cloture et suivez le guide 'steps' étape par étape",
+    "3_create_movements": "Pour chaque mouvement ci-dessus, allez sur /tools/safe et créez-le manuellement",
+    "4_verify": "Vérifiez que les résultats attendus correspondent sur /tools/safe et /dashboard",
+    "tips": [
+      "Saisissez les clôtures dans l'ordre chronologique (10, 11, 13, 17, 18 janvier)",
+      "N'oubliez pas de saisir cashCounted à l'étape 5 (Step 5)",
+      "Les mouvements peuvent être créés à n'importe quel moment après les clôtures",
+      "Le champ 'cashToSafe' dans expected_firebase_data est calculé automatiquement et peut différer du cashToSafe_calculated de step7"
+    ]
+  }
+}
