@@ -9,6 +9,9 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useTicketStore } from "@/store/useTicketStore";
+import { useAppStore } from "@/store/store";
+import { useUserStore } from "@/store/useUserStore";
+import { useUsersStore } from "@/store/useUsersStore";
 import { Skeleton } from "./ui/skeleton";
 import { Ticket, TicketStatus } from "@/types/ticket";
 import { Separator } from "./ui/separator";
@@ -60,56 +63,84 @@ export const listenToTickets = (restaurantId: string, callback: (tickets: Ticket
 
 export default function StockTickets() {
   const { tickets, addTicket, updateTicket, deleteTicket } = useTicketStore();
-  const [isLoading, setIsLoading] = useState(true); // Ajout de l'état de chargement
+  const selectedRestaurant = useAppStore((state) => state.selectedRestaurant);
+  const currentUserId = useUserStore((state) => state.uid);
+  const users = useUsersStore((state) => state.users);
+
+  const [isLoading, setIsLoading] = useState(true);
   const [newTicket, setNewTicket] = useState({ item: "", note: "" });
-  const [currentTicket, setCurrentTicket] = useState<string | null>(null); // Ticket en cours de modification
+  const [currentTicket, setCurrentTicket] = useState<string | null>(null);
   const [deliveryNote, setDeliveryNote] = useState("");
   const [expectedDeliveryAt, setExpectedDeliveryAt] = useState("");
-  const [ticketToDelete, setTicketToDelete] = useState<string | null>(null); // Ticket à supprimer
+  const [ticketToDelete, setTicketToDelete] = useState<string | null>(null);
 
   useEffect(() => {
-    const restaurantId = "exampleRestaurantId"; // Remplacez par l'ID du restaurant actuel
-    const unsubscribe = listenToTickets(restaurantId, (tickets) => {
-      useTicketStore.getState().setTickets(tickets); // Mettez à jour l'état avec les tickets en temps réel
+    if (!selectedRestaurant?.id) return;
+
+    const unsubscribe = listenToTickets(selectedRestaurant.id, (tickets) => {
+      useTicketStore.getState().setTickets(tickets);
       setIsLoading(false);
     });
 
-    return () => unsubscribe(); // Nettoyage lors du démontage
-  }, []);
+    return () => unsubscribe();
+  }, [selectedRestaurant?.id]);
+
+  // Fonction helper pour récupérer le nom d'un utilisateur
+  const getUserName = (userId: string) => {
+    const user = users.find((u) => u.uid === userId);
+    return user?.displayName || user?.email || "Utilisateur inconnu";
+  };
 
   const createTicket = () => {
-    if (!newTicket.item) return alert("Le champ 'item' est obligatoire.");
-    const restaurantId = "exampleRestaurantId"; // Remplacez par l'ID du restaurant actuel
-    const createdBy = "exampleUserId"; // Remplacez par l'ID de l'utilisateur actuel
+    if (!newTicket.item) {
+      toast.error("Le champ 'item' est obligatoire.");
+      return;
+    }
+    if (!selectedRestaurant?.id || !currentUserId) {
+      toast.error("Erreur: restaurant ou utilisateur non défini.");
+      return;
+    }
+
     const createdAt = Timestamp.now();
 
-    addTicket({ ...newTicket, restaurantId, createdBy, createdAt, status: "new" });
+    addTicket({
+      ...newTicket,
+      restaurantId: selectedRestaurant.id,
+      createdBy: currentUserId,
+      createdAt,
+      status: "new"
+    });
     setNewTicket({ item: "", note: "" });
+    toast.success("Ticket créé avec succès !");
   };
 
   const updateTicketStatus = (ticketId: string, newStatus: "new" | "seen" | "in_progress" | "resolved") => {
-    const updatedBy = "exampleUserId"; // Remplacez par l'utilisateur actuel
+    if (!currentUserId) {
+      toast.error("Erreur: utilisateur non défini.");
+      return;
+    }
+
     const now = Timestamp.now();
 
     if (newStatus === "seen") {
-      updateTicket(ticketId, { status: newStatus, seenAt: now, updatedBy });
+      updateTicket(ticketId, { status: newStatus, seenAt: now, updatedBy: currentUserId });
     } else if (newStatus === "in_progress") {
-      setCurrentTicket(ticketId); // Ouvre la modale pour demander des détails
+      setCurrentTicket(ticketId);
     } else if (newStatus === "resolved") {
-      updateTicket(ticketId, { status: newStatus, resolvedAt: now, updatedBy });
+      updateTicket(ticketId, { status: newStatus, resolvedAt: now, updatedBy: currentUserId });
     }
   };
 
   const handleInProgress = () => {
-    if (!currentTicket) return;
-    const updatedBy = "exampleUserId"; // Remplacez par l'utilisateur actuel
+    if (!currentTicket || !currentUserId) return;
+
     updateTicket(currentTicket, {
       status: "in_progress",
       deliveryNote,
       expectedDeliveryAt: expectedDeliveryAt ? Timestamp.fromDate(new Date(expectedDeliveryAt)) : undefined,
-      updatedBy,
+      updatedBy: currentUserId,
     });
-    setCurrentTicket(null); // Ferme la modale
+    setCurrentTicket(null);
     setDeliveryNote("");
     setExpectedDeliveryAt("");
   };
@@ -258,25 +289,25 @@ export default function StockTickets() {
                       </p>
                     )}
                     <div className="mt-4 space-y-1">
-                      <p className="text-xs text-gray-500">
+                      <p className="text-xs text-gray-500 dark:text-gray-400">
                         <strong>Créé le :</strong> {ticket.createdAt.toDate().toLocaleDateString()}
                       </p>
-                      <p className="text-xs text-gray-500">
-                        <strong>Créé par :</strong> {ticket.createdBy}
+                      <p className="text-xs text-gray-500 dark:text-gray-400">
+                        <strong>Créé par :</strong> {getUserName(ticket.createdBy)}
                       </p>
                       {ticket.seenAt && (
-                        <p className="text-xs text-gray-500">
+                        <p className="text-xs text-gray-500 dark:text-gray-400">
                           <strong>Vu le :</strong> {ticket.seenAt.toDate().toLocaleDateString()}
                         </p>
                       )}
                       {ticket.resolvedAt && (
-                        <p className="text-xs text-gray-500">
+                        <p className="text-xs text-gray-500 dark:text-gray-400">
                           <strong>Résolu le :</strong> {ticket.resolvedAt.toDate().toLocaleDateString()}
                         </p>
                       )}
                       {ticket.updatedBy && (
-                        <p className="text-xs text-gray-500">
-                          <strong>Mis à jour par :</strong> {ticket.updatedBy}
+                        <p className="text-xs text-gray-500 dark:text-gray-400">
+                          <strong>Mis à jour par :</strong> {getUserName(ticket.updatedBy)}
                         </p>
                       )}
                     </div>
