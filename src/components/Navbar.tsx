@@ -33,6 +33,7 @@ import {
   faBoxesStacked,
   faCalendarWeek,
   faTicket,
+  faVault,
   faUser,
   faPowerOff,
   faMoon,
@@ -101,6 +102,14 @@ const tools = [
     adminOnly: true,
     comingSoon: false,
   },
+  {
+    title: "Gestion du Coffre",
+    description: "Suivez l'état du coffre et gérez les mouvements manuels d'argent.",
+    href: "/tools/safe",
+    icon: faVault,
+    hideForExtra: true,
+    comingSoon: false,
+  },
 ];
 
 export default function Navbar() {
@@ -150,9 +159,17 @@ export default function Navbar() {
     }
   };
 
-  const filteredTools = tools.filter(
-    (tool) => !tool.adminOnly || isAdmin || role === "owner" || role === "manager"
-  );
+  const filteredTools = tools.filter((tool) => {
+    // Filtrer les outils adminOnly
+    if (tool.adminOnly && !(isAdmin || role === "owner" || role === "manager")) {
+      return false;
+    }
+    // Filtrer les outils masqués pour extra
+    if (tool.hideForExtra && role === "extra") {
+      return false;
+    }
+    return true;
+  });
 
   return (
     <>

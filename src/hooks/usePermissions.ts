@@ -13,6 +13,8 @@ import {
   getMaxRecapDays,
   isManagerOrAdmin,
   canManageTeam,
+  canAccessSafe,
+  canModifySafe,
 } from "@/lib/permissions";
 
 export function usePermissions() {
@@ -27,6 +29,8 @@ export function usePermissions() {
     canViewDashboardCharts: canViewDashboardCharts({ role, isAdmin }),
     canViewFullRecap: canViewFullRecap({ role, isAdmin }),
     canManageTeam: canManageTeam({ role, isAdmin }),
+    canAccessSafe: canAccessSafe({ role, isAdmin }),
+    canModifySafe: canModifySafe({ role, isAdmin }),
 
     // Helpers
     isManagerOrAdmin: isManagerOrAdmin({ role, isAdmin }),

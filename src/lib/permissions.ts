@@ -86,3 +86,23 @@ export function canManageTeam({ role, isAdmin }: PermissionCheck): boolean {
   if (isAdmin) return true;
   return role === "admin" || role === "manager";
 }
+
+/**
+ * Vérifie si l'utilisateur peut accéder à la gestion du coffre
+ * Autorisé pour : admin, manager, CDI, cuisine
+ * Interdit pour : extra
+ */
+export function canAccessSafe({ role, isAdmin }: PermissionCheck): boolean {
+  if (isAdmin) return true;
+  return role !== "extra" && role !== null;
+}
+
+/**
+ * Vérifie si l'utilisateur peut modifier les mouvements du coffre
+ * Autorisé pour : admin, manager, CDI, cuisine
+ * Interdit pour : extra
+ */
+export function canModifySafe({ role, isAdmin }: PermissionCheck): boolean {
+  if (isAdmin) return true;
+  return role !== "extra" && role !== null;
+}

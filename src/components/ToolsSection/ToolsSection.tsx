@@ -1,10 +1,9 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "../ui/card";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faCashRegister, faCoins, faListCheck, faCake, faBoxesStacked, faPeopleGroup, faScrewdriverWrench } from "@fortawesome/free-solid-svg-icons";
+import { faCashRegister, faCoins, faListCheck, faCake, faBoxesStacked, faPeopleGroup, faScrewdriverWrench, faEnvelopeOpenText, faVault } from "@fortawesome/free-solid-svg-icons";
 import { SectionSeparatorStack } from "../SectionSeparatorStack";
 import { useUserStore } from "@/store/useUserStore";
-import { faEnvelopeOpenText } from "@fortawesome/free-solid-svg-icons";
 import { useClosuresStore } from "@/store/useClosuresStore";
 import { useAppStore } from "@/store/store";
 import { useEffect, useMemo, useState } from "react";
@@ -118,7 +117,32 @@ export default function ToolsSection() {
             bgColor: "from-red-400 to-red-600",
             lightIconColor: "text-white",
         },
-    ].filter(tool => (!tool.adminOnly || isAdmin || userRole === "owner" || userRole === "manager") && !tool.hide);
+        {
+            id: 8,
+            title: "Gestion du Coffre",
+            description: "Suivez l'état du coffre et gérez les mouvements manuels d'argent.",
+            icon: <FontAwesomeIcon icon={faVault} fixedWidth />,
+            comingSoon: false,
+            url: "/tools/safe",
+            hideForExtra: true, // Masqué pour les extras uniquement
+            bgColor: "from-indigo-400 to-indigo-600",
+            lightIconColor: "text-white",
+        },
+    ].filter(tool => {
+        // Filtrer les outils adminOnly
+        if (tool.adminOnly && !(isAdmin || userRole === "owner" || userRole === "manager")) {
+            return false;
+        }
+        // Filtrer les outils masqués pour extra
+        if (tool.hideForExtra && userRole === "extra") {
+            return false;
+        }
+        // Filtrer les outils masqués manuellement
+        if (tool.hide) {
+            return false;
+        }
+        return true;
+    });
 
     return (
         <Collapsible open={open} onOpenChange={setOpen} className="bg-card/60 backdrop-blur-xl backdrop-saturate-150 p-4 md:p-6 rounded-2xl dark:rounded border border-border/40 dark:border-2 shadow-lg">
