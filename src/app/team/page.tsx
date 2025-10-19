@@ -10,7 +10,7 @@ import { User } from "@/types/user";
 import { listenToUsers } from "@/lib/firebase/server";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faPhone, faMessage, faEnvelope, faUser } from "@fortawesome/free-solid-svg-icons";
+import { faPhone, faMessage, faEnvelope, faUser, faUsers } from "@fortawesome/free-solid-svg-icons";
 import { Button } from "@/components/ui/button";
 import { useAppStore } from "@/store/store";
 
@@ -31,7 +31,11 @@ export default function TeamPage() {
   const grouped = groupByRole(users);
 
   useEffect(() => {
-    const unsubscribe = listenToUsers();
+    const unsubscribe = listenToUsers((usersData) => {
+      // Sync avec le store
+      const setUsers = useUsersStore.getState().setUsers;
+      setUsers(usersData);
+    });
     return () => unsubscribe && unsubscribe();
   }, []);
 
@@ -55,9 +59,17 @@ export default function TeamPage() {
   return (
     <>
       <Navbar />
-      <main className="max-w-5xl mx-auto mt-8 px-4">
-        <h1 className="text-2xl font-bold mb-8">L&#39;équipe</h1>
-        <div className="flex flex-col gap-8">
+      <main className="max-w-4xl mx-auto mt-8 px-4">
+        <div className="mb-6">
+          <h1 className="text-3xl font-bold flex items-center gap-2">
+            <FontAwesomeIcon icon={faUsers} />
+            L&#39;équipe
+          </h1>
+          <p className="text-muted-foreground">
+            Consultez les profils de vos collègues et leurs coordonnées
+          </p>
+        </div>
+        <div className="flex flex-col gap-6">
           {Object.entries(grouped).map(([role, users]) => (
             <div key={role}>
               <h2 className="text-xl font-semibold mb-4 capitalize flex items-center gap-2">
@@ -65,7 +77,7 @@ export default function TeamPage() {
               </h2>
               <div className="w-full sm:w-fit flex flex-col md:flex-row flex-wrap gap-6">
                 {users.map((user) => (
-                  <Card key={user.email} className="p-6  cursor-pointer rounded flex flex-col items-center gap-4 cursor-pointe bg-accent/70 hover:bg-secondary-foreground/20 hover:shadow-lg  shadow-primary hover:scale-105 transition" onClick={() => handleCardClick(user)}>
+                  <Card key={user.email} className="p-6 cursor-pointer rounded flex flex-col items-center gap-4 bg-accent/70 hover:bg-secondary-foreground/20 hover:shadow-lg hover:scale-105 transition" onClick={() => handleCardClick(user)}>
                     <div className="flex items-center md:items-start w-full gap-6">
                       <div className="flex flex-col items-center mb-4">
                         <Avatar className="size-24 mb-2">

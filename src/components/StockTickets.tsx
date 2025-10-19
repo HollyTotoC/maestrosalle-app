@@ -16,14 +16,23 @@ import { collection, onSnapshot, query, where, orderBy } from "firebase/firestor
 import { db } from "@/lib/firebase/firebase";
 import { Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faCirclePlus, faEye, faTruck, faCircleCheck } from "@fortawesome/free-solid-svg-icons";
 
 
 const statuses: Record<TicketStatus, string> = {
-    new: "🆕 Nouveau",
-    seen: "📤 Vu",
-    in_progress: "🚚 En cours",
-    resolved: "✅ Résolu",
+    new: "Nouveau",
+    seen: "Vu",
+    in_progress: "En cours",
+    resolved: "Résolu",
   };
+
+const statusIcons: Record<TicketStatus, React.ReactNode> = {
+  new: <FontAwesomeIcon icon={faCirclePlus} className="text-blue-500" />,
+  seen: <FontAwesomeIcon icon={faEye} className="text-amber-500" />,
+  in_progress: <FontAwesomeIcon icon={faTruck} className="text-purple-500" />,
+  resolved: <FontAwesomeIcon icon={faCircleCheck} className="text-green-500" />,
+};
 
 function getRandomHeight() {
   const heights = ["h-2", "h-4", "h-6"]; // Différentes hauteurs possibles
@@ -194,7 +203,10 @@ export default function StockTickets() {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         {Object.keys(statuses).map((statusKey) => (
           <div key={statusKey} className="space-y-4">
-            <h3 className="text-lg text-center font-bold">{statuses[statusKey as TicketStatus]}</h3>
+            <h3 className="text-lg text-center font-bold flex items-center justify-center gap-2">
+              {statusIcons[statusKey as TicketStatus]}
+              {statuses[statusKey as TicketStatus]}
+            </h3>
             {isLoading ? (
               // Affichage des squelettes pendant le chargement
               Array.from({ length: 3 }).map((_, index) => (

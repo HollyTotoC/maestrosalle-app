@@ -7,6 +7,8 @@ import TodoChecklist from "@/components/todo/TodoChecklist";
 import { Moment, Jour } from "@/types/todo";
 import { useAppStore } from "@/store/store";
 import { useTodoStoreSync } from "@/hooks/useTodoStoreSync";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faListCheck } from "@fortawesome/free-solid-svg-icons";
 
 // Fonction pour détecter automatiquement le moment
 function getAutoMoment(): Moment {
@@ -53,10 +55,13 @@ export default function TodoPage() {
   return (
     <div className="flex flex-col min-h-screen">
       <Navbar />
-      <main className="p-4 flex flex-col gap-6 grow max-w-6xl mx-auto w-full">
+      <main className="p-4 flex flex-col gap-6 grow max-w-4xl mx-auto w-full">
         <div>
-          <h1 className="text-3xl font-bold">📝 Tâches du service</h1>
-          <p className="text-gray-600 dark:text-gray-400">
+          <h1 className="text-3xl font-bold flex items-center gap-2">
+            <FontAwesomeIcon icon={faListCheck} />
+            Tâches du service
+          </h1>
+          <p className="text-muted-foreground">
             Liste des tâches à accomplir pour chaque service
           </p>
         </div>

@@ -19,7 +19,7 @@ import {
     DialogClose,
 } from "@/components/ui/dialog";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faPen } from "@fortawesome/free-solid-svg-icons";
+import { faPen, faUserCircle } from "@fortawesome/free-solid-svg-icons";
 import { useAppStore } from "@/store/store";
 
 export default function ProfilPage() {
@@ -99,8 +99,16 @@ export default function ProfilPage() {
     return (
         <>
             <Navbar />
-            <main className="max-w-lg mx-auto mt-8">
-                <h1 className="text-2xl font-bold mb-4">Mon profil</h1>
+            <main className="max-w-lg mx-auto mt-8 px-4">
+                <div className="mb-6">
+                    <h1 className="text-3xl font-bold flex items-center gap-2">
+                        <FontAwesomeIcon icon={faUserCircle} />
+                        Mon profil
+                    </h1>
+                    <p className="text-muted-foreground">
+                        Gérez vos informations personnelles et vos coordonnées
+                    </p>
+                </div>
                 <Card className="p-6 rounded shadow flex flex-col items-center gap-4">
                     <div className="flex items-center md:items-start w-full gap-6">
                         <div className="flex flex-col items-center mb-4">

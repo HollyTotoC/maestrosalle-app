@@ -16,6 +16,8 @@ import { useRouter } from "next/navigation";
 import { saveClosureData } from "@/lib/firebase/server";
 import { useAppStore } from "@/store/store";
 import { toast } from "sonner";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faCashRegister } from "@fortawesome/free-solid-svg-icons";
 
 const DRAFT_KEY_PREFIX = "cloture-draft-";
 
@@ -106,10 +108,18 @@ export default function Cloture() {
     };
 
     return (
-        <div className="flex flex-col min-h-screen">
+        <div className="min-h-screen">
             <Navbar />
-            <main className="p-4 flex flex-col gap-6 grow">
-                <h1 className="text-3xl font-bold">Clôture de caisse</h1>
+            <main className="max-w-4xl mx-auto p-4 flex flex-col gap-4 grow">
+                <div className="mb-6">
+                    <h1 className="text-3xl font-bold flex items-center gap-2">
+                        <FontAwesomeIcon icon={faCashRegister} />
+                        Clôture de caisse
+                    </h1>
+                    <p className="text-muted-foreground">
+                        Processus en 8 étapes pour réconcilier vos flux de caisse et CB du jour
+                    </p>
+                </div>
                 <Progress
                     value={(step / 8) * 100}
                     className="mx-auto w-full max-w-md"

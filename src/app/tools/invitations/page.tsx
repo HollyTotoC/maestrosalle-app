@@ -13,8 +13,8 @@ export default function InvitationToolPage() {
     return (
         <>
             <Navbar />
-            <div className="max-w-3xl mx-auto p-4">
-                <h1 className="text-2xl font-bold mb-4">
+            <div className="max-w-4xl mx-auto p-4">
+                <h1 className="text-3xl font-bold mb-4">
                     Générer un code d&apos;invitation
                 </h1>
                 <Card className="mb-4">

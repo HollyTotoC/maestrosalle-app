@@ -8,6 +8,8 @@ import { Drawer, DrawerContent } from "@/components/ui/drawer";
 import UpdateTiramisuStockForm from "@/components/tiramisu/UpdateTiramisuStockForm";
 import TiramisuList from "@/components/tiramisu/TiramisuList";
 import { useAppStore } from "@/store/store";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faCakeCandles } from "@fortawesome/free-solid-svg-icons";
 
 export default function TiramisuPage() {
   const [isAddBatchOpen, setIsAddBatchOpen] = useState(false);
@@ -19,16 +21,21 @@ export default function TiramisuPage() {
   
 
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="min-h-screen">
       <Navbar />
-      <main className="p-4 flex flex-col gap-4 grow">
-        <h1 className="text-3xl font-bold">🍰 Gestion du Tiramisu</h1>
-        <p className="text-gray-600">
-          Suivez vos stocks de tiramisu, enregistrez les services et anticipez les besoins.
-        </p>
+      <main className="p-4 flex flex-col gap-4 max-w-4xl mx-auto grow">
+        <div className="mb-6">      
+          <h1 className="text-3xl font-bold flex items-center gap-2">
+            <FontAwesomeIcon icon={faCakeCandles} />
+            Gestion du Tiramisu
+          </h1>
+          <p className="text-muted-foreground">
+            Suivez vos stocks de tiramisu, enregistrez les services et anticipez les besoins.
+          </p>
+        </div>
 
         {/* Boutons pour ouvrir les drawers */}
-        <div className="flex flex-wrap justify-center md:justify-start gap-4">
+        <div className="flex flex-wrap justify-center gap-4">
           <Button onClick={() => setIsAddBatchOpen(true)}>Ajouter un batch</Button>
           <Button onClick={() => setIsUpdateServiceOpen(true)}>Mise à jour après un service</Button>
         </div>

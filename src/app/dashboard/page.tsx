@@ -8,6 +8,8 @@ import { Toaster } from "@/components/ui/sonner"; // Import Sonner's Toaster com
 import ToolsSection from "@/components/ToolsSection/ToolsSection";
 import TodoSection from "@/components/TodoSection";
 import RecapSection from "@/components/recap/RecapSection";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faChartLine } from "@fortawesome/free-solid-svg-icons";
 
 export default function Dashboard() {
     const displayName = useUserStore((state) => state.displayName);
@@ -21,12 +23,14 @@ export default function Dashboard() {
         <>
             <div className="crt-dome flex flex-col min-h-screen">
                 <Navbar />
-                <main className="p-4 flex flex-col gap-4 w-full grow max-w-6xl mx-auto">
+                <main className="p-4 flex flex-col gap-6 w-full grow max-w-6xl mx-auto">
                     <div>
-                        <h1 className="text-3xl">Tableau de bord</h1>
-                        <p>
-                            Bienvenue dans votre tableau de bord{" "}
-                            {displayName || "Utilisateur"}.
+                        <h1 className="text-3xl font-bold flex items-center gap-2">
+                            <FontAwesomeIcon icon={faChartLine} />
+                            Tableau de bord
+                        </h1>
+                        <p className="text-muted-foreground">
+                            Bienvenue {displayName || "Utilisateur"}, retrouvez ici vos outils et statistiques.
                         </p>
                     </div>
                     {!selectedRestaurant ? (
