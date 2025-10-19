@@ -2,7 +2,7 @@
 
 import { FormData, ClosureData } from "@/types/cloture"; // Import des types
 import Navbar from "@/components/Navbar";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Step1 from "@/components/cloture/Step1";
 import Step2 from "@/components/cloture/Step2";
 import Step3 from "@/components/cloture/Step3";
@@ -38,7 +38,7 @@ export default function Cloture() {
                     const parsed = JSON.parse(savedDraft);
                     toast.info("Brouillon restauré. Vous pouvez reprendre où vous en étiez.");
                     return parsed;
-                } catch (error) {
+                } catch {
                     // Erreur silencieuse, on utilise l'état par défaut
                 }
             }

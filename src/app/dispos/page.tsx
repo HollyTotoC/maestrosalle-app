@@ -9,7 +9,6 @@ import { useUserStore } from "@/store/useUserStore";
 import { saveUserDispos } from "@/lib/firebase/server";
 import { toast } from "sonner";
 import type { UserDispos, DispoRole } from "@/types/dispos";
-import { SectionSeparatorStack } from "@/components/SectionSeparatorStack";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCalendarWeek } from "@fortawesome/free-solid-svg-icons";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -48,7 +47,7 @@ export default function DisposPage() {
                 },
             });
             toast.success("Disponibilités enregistrées !");
-        } catch (err) {
+        } catch {
             toast.error("Erreur lors de l'enregistrement");
         }
     }

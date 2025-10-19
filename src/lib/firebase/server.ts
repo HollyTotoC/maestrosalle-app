@@ -40,10 +40,7 @@ export const listenToUsers = (callback?: (users: Record<string, User>) => void) 
   const unsubscribe = onSnapshot(usersRef, (snapshot) => {
     const usersRecord: Record<string, User> = {};
     snapshot.docs.forEach((doc) => {
-      usersRecord[doc.id] = {
-        userId: doc.id,
-        ...doc.data(),
-      } as User;
+      usersRecord[doc.id] = doc.data() as User;
     });
 
     if (callback) {
