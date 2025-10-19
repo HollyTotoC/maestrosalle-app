@@ -6,6 +6,7 @@ import DisposManagerTable from "@/components/dispos/DisposManagerTable";
 import Navbar from "@/components/Navbar";
 import { useAppStore } from "@/store/store";
 import { useUserStore } from "@/store/useUserStore";
+import { usePermissions } from "@/hooks/usePermissions";
 import { saveUserDispos } from "@/lib/firebase/server";
 import { toast } from "sonner";
 import type { UserDispos, DispoRole } from "@/types/dispos";
@@ -17,6 +18,7 @@ export default function DisposPage() {
     const hasHydrated = useAppStore((state) => state.hasHydrated);
     const userId = useUserStore((state) => state.userId);
     const role = useUserStore((state) => state.role);
+    const { canViewTeamPlanning } = usePermissions();
 
     if (!hasHydrated) return null;
 
@@ -52,9 +54,6 @@ export default function DisposPage() {
         }
     }
 
-    // Affichage conditionnel : manager/owner/admin
-    const isManager = ["manager", "owner"].includes(role || "") || useUserStore.getState().isAdmin;
-
     return (
         <>
             <Navbar />
@@ -71,8 +70,8 @@ export default function DisposPage() {
                         </p>
                     </div>
 
-                    {isManager ? (
-                        /* Managers/Admins : Tabs avec Planning (par défaut) et Dispos */
+                    {canViewTeamPlanning ? (
+                        /* Managers/Admins uniquement : Tabs avec Planning (par défaut) et Dispos */
                         <Tabs defaultValue="planning" className="w-full">
                             <TabsList className="grid w-full grid-cols-2">
                                 <TabsTrigger value="planning">Planning</TabsTrigger>
@@ -86,7 +85,7 @@ export default function DisposPage() {
                             </TabsContent>
                         </Tabs>
                     ) : (
-                        /* CDI/Extra : Directement le formulaire, pas de tab Planning */
+                        /* CDI/Extra/Cuisine : Directement le formulaire, pas de tab Planning */
                         <DisposForm onSubmit={handleDisposSubmit} />
                     )}
                 </div>

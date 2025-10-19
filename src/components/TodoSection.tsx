@@ -7,6 +7,7 @@ import { faPlus, faStar, faCheck, faArrowRight, faListCheck, faCalendarDays, faX
 import { SectionSeparatorStack } from "./SectionSeparatorStack";
 import { useAppStore } from "@/store/store";
 import { useUserStore } from "@/store/useUserStore";
+import { usePermissions } from "@/hooks/usePermissions";
 import { useTodoStore } from "@/store/useTodoStore";
 import { useTodoStoreSync } from "@/hooks/useTodoStoreSync";
 import { Moment, Jour } from "@/types/todo";
@@ -37,6 +38,7 @@ export default function TodoSection() {
   const selectedRestaurant = useAppStore((s) => s.selectedRestaurant);
   const userId = useUserStore((s) => s.userId);
   const displayName = useUserStore((s) => s.displayName);
+  const { canCreateSpecialTasks } = usePermissions();
 
   const specialTasks = useTodoStore((s) => s.specialTasks);
   const templates = useTodoStore((s) => s.templates);
@@ -199,34 +201,36 @@ export default function TodoSection() {
           ))}
         </div>
 
-        {/* Formulaire d'ajout de tâche spéciale */}
-        {!showInput ? (
-          <Button
-            onClick={() => setShowInput(true)}
-            variant="outline"
-            size="sm"
-            className="w-full border-dashed border-2 border-warning/30 text-warning hover:bg-warning/10 hover:border-warning transition-all duration-200"
-          >
-            <FontAwesomeIcon icon={faPlus} className="mr-2" />
-            Ajouter une tâche importante
-          </Button>
-        ) : (
-          <div className="flex gap-2">
-            <Input
-              value={newTaskText}
-              onChange={(e) => setNewTaskText(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleAddSpecialTask()}
-              placeholder="Nouvelle tâche importante..."
-              className="flex-1 bg-background/50 backdrop-blur-sm"
-              autoFocus
-            />
-            <Button onClick={handleAddSpecialTask} size="icon" className="shrink-0 bg-warning hover:bg-warning/90">
-              <FontAwesomeIcon icon={faCheck} />
+        {/* Formulaire d'ajout de tâche spéciale - seulement si autorisé */}
+        {canCreateSpecialTasks && (
+          !showInput ? (
+            <Button
+              onClick={() => setShowInput(true)}
+              variant="outline"
+              size="sm"
+              className="w-full border-dashed border-2 border-warning/30 text-warning hover:bg-warning/10 hover:border-warning transition-all duration-200"
+            >
+              <FontAwesomeIcon icon={faPlus} className="mr-2" />
+              Ajouter une tâche importante
             </Button>
-            <Button onClick={() => { setShowInput(false); setNewTaskText(""); }} size="icon" variant="ghost" className="shrink-0">
-              ✕
-            </Button>
-          </div>
+          ) : (
+            <div className="flex gap-2">
+              <Input
+                value={newTaskText}
+                onChange={(e) => setNewTaskText(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleAddSpecialTask()}
+                placeholder="Nouvelle tâche importante..."
+                className="flex-1 bg-background/50 backdrop-blur-sm"
+                autoFocus
+              />
+              <Button onClick={handleAddSpecialTask} size="icon" className="shrink-0 bg-warning hover:bg-warning/90">
+                <FontAwesomeIcon icon={faCheck} />
+              </Button>
+              <Button onClick={() => { setShowInput(false); setNewTaskText(""); }} size="icon" variant="ghost" className="shrink-0">
+                ✕
+              </Button>
+            </div>
+          )
         )}
       </div>
 

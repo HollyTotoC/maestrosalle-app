@@ -19,6 +19,7 @@ import { useUsersStore } from "@/store/useUsersStore";
 import { useUsersStoreSync } from "@/hooks/useUsersStoreSync";
 import { useAppStore } from "@/store/store";
 import { useUserStore } from "@/store/useUserStore";
+import { usePermissions } from "@/hooks/usePermissions";
 import { useTodoStore } from "@/store/useTodoStore";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faStar, faClipboardList, faCalendarDays, faCheckCircle, faTrophy, faPlus } from "@fortawesome/free-solid-svg-icons";
@@ -49,6 +50,9 @@ export default function TodoChecklist({ selectedMoment, selectedJour, selectedDa
 
   // Récupérer le thème actuel
   const { theme } = useTheme();
+
+  // Récupérer les permissions
+  const { canCreateSpecialTasks } = usePermissions();
 
   // Récupérer les stores
   const users = useUsersStore((state) => state.users);
@@ -557,15 +561,16 @@ export default function TodoChecklist({ selectedMoment, selectedJour, selectedDa
               </div>
             )}
 
-            {/* Bouton Ajouter tâche spéciale */}
-            <div className="mb-6">
-              <Dialog open={isAddingSpecial} onOpenChange={setIsAddingSpecial}>
-                <DialogTrigger asChild>
-                  <Button variant="outline" size="sm" className="w-full border-dashed border-2 border-warning/30 text-warning hover:bg-warning/10 hover:border-warning transition-all duration-200">
-                    <FontAwesomeIcon icon={faPlus} className="mr-2" />
-                    Ajouter une tâche importante
-                  </Button>
-                </DialogTrigger>
+            {/* Bouton Ajouter tâche spéciale - seulement si autorisé */}
+            {canCreateSpecialTasks && (
+              <div className="mb-6">
+                <Dialog open={isAddingSpecial} onOpenChange={setIsAddingSpecial}>
+                  <DialogTrigger asChild>
+                    <Button variant="outline" size="sm" className="w-full border-dashed border-2 border-warning/30 text-warning hover:bg-warning/10 hover:border-warning transition-all duration-200">
+                      <FontAwesomeIcon icon={faPlus} className="mr-2" />
+                      Ajouter une tâche importante
+                    </Button>
+                  </DialogTrigger>
                 <DialogContent>
                   <DialogHeader>
                     <DialogTitle>Nouvelle tâche spéciale</DialogTitle>
@@ -659,7 +664,8 @@ export default function TodoChecklist({ selectedMoment, selectedJour, selectedDa
                   </div>
                 </DialogContent>
               </Dialog>
-            </div>
+              </div>
+            )}
 
             {renderTaskSection(
               quotidienTasks,

@@ -13,6 +13,7 @@ import {
 import { useEffect, useState } from "react";
 import { useClosuresStore } from "@/store/useClosuresStore";
 import { useAppStore } from "@/store/store";
+import { usePermissions } from "@/hooks/usePermissions";
 
 import { listenToClosures } from "@/lib/firebase/server";
 
@@ -41,6 +42,7 @@ export default function RecapSection() {
     const [loading, setLoading] = useState(true);
     const closures = useClosuresStore((state) => state.closures);
     const selectedRestaurant = useAppStore((state) => state.selectedRestaurant);
+    const { canViewDashboardCharts, maxRecapDays } = usePermissions();
 
     useEffect(() => {
         if (!selectedRestaurant?.id) return;
@@ -71,9 +73,16 @@ export default function RecapSection() {
         .map((entry) => new Date(entry.date.seconds * 1000))
         .sort((a, b) => a.getTime() - b.getTime());
 
+    // Filtrer selon les permissions (Extra : 7 derniers jours uniquement)
+    const today = new Date();
+    const limitDate = new Date(today);
+    limitDate.setDate(today.getDate() - maxRecapDays);
+
+    const filteredRawDates = rawDates.filter((date) => date >= limitDate);
+
     const allDates =
-        rawDates.length > 0
-            ? getDateRange(rawDates[0], rawDates[rawDates.length - 1])
+        filteredRawDates.length > 0
+            ? getDateRange(filteredRawDates[0], filteredRawDates[filteredRawDates.length - 1])
             : [];
 
     // Créer une map des données des clôtures
@@ -168,51 +177,64 @@ export default function RecapSection() {
                 Récapitulatif
             </h2>
             <SectionSeparatorStack space={2} className="mb-2 hidden dark:block" />
-            <Tabs defaultValue="table">
-                <TabsList className="grid w-full grid-cols-2 lg:grid-cols-4 gap-2 bg-muted/50 p-1 rounded-xl">
-                    <TabsTrigger value="table" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all duration-200">Tableau</TabsTrigger>
-                    <TabsTrigger value="lineChart" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all duration-200">
-                        Écarts
-                    </TabsTrigger>
-                    <TabsTrigger value="stackedBarChart" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all duration-200">
-                        Cash
-                    </TabsTrigger>
-                    <TabsTrigger value="safeEvolution" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all duration-200">
-                        Coffre
-                    </TabsTrigger>
-                </TabsList>
+            {canViewDashboardCharts ? (
+                /* Utilisateurs avec accès complet : tous les onglets */
+                <Tabs defaultValue="table">
+                    <TabsList className="grid w-full grid-cols-2 lg:grid-cols-4 gap-2 bg-muted/50 p-1 rounded-xl">
+                        <TabsTrigger value="table" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all duration-200">Tableau</TabsTrigger>
+                        <TabsTrigger value="lineChart" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all duration-200">
+                            Écarts
+                        </TabsTrigger>
+                        <TabsTrigger value="stackedBarChart" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all duration-200">
+                            Cash
+                        </TabsTrigger>
+                        <TabsTrigger value="safeEvolution" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all duration-200">
+                            Coffre
+                        </TabsTrigger>
+                    </TabsList>
 
-                {/* Vue Tableau */}
-                <TabsContent value="table">
-                    <RecapTable
-                        paginatedData={paginatedData}
-                        closures={closures}
-                        users={users}
-                        page={page}
-                        pageCount={pageCount}
-                        setPage={setPage}
-                    />
-                </TabsContent>
+                    {/* Vue Tableau */}
+                    <TabsContent value="table">
+                        <RecapTable
+                            paginatedData={paginatedData}
+                            closures={closures}
+                            users={users}
+                            page={page}
+                            pageCount={pageCount}
+                            setPage={setPage}
+                        />
+                    </TabsContent>
 
-                {/* Graphique des écarts */}
-                <TabsContent value="lineChart">
-                    <RecapLineChart chartData={chartData} />
-                </TabsContent>
+                    {/* Graphique des écarts */}
+                    <TabsContent value="lineChart">
+                        <RecapLineChart chartData={chartData} />
+                    </TabsContent>
 
-                {/* Répartition Cash */}
-                <TabsContent value="stackedBarChart">
-                    <RecapStackedBarChart chartData={chartData} />
-                </TabsContent>
+                    {/* Répartition Cash */}
+                    <TabsContent value="stackedBarChart">
+                        <RecapStackedBarChart chartData={chartData} />
+                    </TabsContent>
 
-                {/* Évolution du Coffre */}
-                <TabsContent value="safeEvolution">
-                    <RecapSafeEvolutionChart
-                        safeData={safeData}
-                        yAxisDomain={yAxisDomain}
-                        chartConfig={chartConfig}
-                    />
-                </TabsContent>
-            </Tabs>
+                    {/* Évolution du Coffre */}
+                    <TabsContent value="safeEvolution">
+                        <RecapSafeEvolutionChart
+                            safeData={safeData}
+                            yAxisDomain={yAxisDomain}
+                            chartConfig={chartConfig}
+                        />
+                    </TabsContent>
+                </Tabs>
+            ) : (
+                /* Extra : seulement le tableau (7 derniers jours) */
+                <RecapTable
+                    paginatedData={paginatedData}
+                    closures={closures}
+                    users={users}
+                    page={page}
+                    pageCount={pageCount}
+                    setPage={setPage}
+                />
+            )}
         </div>
     );
 }
