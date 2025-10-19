@@ -17,6 +17,7 @@ import { Ticket, TicketStatus } from "@/types/ticket";
 import { Separator } from "./ui/separator";
 import { collection, onSnapshot, query, where, orderBy } from "firebase/firestore";
 import { db } from "@/lib/firebase/firebase";
+import { listenToUsers } from "@/lib/firebase/server";
 import { Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -64,16 +65,18 @@ export const listenToTickets = (restaurantId: string, callback: (tickets: Ticket
 export default function StockTickets() {
   const { tickets, addTicket, updateTicket, deleteTicket } = useTicketStore();
   const selectedRestaurant = useAppStore((state) => state.selectedRestaurant);
-  const currentUserId = useUserStore((state) => state.uid);
-  const users = useUsersStore((state) => state.users);
+  const currentUserId = useUserStore((state) => state.userId);
+  const usersRecord = useUsersStore((state) => state.users);
 
   const [isLoading, setIsLoading] = useState(true);
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [newTicket, setNewTicket] = useState({ item: "", note: "" });
   const [currentTicket, setCurrentTicket] = useState<string | null>(null);
   const [deliveryNote, setDeliveryNote] = useState("");
   const [expectedDeliveryAt, setExpectedDeliveryAt] = useState("");
   const [ticketToDelete, setTicketToDelete] = useState<string | null>(null);
 
+  // Sync tickets
   useEffect(() => {
     if (!selectedRestaurant?.id) return;
 
@@ -85,33 +88,64 @@ export default function StockTickets() {
     return () => unsubscribe();
   }, [selectedRestaurant?.id]);
 
+  // Sync users (pour afficher les noms)
+  useEffect(() => {
+    const unsubscribe = listenToUsers((users) => {
+      useUsersStore.getState().setUsers(users);
+    });
+
+    return () => unsubscribe();
+  }, []);
+
   // Fonction helper pour récupérer le nom d'un utilisateur
   const getUserName = (userId: string) => {
-    const user = users.find((u) => u.uid === userId);
+    const user = usersRecord[userId];
     return user?.displayName || user?.email || "Utilisateur inconnu";
   };
 
-  const createTicket = () => {
-    if (!newTicket.item) {
+  const createTicket = async () => {
+    if (!newTicket.item.trim()) {
       toast.error("Le champ 'item' est obligatoire.");
       return;
     }
-    if (!selectedRestaurant?.id || !currentUserId) {
-      toast.error("Erreur: restaurant ou utilisateur non défini.");
+
+    // Debug logs
+    console.log("Debug createTicket:", {
+      selectedRestaurant,
+      currentUserId,
+      hasRestaurantId: !!selectedRestaurant?.id,
+      hasUserId: !!currentUserId
+    });
+
+    if (!selectedRestaurant?.id) {
+      toast.error("Erreur: Aucun restaurant sélectionné. Veuillez sélectionner un restaurant.");
       return;
     }
 
-    const createdAt = Timestamp.now();
+    if (!currentUserId) {
+      toast.error("Erreur: Utilisateur non connecté. Veuillez vous reconnecter.");
+      return;
+    }
 
-    addTicket({
-      ...newTicket,
-      restaurantId: selectedRestaurant.id,
-      createdBy: currentUserId,
-      createdAt,
-      status: "new"
-    });
-    setNewTicket({ item: "", note: "" });
-    toast.success("Ticket créé avec succès !");
+    try {
+      const createdAt = Timestamp.now();
+
+      await addTicket({
+        ...newTicket,
+        restaurantId: selectedRestaurant.id,
+        createdBy: currentUserId,
+        createdAt,
+        status: "new"
+      });
+
+      // Reset form et fermeture dialog
+      setNewTicket({ item: "", note: "" });
+      setIsAddDialogOpen(false);
+      toast.success("Ticket créé avec succès !");
+    } catch (error) {
+      console.error("Erreur lors de la création du ticket :", error);
+      toast.error(`Erreur lors de la création du ticket: ${error instanceof Error ? error.message : 'Erreur inconnue'}`);
+    }
   };
 
   const updateTicketStatus = (ticketId: string, newStatus: "new" | "seen" | "in_progress" | "resolved") => {
@@ -161,7 +195,7 @@ export default function StockTickets() {
   return (
     <div className="space-y-4">
       {/* Formulaire d'ajout dans une dialogue */}
-      <Dialog>
+      <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
         <DialogTrigger asChild>
           <Button>Ajouter un ticket</Button>
         </DialogTrigger>
@@ -170,17 +204,42 @@ export default function StockTickets() {
             <DialogTitle>Ajouter un ticket</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
-            <Input
-              placeholder="Nom de l'article"
-              value={newTicket.item}
-              onChange={(e) => setNewTicket({ ...newTicket, item: e.target.value })}
-            />
-            <Textarea
-              placeholder="Note (optionnelle)"
-              value={newTicket.note}
-              onChange={(e) => setNewTicket({ ...newTicket, note: e.target.value })}
-            />
-            <Button onClick={createTicket}>Créer</Button>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Article *</label>
+              <Input
+                placeholder="Ex: Huile d'olive"
+                value={newTicket.item}
+                onChange={(e) => setNewTicket({ ...newTicket, item: e.target.value })}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && newTicket.item.trim()) {
+                    createTicket();
+                  }
+                }}
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Note (optionnelle)</label>
+              <Textarea
+                placeholder="Ex: 2 bouteilles 1L"
+                value={newTicket.note}
+                onChange={(e) => setNewTicket({ ...newTicket, note: e.target.value })}
+                rows={3}
+              />
+            </div>
+            <div className="flex gap-2 justify-end">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setNewTicket({ item: "", note: "" });
+                  setIsAddDialogOpen(false);
+                }}
+              >
+                Annuler
+              </Button>
+              <Button onClick={createTicket} disabled={!newTicket.item.trim()}>
+                Créer
+              </Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>
