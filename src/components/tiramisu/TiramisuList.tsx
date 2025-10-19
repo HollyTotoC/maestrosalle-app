@@ -67,7 +67,7 @@ export default function TiramisuList() {
     <TooltipProvider>
       <div className="flex flex-col gap-4 md:gap-10 md:flex-row">
         {/* Résumé global */}
-        <Card className="hidden md:flex w-full flex-col">
+        <Card className="hidden md:flex w-full flex-col bg-card/80 backdrop-blur-lg backdrop-saturate-150 dark:bg-card/90 dark:backdrop-blur-none rounded-xl dark:rounded-lg border border-border/50 dark:border-2 shadow-lg dark:shadow-sm transition-all duration-200 dark:duration-300">
           <CardHeader>
             <CardTitle className="text-xl font-bold">Résumé du frigo</CardTitle>
           </CardHeader>

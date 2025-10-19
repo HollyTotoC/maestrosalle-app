@@ -21,7 +21,7 @@ import { useAppStore } from "@/store/store";
 import { useUserStore } from "@/store/useUserStore";
 import { useTodoStore } from "@/store/useTodoStore";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faStar, faClipboardList, faCalendarDays, faCheckCircle, faTrophy } from "@fortawesome/free-solid-svg-icons";
+import { faStar, faClipboardList, faCalendarDays, faCheckCircle, faTrophy, faPlus } from "@fortawesome/free-solid-svg-icons";
 import { useTheme } from "next-themes";
 
 interface TodoChecklistProps {
@@ -431,7 +431,7 @@ export default function TodoChecklist({ selectedMoment, selectedJour, selectedDa
         </DialogContent>
       </Dialog>
 
-      <Card>
+      <Card className="bg-card/80 backdrop-blur-lg backdrop-saturate-150 dark:bg-card/90 dark:backdrop-blur-none rounded-xl dark:rounded-lg border border-border/50 dark:border-2 shadow-lg dark:shadow-sm transition-all duration-200 dark:duration-300">
         <CardHeader>
           <CardTitle className="text-xl flex items-center justify-between">
             <span>Liste des tâches</span>
@@ -561,9 +561,9 @@ export default function TodoChecklist({ selectedMoment, selectedJour, selectedDa
             <div className="mb-6">
               <Dialog open={isAddingSpecial} onOpenChange={setIsAddingSpecial}>
                 <DialogTrigger asChild>
-                  <Button variant="outline" className="w-full gap-2">
-                    <Plus className="h-4 w-4" />
-                    Ajouter une tâche spéciale
+                  <Button variant="outline" size="sm" className="w-full border-dashed border-2 border-warning/30 text-warning hover:bg-warning/10 hover:border-warning transition-all duration-200">
+                    <FontAwesomeIcon icon={faPlus} className="mr-2" />
+                    Ajouter une tâche importante
                   </Button>
                 </DialogTrigger>
                 <DialogContent>

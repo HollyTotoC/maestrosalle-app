@@ -184,7 +184,7 @@ const DisposForm: React.FC<DisposFormProps> = ({ initialData, onSubmit }) => {
                     </p>
                 </div>
             </div>
-            <Card className="max-w-2xl mx-auto">
+            <Card className="max-w-2xl mx-auto bg-card/80 backdrop-blur-lg backdrop-saturate-150 dark:bg-card/90 dark:backdrop-blur-none rounded-xl dark:rounded-lg border border-border/50 dark:border-2 shadow-lg dark:shadow-sm transition-all duration-200 dark:duration-300">
                 <CardContent className="px-6 py-2">
                     <form className="space-y-6" onSubmit={handleSubmit}>
                         <div className="flex items-center justify-center w-full gap-4">

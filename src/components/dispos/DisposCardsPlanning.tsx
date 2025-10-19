@@ -43,7 +43,7 @@ export function DisposCardsPlanning({
                 return (
                     <Card
                         key={iso}
-                        className="w-full flex-1 min-w-0"
+                        className="w-full flex-1 min-w-0 bg-card/80 backdrop-blur-lg backdrop-saturate-150 dark:bg-card/90 dark:backdrop-blur-none rounded-xl dark:rounded-lg border border-border/50 dark:border-2 shadow-lg dark:shadow-sm transition-all duration-200 dark:duration-300"
                     >
                         <CardContent className="p-3 flex flex-col gap-2">
                             <div className="flex flex-col items-center mb-1">
