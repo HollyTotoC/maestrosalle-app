@@ -6,6 +6,8 @@ import { PieChart, Pie, Cell, Tooltip } from "recharts";
 import { Input } from "@/components/ui/input";
 import Navbar from "@/components/Navbar";
 import { useAppStore } from "@/store/store";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faHandHoldingDollar } from "@fortawesome/free-solid-svg-icons";
 
 export default function TipsParty() {
     const [staffCount, setStaffCount] = useState<number>(0);
@@ -66,9 +68,19 @@ export default function TipsParty() {
     ];
 
     return (
-        <div className="flex flex-col items-center min-h-screen w-full">
+        <div className="flex flex-col min-h-screen w-full">
             <Navbar />
-            <main className="p-4 flex flex-col gap-2 grow">
+            <main className="p-4 flex flex-col gap-4 grow max-w-4xl mx-auto w-full">
+                <div className="mb-6">
+                    <h1 className="text-3xl font-bold flex items-center gap-2">
+                        <FontAwesomeIcon icon={faHandHoldingDollar} />
+                        Partage des Pourboires
+                    </h1>
+                    <p className="text-muted-foreground">
+                        Calculez la répartition équitable des pourboires entre la salle et la cuisine
+                    </p>
+                </div>
+                <div className="flex flex-col items-center gap-4">
                 <Card className="max-w-md w-full">
                     <CardHeader>
                         <CardTitle>Partage des Pourboires</CardTitle>
@@ -151,6 +163,7 @@ export default function TipsParty() {
                         </CardContent>
                     </Card>
                 )}
+                </div>
             </main>
         </div>
     );
