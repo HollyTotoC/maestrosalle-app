@@ -122,7 +122,7 @@ export default function Step8({
     if (isLoading) {
         return (
             <div className="flex justify-center items-center">
-                <Card className="w-full max-w-md">
+                <Card className="w-full max-w-md bg-card/80 backdrop-blur-lg backdrop-saturate-150 dark:bg-card/90 dark:backdrop-blur-none rounded-xl dark:rounded-lg border border-border/50 dark:border-2 shadow-lg dark:shadow-sm transition-all duration-200 dark:duration-300">
                     <CardHeader>
                         <CardTitle>Chargement...</CardTitle>
                     </CardHeader>
@@ -141,7 +141,7 @@ export default function Step8({
     return (
         <div className="flex flex-col justify-center items-center gap-3">
             {/* Informations Générales */}
-            <Card className="max-w-md w-full">
+            <Card className="max-w-md w-full bg-card/80 backdrop-blur-lg backdrop-saturate-150 dark:bg-card/90 dark:backdrop-blur-none rounded-xl dark:rounded-lg border border-border/50 dark:border-2 shadow-lg dark:shadow-sm transition-all duration-200 dark:duration-300">
                 <CardHeader>
                     <CardTitle>Informations Générales</CardTitle>
                     <CardDescription>Détails de la clôture</CardDescription>
@@ -157,7 +157,7 @@ export default function Step8({
             </Card>
 
             {/* Écarts */}
-            <Card className="max-w-md w-full">
+            <Card className="max-w-md w-full bg-card/80 backdrop-blur-lg backdrop-saturate-150 dark:bg-card/90 dark:backdrop-blur-none rounded-xl dark:rounded-lg border border-border/50 dark:border-2 shadow-lg dark:shadow-sm transition-all duration-200 dark:duration-300">
                 <CardHeader>
                     <CardTitle>Écarts</CardTitle>
                 </CardHeader>
@@ -169,8 +169,8 @@ export default function Step8({
                             <p
                                 className={
                                     formData.cbStatus === "OK"
-                                        ? "text-green-500"
-                                        : "text-yellow-500"
+                                        ? "text-success"
+                                        : "text-warning"
                                 }
                             >
                                 {formData.tpeDiscrepancy} € ({formData.cbStatus}
@@ -204,8 +204,8 @@ export default function Step8({
                             <p
                                 className={
                                     formData.cashStatus === "OK"
-                                        ? "text-green-500"
-                                        : "text-yellow-500"
+                                        ? "text-success"
+                                        : "text-warning"
                                 }
                             >
                                 {formData.cashDiscrepancy} € (
@@ -238,7 +238,7 @@ export default function Step8({
             </Card>
 
             {/* Répartition de la Caisse */}
-            <Card className="max-w-md w-full">
+            <Card className="max-w-md w-full bg-card/80 backdrop-blur-lg backdrop-saturate-150 dark:bg-card/90 dark:backdrop-blur-none rounded-xl dark:rounded-lg border border-border/50 dark:border-2 shadow-lg dark:shadow-sm transition-all duration-200 dark:duration-300">
                 <CardHeader>
                     <CardTitle>Répartition de la Caisse</CardTitle>
                 </CardHeader>
@@ -279,7 +279,7 @@ export default function Step8({
             </Card>
 
             {/* Entrées/Sorties Supplémentaires */}
-            <Card className="max-w-md w-full">
+            <Card className="max-w-md w-full bg-card/80 backdrop-blur-lg backdrop-saturate-150 dark:bg-card/90 dark:backdrop-blur-none rounded-xl dark:rounded-lg border border-border/50 dark:border-2 shadow-lg dark:shadow-sm transition-all duration-200 dark:duration-300">
                 <CardHeader>
                     <CardTitle>Entrées/Sorties Supplémentaires</CardTitle>
                 </CardHeader>

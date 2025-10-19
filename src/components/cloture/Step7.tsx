@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
     Card,
@@ -58,7 +59,7 @@ export default function Step7({
     if (isLoading) {
         return (
             <div className="flex justify-center items-center">
-                <Card className="w-full max-w-md">
+                <Card className="w-full max-w-md bg-card/80 backdrop-blur-lg backdrop-saturate-150 dark:bg-card/90 dark:backdrop-blur-none rounded-xl dark:rounded-lg border border-border/50 dark:border-2 shadow-lg dark:shadow-sm transition-all duration-200 dark:duration-300">
                     <CardHeader>
                         <CardTitle>
                             <Skeleton className="h-6 w-1/2" />
@@ -99,12 +100,11 @@ export default function Step7({
                             <Label htmlFor="cashToKeep">
                                 Montant à laisser en caisse
                             </Label>
-                            <input
+                            <Input
                                 id="cashToKeep"
                                 type="number"
                                 placeholder="Ex: 200"
-                                className="w-full border rounded-md p-2"
-                                value={cashToKeep}
+                                value={cashToKeep === "" ? "" : cashToKeep}
                                 onChange={(e) =>
                                     setCashToKeep(
                                         e.target.value === ""

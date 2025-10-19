@@ -75,7 +75,7 @@ export default function Step6({
     if (isLoading) {
         return (
             <div className="flex justify-center items-center">
-                <Card className="w-full max-w-md">
+                <Card className="w-full max-w-md bg-card/80 backdrop-blur-lg backdrop-saturate-150 dark:bg-card/90 dark:backdrop-blur-none rounded-xl dark:rounded-lg border border-border/50 dark:border-2 shadow-lg dark:shadow-sm transition-all duration-200 dark:duration-300">
                     <CardHeader>
                         <CardTitle>
                             <Skeleton className="h-6 w-1/2" />
@@ -117,8 +117,8 @@ export default function Step6({
                             <span
                                 className={
                                     cbStatus === "OK"
-                                        ? "text-green-500"
-                                        : "text-red-500"
+                                        ? "text-success"
+                                        : "text-destructive"
                                 }
                             >
                                 ({cbStatus})
@@ -133,8 +133,8 @@ export default function Step6({
                             <span
                                 className={
                                     cashStatus === "OK"
-                                        ? "text-green-500"
-                                        : "text-yellow-500"
+                                        ? "text-success"
+                                        : "text-warning"
                                 }
                             >
                                 ({cashStatus})
