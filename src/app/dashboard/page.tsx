@@ -24,19 +24,20 @@ export default function Dashboard() {
             <div className="crt-dome flex flex-col min-h-screen">
                 <Navbar />
                 <main className="p-4 flex flex-col gap-6 w-full grow max-w-6xl mx-auto">
-                    <div>
-                        <h1 className="text-3xl font-bold flex items-center gap-2">
-                            <FontAwesomeIcon icon={faChartLine} />
-                            Tableau de bord
-                        </h1>
-                        <p className="text-muted-foreground">
-                            Bienvenue {displayName || "Utilisateur"}, retrouvez ici vos outils et statistiques.
-                        </p>
-                    </div>
                     {!selectedRestaurant ? (
                         <RestaurantSelector />
                     ) : (
                         <div className="flex flex-col gap-6">
+                            {/* Titre et description uniquement si resto sélectionné */}
+                            <div>
+                                <h1 className="text-3xl font-bold flex items-center gap-2">
+                                    <FontAwesomeIcon icon={faChartLine} />
+                                    Tableau de bord
+                                </h1>
+                                <p className="text-muted-foreground">
+                                    Bienvenue {displayName || "Utilisateur"}, retrouvez ici vos outils et statistiques.
+                                </p>
+                            </div>
                             <ToolsSection />
                             <TodoSection />
                             {/* RecapSection visible uniquement si le rôle n'est pas extra */}
