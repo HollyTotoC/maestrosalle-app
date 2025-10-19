@@ -10,6 +10,9 @@ import { saveUserDispos } from "@/lib/firebase/server";
 import { toast } from "sonner";
 import type { UserDispos, DispoRole } from "@/types/dispos";
 import { SectionSeparatorStack } from "@/components/SectionSeparatorStack";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faCalendarWeek } from "@fortawesome/free-solid-svg-icons";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function DisposPage() {
     const hasHydrated = useAppStore((state) => state.hasHydrated);
@@ -56,14 +59,33 @@ export default function DisposPage() {
     return (
         <>
             <Navbar />
-            <main className="max-w-5xl mx-auto gap-4 p-4">
+            <main className="max-w-4xl mx-auto p-4">
+                <div className="mb-6">
+                    <h1 className="text-3xl font-bold flex items-center gap-2">
+                        <FontAwesomeIcon icon={faCalendarWeek} />
+                        Planning des Disponibilités
+                    </h1>
+                    <p className="text-muted-foreground">
+                        Indiquez vos disponibilités hebdomadaires pour faciliter la planification des services
+                    </p>
+                </div>
+
                 {isManager ? (
-                    <>
-                        <DisposManagerTable />
-                        <SectionSeparatorStack space={4} className="my-4"/>
-                        <DisposForm onSubmit={handleDisposSubmit} />
-                    </>
+                    /* Managers/Admins : Tabs avec Planning (par défaut) et Dispos */
+                    <Tabs defaultValue="planning" className="w-full">
+                        <TabsList className="grid w-full grid-cols-2">
+                            <TabsTrigger value="planning">Planning</TabsTrigger>
+                            <TabsTrigger value="dispos">Mes Dispos</TabsTrigger>
+                        </TabsList>
+                        <TabsContent value="planning" className="space-y-4">
+                            <DisposManagerTable />
+                        </TabsContent>
+                        <TabsContent value="dispos" className="space-y-4">
+                            <DisposForm onSubmit={handleDisposSubmit} />
+                        </TabsContent>
+                    </Tabs>
                 ) : (
+                    /* CDI/Extra : Directement le formulaire, pas de tab Planning */
                     <DisposForm onSubmit={handleDisposSubmit} />
                 )}
             </main>
