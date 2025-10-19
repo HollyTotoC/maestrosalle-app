@@ -20,6 +20,9 @@ import { useUsersStoreSync } from "@/hooks/useUsersStoreSync";
 import { useAppStore } from "@/store/store";
 import { useUserStore } from "@/store/useUserStore";
 import { useTodoStore } from "@/store/useTodoStore";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faStar, faClipboardList, faCalendarDays, faCheckCircle, faTrophy } from "@fortawesome/free-solid-svg-icons";
+import { useTheme } from "next-themes";
 
 interface TodoChecklistProps {
   selectedMoment: Moment;
@@ -43,6 +46,9 @@ export default function TodoChecklist({ selectedMoment, selectedJour, selectedDa
 
   // Synchroniser les utilisateurs depuis Firebase
   useUsersStoreSync();
+
+  // Récupérer le thème actuel
+  const { theme } = useTheme();
 
   // Récupérer les stores
   const users = useUsersStore((state) => state.users);
@@ -267,19 +273,24 @@ export default function TodoChecklist({ selectedMoment, selectedJour, selectedDa
       const end = Date.now() + duration;
 
       const frame = () => {
+        // Couleurs selon le thème (light = amber chauds, dark = ambers saturés + accents rétro)
+        const lightColors = ["#F59E0B", "#FB923C", "#FBBF24", "#D97706", "#EA580C"];
+        const darkColors = ["#FFA500", "#FF8C00", "#FFD700", "#FF6347", "#00CED1"];
+        const themeColors = theme === "dark" ? darkColors : lightColors;
+
         confetti({
           particleCount: 3,
           angle: 60,
           spread: 55,
           origin: { x: 0 },
-          colors: ["#FFD700", "#FFA500", "#FF6347", "#87CEEB", "#98FB98"],
+          colors: themeColors,
         });
         confetti({
           particleCount: 3,
           angle: 120,
           spread: 55,
           origin: { x: 1 },
-          colors: ["#FFD700", "#FFA500", "#FF6347", "#87CEEB", "#98FB98"],
+          colors: themeColors,
         });
 
         if (Date.now() < end) {
@@ -289,7 +300,7 @@ export default function TodoChecklist({ selectedMoment, selectedJour, selectedDa
 
       frame();
     }
-  }, [allTasksCompleted, hasCelebrated]);
+  }, [allTasksCompleted, hasCelebrated, theme]);
 
   // Réinitialiser la célébration quand les tâches deviennent incomplètes
   useEffect(() => {
@@ -318,7 +329,7 @@ export default function TodoChecklist({ selectedMoment, selectedJour, selectedDa
     });
   };
 
-  const renderTaskSection = (tasks: TaskTemplate[], title: string, emoji: string) => {
+  const renderTaskSection = (tasks: TaskTemplate[], title: string, icon: React.ReactNode) => {
     if (tasks.length === 0) return null;
 
     const completedCount = tasks.filter((task) =>
@@ -329,8 +340,8 @@ export default function TodoChecklist({ selectedMoment, selectedJour, selectedDa
     return (
       <div className="mb-6">
         <div className="flex items-center gap-2 mb-3">
-          <h3 className="text-lg font-semibold">
-            {emoji} {title}
+          <h3 className="text-lg font-semibold flex items-center gap-2">
+            {icon} {title}
           </h3>
           <Badge variant={progress === 100 ? "default" : "secondary"}>
             {completedCount}/{tasks.length} ({progress}%)
@@ -403,12 +414,15 @@ export default function TodoChecklist({ selectedMoment, selectedJour, selectedDa
             </DialogTitle>
           </DialogHeader>
           <div className="text-center space-y-4 py-4">
-            <p className="text-4xl">🎉</p>
+            <div className="flex items-center justify-center gap-3">
+              <FontAwesomeIcon icon={faCheckCircle} className="text-6xl text-green-500" />
+              <FontAwesomeIcon icon={faTrophy} className="text-6xl text-amber-500" />
+            </div>
             <p className="text-lg font-semibold">
               Toutes les tâches sont accomplies !
             </p>
             <p className="text-muted-foreground">
-              Merci pour votre excellent travail ! 💪
+              Merci pour votre excellent travail !
             </p>
           </div>
           <Button onClick={() => setShowCelebration(false)} className="w-full">
@@ -438,7 +452,10 @@ export default function TodoChecklist({ selectedMoment, selectedJour, selectedDa
               <div className="mb-6">
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2">
-                    <h3 className="text-lg font-semibold">⭐ Tâches spéciales</h3>
+                    <h3 className="text-lg font-semibold flex items-center gap-2">
+                      <FontAwesomeIcon icon={faStar} className="text-yellow-500" />
+                      Tâches spéciales
+                    </h3>
                     <Badge variant="secondary">
                       {visibleSpecialTasks.filter((t) => t.completed).length}/{visibleSpecialTasks.length}
                     </Badge>
@@ -489,8 +506,9 @@ export default function TodoChecklist({ selectedMoment, selectedJour, selectedDa
                             </div>
                           )}
                           {task.date && task.moment && (
-                            <div className="text-xs text-muted-foreground">
-                              📅 {task.date.toDate().toLocaleDateString("fr-FR")} - {
+                            <div className="text-xs text-muted-foreground flex items-center gap-1">
+                              <FontAwesomeIcon icon={faCalendarDays} className="w-3 h-3" />
+                              {task.date.toDate().toLocaleDateString("fr-FR")} - {
                                 task.moment === "midi_before" ? "Midi avant service" :
                                 task.moment === "midi_after" ? "Midi après service" :
                                 task.moment === "soir_before" ? "Soir avant service" :
@@ -643,8 +661,16 @@ export default function TodoChecklist({ selectedMoment, selectedJour, selectedDa
               </Dialog>
             </div>
 
-            {renderTaskSection(quotidienTasks, "Tâches quotidiennes", "📋")}
-            {renderTaskSection(hebdoTasks, "Tâches hebdomadaires", "📅")}
+            {renderTaskSection(
+              quotidienTasks,
+              "Tâches quotidiennes",
+              <FontAwesomeIcon icon={faClipboardList} />
+            )}
+            {renderTaskSection(
+              hebdoTasks,
+              "Tâches hebdomadaires",
+              <FontAwesomeIcon icon={faCalendarDays} />
+            )}
           </>
         )}
       </CardContent>

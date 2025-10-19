@@ -10,6 +10,8 @@ import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { CalendarIcon, Clock } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faSun, faMoon } from "@fortawesome/free-solid-svg-icons";
 
 interface TodoSelectorProps {
   selectedDate: Date;
@@ -19,11 +21,16 @@ interface TodoSelectorProps {
   onResetToNow: () => void;
 }
 
-const moments: Record<Moment, { label: string; emoji: string }> = {
-  midi_before: { label: "Avant service", emoji: "🌅" },
-  midi_after: { label: "Après service", emoji: "🌆" },
-  soir_before: { label: "Avant service", emoji: "🌇" },
-  soir_after: { label: "Après service", emoji: "🌃" },
+const moments: Record<Moment, { label: string }> = {
+  midi_before: { label: "Avant service" },
+  midi_after: { label: "Après service" },
+  soir_before: { label: "Avant service" },
+  soir_after: { label: "Après service" },
+};
+
+const serviceIcons: Record<"midi" | "soir", React.ReactNode> = {
+  midi: <FontAwesomeIcon icon={faSun} className="text-amber-500" />,
+  soir: <FontAwesomeIcon icon={faMoon} className="text-indigo-500" />,
 };
 
 export default function TodoSelector({
@@ -48,8 +55,9 @@ export default function TodoSelector({
             <h2 className="text-2xl font-bold capitalize">
               {format(selectedDate, "EEEE d MMMM yyyy", { locale: fr })}
             </h2>
-            <span className="text-sm text-muted-foreground">
-              {momentInfo.emoji} {currentService} - {momentInfo.label}
+            <span className="text-sm text-muted-foreground flex items-center gap-2">
+              {serviceIcons[currentService.toLowerCase() as "midi" | "soir"]}
+              {currentService} - {momentInfo.label}
             </span>
           </div>
 
@@ -98,8 +106,14 @@ export default function TodoSelector({
             className="w-full md:w-auto"
           >
             <TabsList className="h-9 w-full md:w-auto grid grid-cols-2 md:inline-flex">
-              <TabsTrigger value="midi" className="text-sm">🌅 Midi</TabsTrigger>
-              <TabsTrigger value="soir" className="text-sm">🌇 Soir</TabsTrigger>
+              <TabsTrigger value="midi" className="text-sm flex items-center gap-1.5">
+                <FontAwesomeIcon icon={faSun} />
+                Midi
+              </TabsTrigger>
+              <TabsTrigger value="soir" className="text-sm flex items-center gap-1.5">
+                <FontAwesomeIcon icon={faMoon} />
+                Soir
+              </TabsTrigger>
             </TabsList>
           </Tabs>
 
