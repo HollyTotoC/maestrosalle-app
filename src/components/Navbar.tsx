@@ -37,37 +37,37 @@ const tools = [
   {
     title: "Clôture de caisse",
     description: "Gérez votre clôture : TPE, cash, Zelty, écarts et pourboires.",
-    href: "/cloture",
+    href: "/tools/cloture",
     comingSoon: false,
   },
   {
     title: "Partage des pourboires",
     description: "Calculez et répartissez les pourboires entre les serveurs et la cuisine.",
-    href: "/tipsParty",
+    href: "/tools/tipsParty",
     comingSoon: false,
   },
   {
     title: "Todo list",
     description: "Organisez vos tâches de la journée.",
-    href: "/todo",
+    href: "/tools/todo",
     comingSoon: false,
   },
   {
     title: "Tiramisu",
     description: "Suivez le stock de tiramisu et prévenez si y en a plus.",
-    href: "/tiramisu",
+    href: "/tools/tiramisu",
     comingSoon: false,
   },
   {
     title: "Stock",
     description: "Suivez le stock manquant.",
-    href: "/stocks",
+    href: "/tools/stocks",
     comingSoon: false,
   },
   {
     title: "Disponibilités Hebdo",
     description: "Déclarez vos disponibilités ou visualisez le planning de l'équipe.",
-    href: "/dispos",
+    href: "/tools/dispos",
     comingSoon: false,
   },
   {

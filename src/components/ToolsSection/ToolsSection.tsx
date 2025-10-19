@@ -49,7 +49,7 @@ export default function ToolsSection() {
                 "Gérez votre cloture : TPE, cash, Zelty, écarts et pourboires.",
             icon: <FontAwesomeIcon icon={faCashRegister} fixedWidth />,
             comingSoon: false,
-            url: "/cloture",
+            url: "/tools/cloture",
             hide: hasClosureToday,
         },
         {
@@ -59,7 +59,7 @@ export default function ToolsSection() {
                 "Calculez et répartissez les pourboires entre les serveurs et la cuisine.",
             icon: <FontAwesomeIcon icon={faCoins}  fixedWidth />,
             comingSoon: false,
-            url: "/tipsParty", // URL de l'outil TipsParty
+            url: "/tools/tipsParty",
         },
         {
             id: 3,
@@ -67,7 +67,7 @@ export default function ToolsSection() {
             description: "Organisez vos tâches de la journée.",
             icon: <FontAwesomeIcon icon={faListCheck}  fixedWidth />,
             comingSoon: true,
-            url: "/todo",
+            url: "/tools/todo",
         },
         {
             id: 4,
@@ -76,16 +76,16 @@ export default function ToolsSection() {
                 "Suivez le stock de tiramisu et prevenez si y en plus.",
             icon: <FontAwesomeIcon icon={faCake}  fixedWidth />,
             comingSoon: false,
-            url: "/tiramisu",
+            url: "/tools/tiramisu",
         },
         {
             id: 5,
             title: "Ticket de stock",
             description:
-                "Déclarez les manques, suivez leur état et consultez l’historique.",
+                "Déclarez les manques, suivez leur état et consultez l'historique.",
             icon: <FontAwesomeIcon icon={faBoxesStacked} fixedWidth />,
             comingSoon: false,
-            url: "/stocks",
+            url: "/tools/stocks",
         },
         {
             id: 6,
@@ -93,13 +93,13 @@ export default function ToolsSection() {
             description: "Déclarez vos disponibilités ou visualisez le planning de l'équipe.",
             icon: <FontAwesomeIcon icon={faPeopleGroup} fixedWidth />,
             comingSoon: false,
-            url: "/dispos",
+            url: "/tools/dispos",
         },
         {
             id: 7,
             title: "Invitations",
             description: "Générez des codes d'invitation à usage unique pour attribuer un rôle.",
-            icon: <FontAwesomeIcon icon={faEnvelopeOpenText} fixedWidth />, 
+            icon: <FontAwesomeIcon icon={faEnvelopeOpenText} fixedWidth />,
             comingSoon: false,
             url: "/tools/invitations",
             adminOnly: true,
