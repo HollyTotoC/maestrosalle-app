@@ -34,6 +34,31 @@ export const listenToRestaurants = (callback: (restaurants: Restaurant[]) => voi
   return unsubscribe; // Permet de stopper l'écoute si nécessaire
 };
 
+export const listenToUsers = (callback?: (users: Record<string, User>) => void) => {
+  const usersRef = collection(db, "users");
+
+  const unsubscribe = onSnapshot(usersRef, (snapshot) => {
+    const usersRecord: Record<string, User> = {};
+    snapshot.docs.forEach((doc) => {
+      usersRecord[doc.id] = {
+        userId: doc.id,
+        ...doc.data(),
+      } as User;
+    });
+
+    if (callback) {
+      callback(usersRecord);
+    } else {
+      // Auto-sync avec le store si pas de callback
+      import("@/store/useUsersStore").then(({ useUsersStore }) => {
+        useUsersStore.getState().setUsers(usersRecord);
+      });
+    }
+  });
+
+  return unsubscribe;
+};
+
 export const addRestaurant = async (name: string, picture: string): Promise<Restaurant> => {
   const docRef = await addDoc(collection(db, "restaurants"), { name, picture });
   return { id: docRef.id, name, picture };
