@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "../ui/card";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faCashRegister, faCoins, faListCheck, faCake, faBoxesStacked, faPeopleGroup } from "@fortawesome/free-solid-svg-icons";
+import { faCashRegister, faCoins, faListCheck, faCake, faBoxesStacked, faPeopleGroup, faScrewdriverWrench } from "@fortawesome/free-solid-svg-icons";
 import { SectionSeparatorStack } from "../SectionSeparatorStack";
 import { useUserStore } from "@/store/useUserStore";
 import { faEnvelopeOpenText } from "@fortawesome/free-solid-svg-icons";
@@ -51,6 +51,8 @@ export default function ToolsSection() {
             comingSoon: false,
             url: "/tools/cloture",
             hide: hasClosureToday,
+            bgColor: "from-green-400 to-green-600",
+            lightIconColor: "text-white",
         },
         {
             id: 2,
@@ -60,14 +62,18 @@ export default function ToolsSection() {
             icon: <FontAwesomeIcon icon={faCoins}  fixedWidth />,
             comingSoon: false,
             url: "/tools/tipsParty",
+            bgColor: "from-yellow-400 to-amber-600",
+            lightIconColor: "text-white",
         },
         {
             id: 3,
             title: "Todo list",
             description: "Organisez vos tâches de la journée.",
             icon: <FontAwesomeIcon icon={faListCheck}  fixedWidth />,
-            comingSoon: true,
+            comingSoon: false,
             url: "/tools/todo",
+            bgColor: "from-blue-400 to-blue-600",
+            lightIconColor: "text-white",
         },
         {
             id: 4,
@@ -77,6 +83,8 @@ export default function ToolsSection() {
             icon: <FontAwesomeIcon icon={faCake}  fixedWidth />,
             comingSoon: false,
             url: "/tools/tiramisu",
+            bgColor: "from-pink-400 to-rose-600",
+            lightIconColor: "text-white",
         },
         {
             id: 5,
@@ -86,6 +94,8 @@ export default function ToolsSection() {
             icon: <FontAwesomeIcon icon={faBoxesStacked} fixedWidth />,
             comingSoon: false,
             url: "/tools/stocks",
+            bgColor: "from-orange-400 to-orange-600",
+            lightIconColor: "text-white",
         },
         {
             id: 6,
@@ -94,6 +104,8 @@ export default function ToolsSection() {
             icon: <FontAwesomeIcon icon={faPeopleGroup} fixedWidth />,
             comingSoon: false,
             url: "/tools/dispos",
+            bgColor: "from-purple-400 to-purple-600",
+            lightIconColor: "text-white",
         },
         {
             id: 7,
@@ -103,46 +115,75 @@ export default function ToolsSection() {
             comingSoon: false,
             url: "/tools/invitations",
             adminOnly: true,
+            bgColor: "from-red-400 to-red-600",
+            lightIconColor: "text-white",
         },
     ].filter(tool => (!tool.adminOnly || isAdmin || userRole === "owner" || userRole === "manager") && !tool.hide);
 
     return (
-        <Collapsible open={open} onOpenChange={setOpen} className="p-4 rounded border-2 shadow">
-            <div className="flex items-center justify-between">
-                <h2 className="text-xl font-bold mb-0">Outils</h2>
+        <Collapsible open={open} onOpenChange={setOpen} className="bg-card/60 backdrop-blur-xl backdrop-saturate-150 p-4 md:p-6 rounded-2xl dark:rounded border border-border/40 dark:border-2 shadow-lg">
+            <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl md:text-2xl font-bold text-foreground flex items-center gap-2">
+                    <FontAwesomeIcon icon={faScrewdriverWrench} className="text-primary" />
+                    Outils
+                </h2>
                 <CollapsibleTrigger asChild>
-                    <Button variant="ghost" size="icon" aria-label="Afficher/masquer les outils">
-                        <ChevronDown className={`transition-transform ${open ? '' : '-rotate-90'}`} />
+                    <Button variant="ghost" size="icon" className="hover:bg-accent/50 transition-all duration-200" aria-label="Afficher/masquer les outils">
+                        <ChevronDown className={`transition-transform duration-300 ${open ? '' : '-rotate-90'}`} />
                     </Button>
                 </CollapsibleTrigger>
             </div>
-            <SectionSeparatorStack space={2} className="mb-2" />
-            <CollapsibleContent>
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+            <SectionSeparatorStack space={2} className="mb-2 hidden dark:block" />
+            <CollapsibleContent className="data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0">
+                {/* Light Mode : Style iPhone apps (gros icônes avec couleurs iOS) */}
+                <div className="dark:hidden grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-4 mt-4">
                     {tools.map((tool) => (
-                        <Card key={tool.id}  className="gap-2">
-                            <CardHeader className="flex flex-col md:flex-row items-center gap-2 px-4">
-                                <span className="text-3xl">{tool.icon}</span>
-                                <CardTitle className="text-lg font-bold">{tool.title}</CardTitle>
-                            </CardHeader>
-                            <CardContent className="flex-1 pb-0 px-4">
-                                <p className="text-sm mt-2">{tool.description}</p>
-                            </CardContent>
-                            <CardFooter className=" px-4">
-                                <Button
-                                    className="w-full cursor-pointer"
-                                    variant={tool.comingSoon ? "outline" : undefined}
-                                    disabled={tool.comingSoon}
-                                    onClick={() => {
-                                        if (!tool.comingSoon) {
-                                            window.location.href = tool.url;
-                                        }
-                                    }}
-                                >
-                                    Accéder
-                                </Button>
-                            </CardFooter>
-                        </Card>
+                        <button
+                            key={tool.id}
+                            onClick={() => {
+                                if (!tool.comingSoon) {
+                                    window.location.href = tool.url;
+                                }
+                            }}
+                            disabled={tool.comingSoon}
+                            className={`group relative bg-gradient-to-br ${tool.bgColor} rounded-3xl p-4 flex flex-col items-center gap-2 transition-all duration-200 shadow-md ${
+                                tool.comingSoon
+                                    ? "opacity-40 cursor-not-allowed"
+                                    : "cursor-pointer hover:scale-110 active:scale-95 hover:shadow-xl"
+                            }`}
+                        >
+                            <div className={`text-4xl ${tool.lightIconColor} transition-transform duration-200 ${!tool.comingSoon && "group-hover:scale-110"}`}>
+                                {tool.icon}
+                            </div>
+                            <span className="text-xs font-semibold text-white text-center line-clamp-2">{tool.title}</span>
+                        </button>
+                    ))}
+                </div>
+
+                {/* Dark Mode : Style minimaliste (avec description) */}
+                <div className="hidden dark:grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3 md:gap-4 mt-4">
+                    {tools.map((tool) => (
+                        <div
+                            key={tool.id}
+                            onClick={() => {
+                                if (!tool.comingSoon) {
+                                    window.location.href = tool.url;
+                                }
+                            }}
+                            className={`group relative bg-card/80 backdrop-blur-md backdrop-saturate-150 rounded border border-border/50 p-4 flex flex-col items-center gap-3 transition-all duration-300 ${
+                                tool.comingSoon
+                                    ? "opacity-50 cursor-not-allowed"
+                                    : "cursor-pointer hover:bg-primary/10 hover:border-primary/40 hover:shadow-xl hover:scale-105 active:scale-95"
+                            }`}
+                        >
+                            <div className={`text-4xl transition-all duration-300 ${!tool.comingSoon && "group-hover:scale-110 group-hover:text-primary"}`}>
+                                {tool.icon}
+                            </div>
+                            <div className="text-center space-y-1">
+                                <h3 className="text-sm font-semibold text-foreground">{tool.title}</h3>
+                                <p className="text-xs text-muted-foreground line-clamp-2">{tool.description}</p>
+                            </div>
+                        </div>
                     ))}
                 </div>
             </CollapsibleContent>

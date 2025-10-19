@@ -23,6 +23,8 @@ import RecapLineChart from "@/components/recap/RecapLineChart";
 import RecapStackedBarChart from "@/components/recap/RecapStackedBarChart";
 import RecapSafeEvolutionChart from "@/components/recap/RecapSafeEvolutionChart";
 import { SectionSeparatorStack } from "../SectionSeparatorStack";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faChartLine } from "@fortawesome/free-solid-svg-icons";
 
 const chartConfig = {
     primeDeNoel: {
@@ -135,45 +137,48 @@ export default function RecapSection() {
 
     if (loading) {
         return (
-            <Card className="p-4 rounded-lg shadow">
-                <CardHeader>
-                    <CardTitle className="text-xl font-bold mb-4">Récapitulatif</CardTitle>
-                </CardHeader>
-                <CardContent >
-                    <CardDescription>Chargement des données...</CardDescription>
-                </CardContent>
-            </Card>
+            <div className="bg-card/60 backdrop-blur-xl backdrop-saturate-150 p-4 md:p-6 rounded-2xl dark:rounded border border-border/40 dark:border-2 shadow-lg">
+                <h2 className="text-xl md:text-2xl font-bold text-foreground mb-4 flex items-center gap-2">
+                    <FontAwesomeIcon icon={faChartLine} className="text-primary" />
+                    Récapitulatif
+                </h2>
+                <SectionSeparatorStack space={2} className="mb-2 hidden dark:block" />
+                <p className="text-muted-foreground">Chargement des données...</p>
+            </div>
         );
     }
 
     if (closures.length === 0) {
         return (
-            <Card className="p-4 rounded-lg shadow">
-                <CardHeader>
-                    <CardTitle className="text-xl font-bold mb-4">Récapitulatif</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <CardDescription>Aucune donnée disponible pour ce restaurant.</CardDescription>
-                </CardContent>
-            </Card>
+            <div className="bg-card/60 backdrop-blur-xl backdrop-saturate-150 p-4 md:p-6 rounded-2xl dark:rounded border border-border/40 dark:border-2 shadow-lg">
+                <h2 className="text-xl md:text-2xl font-bold text-foreground mb-4 flex items-center gap-2">
+                    <FontAwesomeIcon icon={faChartLine} className="text-primary" />
+                    Récapitulatif
+                </h2>
+                <SectionSeparatorStack space={2} className="mb-2 hidden dark:block" />
+                <p className="text-muted-foreground">Aucune donnée disponible pour ce restaurant.</p>
+            </div>
         );
     }
 
     return (
-        <div className="p-4 rounded border-2 shadow">
-            <h2 className="text-xl font-bold">Récapitulatif</h2>
-            <SectionSeparatorStack space={2} className="mb-2" />
+        <div className="bg-card/60 backdrop-blur-xl backdrop-saturate-150 p-4 md:p-6 rounded-2xl dark:rounded border border-border/40 dark:border-2 shadow-lg">
+            <h2 className="text-xl md:text-2xl font-bold text-foreground mb-4 flex items-center gap-2">
+                <FontAwesomeIcon icon={faChartLine} className="text-primary" />
+                Récapitulatif
+            </h2>
+            <SectionSeparatorStack space={2} className="mb-2 hidden dark:block" />
             <Tabs defaultValue="table">
-                <TabsList className="flex items-center justify-start flex-wrap h-auto space-y-1">
-                    <TabsTrigger value="table">Tableau</TabsTrigger>
-                    <TabsTrigger value="lineChart">
-                        Évolution des écarts
+                <TabsList className="grid w-full grid-cols-2 lg:grid-cols-4 gap-2 bg-muted/50 p-1 rounded-xl">
+                    <TabsTrigger value="table" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all duration-200">Tableau</TabsTrigger>
+                    <TabsTrigger value="lineChart" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all duration-200">
+                        Écarts
                     </TabsTrigger>
-                    <TabsTrigger value="stackedBarChart">
-                        Répartition Cash
+                    <TabsTrigger value="stackedBarChart" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all duration-200">
+                        Cash
                     </TabsTrigger>
-                    <TabsTrigger value="safeEvolution">
-                        Évolution du Coffre
+                    <TabsTrigger value="safeEvolution" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all duration-200">
+                        Coffre
                     </TabsTrigger>
                 </TabsList>
 
