@@ -39,7 +39,7 @@ export default function NotFound() {
   if (!mounted) return null;
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-gradient-to-br from-background via-background to-muted/20 dark:from-background dark:via-background dark:to-background relative overflow-hidden">
+    <div className="min-h-[100dvh] w-full flex items-center justify-center bg-gradient-to-br from-background via-background to-muted/20 dark:from-background dark:via-background dark:to-background relative overflow-hidden">
       {/* Background decorations - Mobile optimized */}
       {theme === "light" ? (
         // Light Mode: Floating bubbles/particles - Responsive

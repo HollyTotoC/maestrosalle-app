@@ -21,7 +21,7 @@ export default function TiramisuPage() {
   
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-[100dvh]">
       <Navbar />
       <main className="p-4 md:p-6 flex flex-col gap-4 max-w-4xl mx-auto grow">
         {/* Container glassmorphism - Mini-App wrapper */}

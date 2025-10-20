@@ -53,7 +53,7 @@ export default function TodoPage() {
   if (!hasHydrated) return null; // Avoid UI flicker
 
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col min-h-[100dvh]">
       <Navbar />
       <main className="p-4 md:p-6 flex flex-col gap-6 grow max-w-4xl mx-auto w-full">
         {/* Container glassmorphism - Mini-App wrapper */}

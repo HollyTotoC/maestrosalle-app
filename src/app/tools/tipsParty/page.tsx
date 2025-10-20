@@ -69,7 +69,7 @@ export default function TipsParty() {
     ];
 
     return (
-        <div className="flex flex-col min-h-screen w-full">
+        <div className="flex flex-col min-h-[100dvh] w-full">
             <Navbar />
             <main className="p-4 md:p-6 flex flex-col gap-4 grow max-w-4xl mx-auto w-full">
                 {/* Container glassmorphism - Mini-App wrapper */}

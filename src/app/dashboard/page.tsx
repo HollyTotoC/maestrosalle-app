@@ -21,7 +21,7 @@ export default function Dashboard() {
 
     return (
         <>
-            <div className="crt-dome flex flex-col min-h-screen">
+            <div className="crt-dome flex flex-col min-h-[100dvh]">
                 <Navbar />
                 <main className="p-4 flex flex-col gap-6 w-full grow max-w-6xl mx-auto">
                     {!selectedRestaurant ? (

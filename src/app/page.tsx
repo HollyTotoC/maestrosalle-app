@@ -150,7 +150,7 @@ export default function Home() {
   ];
 
   return (
-    <div className="relative min-h-screen w-full overflow-hidden bg-gradient-to-br from-background via-background to-muted/10 dark:from-background dark:via-background dark:to-background">
+    <div className="relative min-h-[100dvh] w-full overflow-hidden bg-gradient-to-br from-background via-background to-muted/10 dark:from-background dark:via-background dark:to-background">
       {/* Background Effects - Different for Light/Dark - Mobile optimized */}
       {theme === "light" ? (
         <>
@@ -176,7 +176,7 @@ export default function Home() {
       )}
 
       {/* Main Content - Mobile no-scroll, desktop normal */}
-      <div className="relative z-10 flex flex-col items-center justify-center min-h-screen px-4 sm:px-6 py-6 sm:py-12">
+      <div className="relative z-10 flex flex-col items-center justify-center min-h-[100dvh] px-4 sm:px-6 py-6 sm:py-12">
         <div className="max-w-5xl w-full space-y-4 sm:space-y-12">
           {/* Hero Section */}
           <div className="text-center space-y-3 sm:space-y-6">
