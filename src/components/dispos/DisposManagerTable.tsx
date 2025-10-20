@@ -7,12 +7,16 @@ import { Label } from "@/components/ui/label";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
     faCalendarDays,
+    faLock,
+    faLockOpen,
 } from "@fortawesome/free-solid-svg-icons";
-import { collection, onSnapshot } from "firebase/firestore";
+import { collection, onSnapshot, doc, getDoc, setDoc, deleteField } from "firebase/firestore";
 import { db } from "@/lib/firebase/firebase";
-import type { UserDispos } from "@/types/dispos";
+import type { UserDispos, WeekLock } from "@/types/dispos";
 import { useUsersStore } from "@/store/useUsersStore";
+import { useUserStore } from "@/store/useUserStore";
 import { DisposCardsPlanning } from "@/components/dispos/DisposCardsPlanning";
+import { toast } from "sonner";
 
 const jours = [
     "Lundi",
@@ -44,7 +48,16 @@ export default function DisposManagerTable() {
     const [filterRole, setFilterRole] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [weekLock, setWeekLock] = useState<WeekLock>({
+        isLocked: false,
+    });
     const usersStore = useUsersStore();
+    const userId = useUserStore((state) => state.userId);
+    const isAdmin = useUserStore((state) => state.isAdmin);
+    const role = useUserStore((state) => state.role);
+
+    // Peut verrouiller si admin, owner ou manager
+    const canLockWeek = isAdmin || role === "admin" || role === "manager";
 
     // Génère les dates de la semaine sélectionnée
     const weekDates = Array.from({ length: 7 }, (_, i) => {
@@ -58,8 +71,10 @@ export default function DisposManagerTable() {
         setLoading(true);
         setError(null);
         const semaineUid = semaine.toISOString().slice(0, 10);
+
+        // Charger les dispos
         const usersCol = collection(db, `disponibilites/${semaineUid}/users`);
-        const unsubscribe = onSnapshot(
+        const unsubscribeDispos = onSnapshot(
             usersCol,
             (snap) => {
                 const data: Record<string, { userId: string; data: UserDispos }[]> = {};
@@ -81,7 +96,24 @@ export default function DisposManagerTable() {
                 setLoading(false);
             }
         );
-        return () => unsubscribe();
+
+        // Charger le lock status
+        const lockRef = doc(db, `disponibilites/${semaineUid}/metadata`, "lock");
+        const unsubscribeLock = onSnapshot(
+            lockRef,
+            (snap) => {
+                if (snap.exists()) {
+                    setWeekLock(snap.data() as WeekLock);
+                } else {
+                    setWeekLock({ isLocked: false });
+                }
+            }
+        );
+
+        return () => {
+            unsubscribeDispos();
+            unsubscribeLock();
+        };
     }, [semaine]);
 
     // Semaine suivante/précédente
@@ -91,6 +123,45 @@ export default function DisposManagerTable() {
             d.setDate(prev.getDate() + offset * 7);
             return d;
         });
+    };
+
+    // Toggle verrouillage semaine
+    const handleToggleLock = async () => {
+        if (!canLockWeek || !userId) {
+            toast.error("Vous n'avez pas les permissions pour verrouiller cette semaine");
+            return;
+        }
+
+        const semaineUid = semaine.toISOString().slice(0, 10);
+        const lockRef = doc(db, `disponibilites/${semaineUid}/metadata`, "lock");
+
+        // Si on verrouille, on ajoute lockedBy et lockedAt
+        // Si on déverrouille, on les supprime avec deleteField()
+        const newLockState: Record<string, any> = {
+            isLocked: !weekLock.isLocked,
+        };
+
+        if (!weekLock.isLocked) {
+            // Verrouillage : ajouter les champs
+            newLockState.lockedBy = userId;
+            newLockState.lockedAt = new Date();
+        } else {
+            // Déverrouillage : supprimer les champs
+            newLockState.lockedBy = deleteField();
+            newLockState.lockedAt = deleteField();
+        }
+
+        try {
+            await setDoc(lockRef, newLockState, { merge: true });
+            toast.success(
+                !weekLock.isLocked
+                    ? "Semaine verrouillée. Les utilisateurs ne peuvent plus modifier leurs disponibilités."
+                    : "Semaine déverrouillée. Les utilisateurs peuvent à nouveau modifier leurs disponibilités."
+            );
+        } catch (error) {
+            toast.error("Erreur lors du verrouillage");
+            console.error(error);
+        }
     };
 
     // Filtrage par rôle
@@ -131,57 +202,104 @@ export default function DisposManagerTable() {
                 <span className="text-2xl text-primary">
                     <FontAwesomeIcon icon={faCalendarDays} />
                 </span>
-                <div className="flex flex-col">
-                    <h2 className="text-xl font-bold leading-tight">
-                        Planning hebdo global
+                <div>
+                    <h2 className="text-xl font-bold leading-tight dark:font-mono">
+                        Planning Hebdo Global
                     </h2>
                     <p className="text-muted-foreground text-sm">
-                        Visualisez les disponibilités de l’équipe pour la
-                        semaine sélectionnée. Alertes de sous-effectif et
-                        filtrage par rôle disponibles.
+                        Visualisez les disponibilités de l'équipe et gérez le verrouillage de la semaine
                     </p>
                 </div>
             </div>
-            <Card className="max-w-5xl mx-auto mt-6">
-                <CardContent className="px-6 flex flex-col justify-center py-4">
+
+            <Card className="max-w-5xl mx-auto">
+                <CardContent className="px-6 py-4">
                     {/* Navigation semaine */}
-                    <div className="flex items-center justify-center w-full gap-4 mb-4">
+                    <div className="flex items-center justify-center gap-4 mb-4">
                         <Button
-                            type="button"
                             variant="outline"
+                            size="sm"
                             onClick={() => handleChangeSemaine(-1)}
+                            className="
+                                rounded-lg dark:rounded-sm
+                                transition-all duration-200 dark:duration-300
+                                dark:font-mono
+                            "
                             aria-label="Semaine précédente"
                         >
-                            &lt;
+                            ◄
                         </Button>
-                        <span className="font-semibold">
-                            {weekDates[0].toLocaleDateString()} au{" "}
-                            {weekDates[6].toLocaleDateString()}
+                        <span className="text-sm font-semibold dark:font-mono min-w-[200px] text-center">
+                            {weekDates[0].toLocaleDateString("fr-FR", {
+                                day: "2-digit",
+                                month: "2-digit",
+                            })}{" "}
+                            au{" "}
+                            {weekDates[6].toLocaleDateString("fr-FR", {
+                                day: "2-digit",
+                                month: "2-digit",
+                            })}
                         </span>
                         <Button
-                            type="button"
                             variant="outline"
+                            size="sm"
                             onClick={() => handleChangeSemaine(1)}
+                            className="
+                                rounded-lg dark:rounded-sm
+                                transition-all duration-200 dark:duration-300
+                                dark:font-mono
+                            "
                             aria-label="Semaine suivante"
                         >
-                            &gt;
+                            ►
                         </Button>
                     </div>
                     {/* Filtres et actions */}
-                    <div className="flex gap-4 mb-4 items-center">
-                        <Label>Filtrer par rôle :</Label>
-                        {roles.map((r) => (
+                    <div className="flex gap-4 mb-4 items-center justify-between flex-wrap">
+                        <div className="flex gap-4 items-center">
+                            <Label className="dark:font-mono">Filtrer par rôle :</Label>
+                            {roles.map((r) => (
+                                <Button
+                                    key={r}
+                                    variant={filterRole === r ? "default" : "outline"}
+                                    size="sm"
+                                    onClick={() =>
+                                        setFilterRole(filterRole === r ? null : r)
+                                    }
+                                    className="
+                                        rounded-lg dark:rounded-sm
+                                        dark:font-mono
+                                        transition-all duration-200 dark:duration-300
+                                    "
+                                >
+                                    {r}
+                                </Button>
+                            ))}
+                        </div>
+                        {canLockWeek && (
                             <Button
-                                key={r}
-                                variant={filterRole === r ? "default" : "outline"}
+                                type="button"
+                                variant={weekLock.isLocked ? "default" : "outline"}
                                 size="sm"
-                                onClick={() =>
-                                    setFilterRole(filterRole === r ? null : r)
+                                onClick={handleToggleLock}
+                                className="
+                                    rounded-lg dark:rounded-sm
+                                    dark:font-mono
+                                    transition-all duration-200 dark:duration-300
+                                "
+                                aria-label={
+                                    weekLock.isLocked
+                                        ? "Déverrouiller la semaine"
+                                        : "Verrouiller la semaine"
                                 }
                             >
-                                {r}
+                                <FontAwesomeIcon
+                                    icon={weekLock.isLocked ? faLock : faLockOpen}
+                                    className="mr-2"
+                                />
+                                {weekLock.isLocked ? "Semaine verrouillée" : "Verrouiller semaine"}
                             </Button>
-                        ))}
+                        )}
                     </div>
                     {/* Vue cards planning */}
                     <DisposCardsPlanning

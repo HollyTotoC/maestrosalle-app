@@ -21,3 +21,9 @@ export interface UserDispos {
     semaineStart?: Date; // Date de début de la semaine
     semaineEnd?: Date; // Date de fin de la semaine
 }
+
+export interface WeekLock {
+  isLocked: boolean;
+  lockedBy?: string; // userId du manager qui a verrouillé
+  lockedAt?: Date;
+}
