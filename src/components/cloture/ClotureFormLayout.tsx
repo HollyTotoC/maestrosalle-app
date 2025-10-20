@@ -20,7 +20,6 @@ interface ClotureFormLayoutProps {
 export default function ClotureFormLayout({
   currentStep,
   totalSteps,
-  formData: _formData,
   children,
   resumeCard,
 }: ClotureFormLayoutProps) {

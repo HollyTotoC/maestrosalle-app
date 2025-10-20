@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -70,7 +70,7 @@ export default function IconGenerator() {
   };
 
   // Générer une icône pour une taille donnée
-  const generateIcon = (size: number): string => {
+  const generateIcon = useCallback((size: number): string => {
     const canvas = document.createElement("canvas");
     canvas.width = size;
     canvas.height = size;
@@ -114,7 +114,7 @@ export default function IconGenerator() {
     ctx.restore();
 
     return canvas.toDataURL("image/png");
-  };
+  }, [bgColor, iconColor, selectedIcon, shape]);
 
   // Générer toutes les previews
   useEffect(() => {
@@ -123,7 +123,7 @@ export default function IconGenerator() {
       newPreviews[size] = generateIcon(size);
     });
     setPreviews(newPreviews);
-  }, [bgColor, iconColor, selectedIcon, shape]);
+  }, [generateIcon]);
 
   // Télécharger une icône
   const downloadIcon = (size: number) => {
@@ -376,6 +376,7 @@ export default function IconGenerator() {
                       }}
                     >
                       {previews[size] && (
+                        // eslint-disable-next-line @next/next/no-img-element
                         <img
                           src={previews[size]}
                           alt={`Icon ${size}x${size}`}
@@ -400,6 +401,7 @@ export default function IconGenerator() {
                 {/* Favicon preview */}
                 <div className="text-center">
                   <div className="mb-2 mx-auto border rounded-lg overflow-hidden w-8 h-8">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={previews[32] || generateIcon(32)}
                       alt="Favicon"
