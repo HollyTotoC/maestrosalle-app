@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DatePicker } from "@/components/ui/date-picker";
 import { TaskTemplate, Moment, Jour, SpecialTask } from "@/types/todo";
-import { Plus, X, PartyPopper } from "lucide-react";
+import { X, PartyPopper } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Timestamp } from "firebase/firestore";
 import confetti from "canvas-confetti";

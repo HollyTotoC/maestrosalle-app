@@ -10,7 +10,7 @@ import {
     faLock,
     faLockOpen,
 } from "@fortawesome/free-solid-svg-icons";
-import { collection, onSnapshot, doc, getDoc, setDoc, deleteField } from "firebase/firestore";
+import { collection, onSnapshot, doc, setDoc, deleteField, FieldValue } from "firebase/firestore";
 import { db } from "@/lib/firebase/firebase";
 import type { UserDispos, WeekLock } from "@/types/dispos";
 import { useUsersStore } from "@/store/useUsersStore";
@@ -137,7 +137,11 @@ export default function DisposManagerTable() {
 
         // Si on verrouille, on ajoute lockedBy et lockedAt
         // Si on déverrouille, on les supprime avec deleteField()
-        const newLockState: Record<string, any> = {
+        const newLockState: {
+            isLocked: boolean;
+            lockedBy?: string | FieldValue;
+            lockedAt?: Date | FieldValue;
+        } = {
             isLocked: !weekLock.isLocked,
         };
 
@@ -207,7 +211,7 @@ export default function DisposManagerTable() {
                         Planning Hebdo Global
                     </h2>
                     <p className="text-muted-foreground text-sm">
-                        Visualisez les disponibilités de l'équipe et gérez le verrouillage de la semaine
+                        Visualisez les disponibilités de l&apos;équipe et gérez le verrouillage de la semaine
                     </p>
                 </div>
             </div>

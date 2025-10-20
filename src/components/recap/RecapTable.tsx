@@ -55,7 +55,7 @@ const RecapTable: React.FC<RecapTableProps> = ({ paginatedData, closures, users,
           </TableRow>
         </TableHeader>
         <TableBody>
-          {paginatedData.map((item, index) => {
+          {paginatedData.map((item) => {
             // Vérifier si c'est une ligne "gap" (période sans données)
             if ('type' in item && item.type === 'gap') {
               return (

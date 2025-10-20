@@ -5,9 +5,11 @@ import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/
 
 interface ChartDataPoint {
   date: string;
-  cashToKeep: number;
-  cashToSafe: number;
-  extraFlow: number;
+  cashToKeep: number | null;
+  cashToSafe: number | null;
+  extraFlow: number | null;
+  cashDiscrepancy?: number | null;
+  tpeDiscrepancy?: number | null;
 }
 
 interface RecapStackedBarChartProps {

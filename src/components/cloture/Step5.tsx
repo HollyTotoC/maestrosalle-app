@@ -176,7 +176,7 @@ export default function NewStep5({
                                 <Collapsible>
                                     <CollapsibleTrigger className="flex items-center gap-2 text-sm text-primary hover:text-primary/80 transition-colors">
                                         <FontAwesomeIcon icon={faCircleInfo} className="text-primary" />
-                                        <span>Que faire en cas d'écart ?</span>
+                                        <span>Que faire en cas d&apos;écart ?</span>
                                         <FontAwesomeIcon icon={faChevronDown} className="text-xs" />
                                     </CollapsibleTrigger>
                                     <CollapsibleContent className="mt-2 text-sm text-muted-foreground space-y-2">
@@ -204,7 +204,7 @@ export default function NewStep5({
                                                 Coïncidence détectée
                                             </p>
                                             <p className="text-blue-700 dark:text-blue-400 mt-1">
-                                                Les écarts CB et espèces sont similaires. C'est probablement une erreur de saisie :
+                                                Les écarts CB et espèces sont similaires. C&apos;est probablement une erreur de saisie :
                                                 une table mise en espèce au lieu de CB (ou vice versa). Vérifiez les saisies sur Zelty.
                                             </p>
                                         </div>

@@ -70,7 +70,7 @@ export default function ResumeCard({ formData, currentStep, onStepChange }: Resu
     isPending = false,
     stepNumber,
   }: {
-    icon: any;
+    icon: import("@fortawesome/fontawesome-svg-core").IconDefinition;
     label: string;
     value: string | null;
     isPending?: boolean;

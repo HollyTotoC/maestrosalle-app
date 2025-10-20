@@ -11,7 +11,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
 import { useEffect, useState } from "react";
 import { FormData, FirestoreTimestamp } from "@/types/cloture";
 import { fetchPreviousCashToKeep } from "@/lib/firebase/server";
@@ -155,7 +154,7 @@ export default function NewStep1({
                   <FontAwesomeIcon icon={faChevronDown} className="text-xs" />
                 </CollapsibleTrigger>
                 <CollapsibleContent className="mt-2 text-sm text-muted-foreground">
-                  Sélectionnez la date de la clôture (généralement aujourd'hui).
+                  Sélectionnez la date de la clôture (généralement aujourd&apos;hui).
                 </CollapsibleContent>
               </Collapsible>
             </div>
@@ -237,7 +236,7 @@ export default function NewStep1({
             {/* Section 3: Comptage cash actuel (affiché seulement si previousCash validé) */}
             {date && previousCashValidated && (
               <div className="space-y-3">
-                <h3 className="text-sm font-semibold">Comptez l'argent actuel</h3>
+                <h3 className="text-sm font-semibold">Comptez l&apos;argent actuel</h3>
 
                 <Collapsible>
                   <CollapsibleTrigger className="flex items-center gap-2 text-sm text-primary hover:text-primary/80 transition-colors">
@@ -247,7 +246,7 @@ export default function NewStep1({
                   </CollapsibleTrigger>
                   <CollapsibleContent className="mt-2 text-sm text-muted-foreground space-y-1">
                     <p>1. Ouvrez le tiroir-caisse</p>
-                    <p>2. Comptez TOUT l'argent présent</p>
+                    <p>2. Comptez TOUT l&apos;argent présent</p>
                     <p>3. Saisissez le montant TOTAL compté</p>
                   </CollapsibleContent>
                 </Collapsible>

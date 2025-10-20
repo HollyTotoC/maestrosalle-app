@@ -50,7 +50,7 @@ export default function TodoSection() {
   const [newTaskText, setNewTaskText] = useState("");
   const [showInput, setShowInput] = useState(false);
 
-  const today = new Date();
+  const today = useMemo(() => new Date(), []);
   const currentMoment = getAutoMoment();
   const currentJour = getJourFromDate(today);
 

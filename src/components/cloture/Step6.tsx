@@ -92,7 +92,7 @@ export default function NewStep6({
                         <Collapsible>
                             <CollapsibleTrigger className="flex items-center gap-2 text-sm text-primary hover:text-primary/80 transition-colors">
                                 <FontAwesomeIcon icon={faCircleInfo} className="text-primary" />
-                                <span>Comment répartir l'argent ?</span>
+                                <span>Comment répartir l&apos;argent ?</span>
                                 <FontAwesomeIcon icon={faChevronDown} className="text-xs" />
                             </CollapsibleTrigger>
                             <CollapsibleContent className="mt-2 text-sm text-muted-foreground space-y-1">

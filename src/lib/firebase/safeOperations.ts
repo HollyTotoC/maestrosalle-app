@@ -175,8 +175,10 @@ export async function calculateSafeState(
     extraFlowBalance += extraFlowTotal;
 
     // Mettre à jour la dernière date de clôture
+    // Convertir FirestoreTimestamp en Timestamp Firestore
+    const closureTimestamp = new Timestamp(closure.date.seconds, closure.date.nanoseconds);
     if (!lastClosureDate || closure.date.seconds > lastClosureDate.seconds) {
-      lastClosureDate = closure.date;
+      lastClosureDate = closureTimestamp;
     }
   });
 
@@ -224,7 +226,10 @@ export async function calculateSafeState(
   const lastUpdate = Timestamp.now();
 
   // 6. Sauvegarder le nouvel état (ne pas inclure undefined)
-  const newState: any = {
+  const newState: Omit<SafeState, 'lastClosureDate' | 'lastMovementDate'> & {
+    lastClosureDate?: Timestamp;
+    lastMovementDate?: Timestamp;
+  } = {
     restaurantId,
     extraFlowBalance,
     banqueBalance,

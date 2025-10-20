@@ -14,7 +14,6 @@ import {
   faPhone,
   faMessage,
   faEnvelope,
-  faUser,
   faUsers,
   faBirthdayCake,
   faCalendar,

@@ -150,7 +150,7 @@ export default function NewStep4({
                 <CardHeader>
                     <CardTitle>Étape 4 : Flux supplémentaires</CardTitle>
                     <CardDescription>
-                        Ajoutez les flux d'argent hors ventes (optionnel).
+                        Ajoutez les flux d&apos;argent hors ventes (optionnel).
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -159,7 +159,7 @@ export default function NewStep4({
                         <Collapsible>
                             <CollapsibleTrigger className="flex items-center gap-2 text-sm text-primary hover:text-primary/80 transition-colors">
                                 <FontAwesomeIcon icon={faCircleInfo} className="text-primary" />
-                                <span>Qu'est-ce qu'un flux supplémentaire ?</span>
+                                <span>Qu&apos;est-ce qu&apos;un flux supplémentaire ?</span>
                                 <FontAwesomeIcon icon={faChevronDown} className="text-xs" />
                             </CollapsibleTrigger>
                             <CollapsibleContent className="mt-2 text-sm text-muted-foreground space-y-1">
@@ -168,7 +168,7 @@ export default function NewStep4({
                                 <p>• Primes</p>
                                 <p>• Avances sur salaire</p>
                                 <p>• Achats cash (fournitures, etc.)</p>
-                                <p className="mt-2">Peut être vide si pas de flux aujourd'hui.</p>
+                                <p className="mt-2">Peut être vide si pas de flux aujourd&apos;hui.</p>
                             </CollapsibleContent>
                         </Collapsible>
 
@@ -181,7 +181,7 @@ export default function NewStep4({
                                         className="text-success dark:text-green-400"
                                     />
                                     <p className="text-sm text-green-800 dark:text-green-300 font-medium">
-                                        Aucun flux supplémentaire aujourd'hui
+                                        Aucun flux supplémentaire aujourd&apos;hui
                                     </p>
                                 </div>
                             </div>

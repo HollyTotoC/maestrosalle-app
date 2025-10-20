@@ -17,7 +17,6 @@ import {
   faUsers,
   faChartLine,
   faShieldAlt,
-  faTerminal,
   faRightToBracket,
   faSpinner,
 } from "@fortawesome/free-solid-svg-icons";

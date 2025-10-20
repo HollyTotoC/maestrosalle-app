@@ -120,7 +120,7 @@ export default function NewStep2({
                             <CollapsibleContent className="mt-2 text-sm text-muted-foreground space-y-1">
                                 <p>Sur chaque terminal TPE :</p>
                                 <p>1. Menu → Totaux → Fin de journée</p>
-                                <p>2. Notez le montant "Total CB"</p>
+                                <p>2. Notez le montant &quot;Total CB&quot;</p>
                                 <p className="mt-2">Vous avez 3 terminaux à saisir.</p>
                             </CollapsibleContent>
                         </Collapsible>

@@ -16,7 +16,6 @@ import {
   NavigationMenuList,
   NavigationMenuTrigger,
 } from "@/components/ui/navigation-menu";
-import { Switch } from "@/components/ui/switch";
 import { logout } from "@/lib/firebase/client";
 import { useUserStore } from "@/store/useUserStore";
 import { useTheme } from "@/components/ThemeProvider";

@@ -36,7 +36,6 @@ export default function NewStep7({
     const userId = useUserStore((state) => state.userId);
     const restaurantId = useAppStore((state) => state.selectedRestaurant?.id);
 
-    const cashCounted = formData?.cashCounted ?? 0;
     const cashToKeep = formData?.cashToKeep ?? 0;
     const cashToSafe = formData?.cashToSafe ?? 0;
 
