@@ -11,12 +11,19 @@ import {
     CardHeader,
     CardTitle,
 } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton"; // Import du composant Skeleton
+import { Skeleton } from "@/components/ui/skeleton";
 import { useState } from "react";
-import { FormData } from "@/types/cloture"; // Import des types
+import { FormData } from "@/types/cloture";
 import { toast } from "sonner";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faCircleInfo, faChevronDown } from "@fortawesome/free-solid-svg-icons";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 
-export default function Step3({
+export default function NewStep3({
     nextStep,
     prevStep,
     formData,
@@ -24,8 +31,8 @@ export default function Step3({
 }: {
     nextStep: () => void;
     prevStep: () => void;
-    formData: FormData; // Utilisation du type FormData
-    setFormData: (data: Partial<FormData>) => void; // Utilisation de Partial<FormData>
+    formData: FormData;
+    setFormData: (data: Partial<FormData>) => void;
 }) {
     // Initialiser les valeurs avec les données existantes ou des valeurs par défaut
     const [cbZelty, setCbZelty] = useState<number | undefined>(
@@ -41,7 +48,7 @@ export default function Step3({
 
     const handleNext = () => {
         if (cbZelty === undefined || cashZelty === undefined) {
-            toast.error("Veuillez remplir tous les champs avant de continuer.");
+            toast.error("Veuillez remplir tous les champs obligatoires avant de continuer.");
             return;
         }
         setFormData({
@@ -81,18 +88,33 @@ export default function Step3({
 
     return (
         <div className="flex justify-center items-center">
-            <Card className="w-full max-w-md">
+            <Card className="w-full max-w-md bg-card/80 backdrop-blur-lg backdrop-saturate-150 dark:bg-card/90 dark:backdrop-blur-none rounded-xl dark:rounded-lg border border-border/50 dark:border-2 shadow-lg dark:shadow-sm transition-all duration-200 dark:duration-300">
                 <CardHeader>
                     <CardTitle>Étape 3 : Informations Zelty</CardTitle>
                     <CardDescription>
-                        Renseignez les montants déclarés sur la plateforme
-                        Zelty.
+                        Renseignez les montants déclarés sur la plateforme Zelty.
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
                     <div className="grid gap-4">
+                        {/* Aide contextuelle */}
+                        <Collapsible>
+                            <CollapsibleTrigger className="flex items-center gap-2 text-sm text-primary hover:text-primary/80 transition-colors">
+                                <FontAwesomeIcon icon={faCircleInfo} className="text-primary" />
+                                <span>Où trouver ces montants ?</span>
+                                <FontAwesomeIcon icon={faChevronDown} className="text-xs" />
+                            </CollapsibleTrigger>
+                            <CollapsibleContent className="mt-2 text-sm text-muted-foreground space-y-1">
+                                <p>Sur Zelty (logiciel de caisse) :</p>
+                                <p>• CB Zelty : Menu → Rapports → CA journalier → CB</p>
+                                <p>• Cash Zelty : Menu → Rapports → CA journalier → Espèces</p>
+                                <p>• Cash-out : Montant retiré pour dépenses (si applicable)</p>
+                                <p className="mt-2 text-warning">Ces montants doivent correspondre aux TPE et à la caisse.</p>
+                            </CollapsibleContent>
+                        </Collapsible>
+
                         <div>
-                            <Label htmlFor="cbZelty">Montant CB (Zelty)</Label>
+                            <Label htmlFor="cbZelty">Montant CB (Zelty) *</Label>
                             <Input
                                 id="cbZelty"
                                 type="number"
@@ -105,7 +127,7 @@ export default function Step3({
                         </div>
                         <div>
                             <Label htmlFor="cashZelty">
-                                Montant Cash (Zelty)
+                                Montant Cash (Zelty) *
                             </Label>
                             <Input
                                 id="cashZelty"
@@ -119,12 +141,12 @@ export default function Step3({
                         </div>
                         <div>
                             <Label htmlFor="cashOutZelty">
-                                Montant Cash Sortant (Zelty)
+                                Montant Cash Sortant (Zelty) - Optionnel
                             </Label>
                             <Input
                                 id="cashOutZelty"
                                 type="number"
-                                placeholder="Ex: 800"
+                                placeholder="Ex: 0"
                                 value={cashOutZelty ?? ""}
                                 onChange={(e) =>
                                     setCashOutZelty(Number(e.target.value))

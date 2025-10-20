@@ -13,10 +13,17 @@ import {
 } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useState } from "react";
-import { FormData } from "@/types/cloture"; // Import des types
+import { FormData } from "@/types/cloture";
 import { toast } from "sonner";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faCircleInfo, faChevronDown } from "@fortawesome/free-solid-svg-icons";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 
-export default function Step2({
+export default function NewStep2({
     nextStep,
     prevStep,
     formData,
@@ -24,8 +31,8 @@ export default function Step2({
 }: {
     nextStep: () => void;
     prevStep: () => void;
-    formData: FormData; // Utilisation du type FormData
-    setFormData: (data: Partial<FormData>) => void; // Utilisation de Partial<FormData>
+    formData: FormData;
+    setFormData: (data: Partial<FormData>) => void;
 }) {
     // Initialiser les montants TPE avec les données existantes ou une valeur par défaut
     const [tpeAmounts, setTpeAmounts] = useState<(number | "")[]>(
@@ -42,7 +49,7 @@ export default function Step2({
     };
 
     const handleRemoveTpe = (index: number) => {
-        setTpeAmounts((prev) => prev.filter((_, i) => i !== index)); // Supprimer un champ TPE
+        setTpeAmounts((prev) => prev.filter((_, i) => i !== index));
     };
 
     const handleTpeChange = (index: number, value: string) => {
@@ -103,6 +110,21 @@ export default function Step2({
                 </CardHeader>
                 <CardContent>
                     <div className="grid gap-4">
+                        {/* Aide contextuelle */}
+                        <Collapsible>
+                            <CollapsibleTrigger className="flex items-center gap-2 text-sm text-primary hover:text-primary/80 transition-colors">
+                                <FontAwesomeIcon icon={faCircleInfo} className="text-primary" />
+                                <span>Où trouver ces montants ?</span>
+                                <FontAwesomeIcon icon={faChevronDown} className="text-xs" />
+                            </CollapsibleTrigger>
+                            <CollapsibleContent className="mt-2 text-sm text-muted-foreground space-y-1">
+                                <p>Sur chaque terminal TPE :</p>
+                                <p>1. Menu → Totaux → Fin de journée</p>
+                                <p>2. Notez le montant "Total CB"</p>
+                                <p className="mt-2">Vous avez 3 terminaux à saisir.</p>
+                            </CollapsibleContent>
+                        </Collapsible>
+
                         {tpeAmounts.map((amount, index) => (
                             <div
                                 key={index}
