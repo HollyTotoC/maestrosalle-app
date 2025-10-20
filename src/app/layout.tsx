@@ -5,6 +5,8 @@ import { ThemeProvider } from "@/components/ThemeProvider";
 import { AuthProvider } from "@/components/AuthProvider";
 import HydrationGuard from "@/components/HydrationGuard";
 import ClientToaster from "@/components/ClientToaster";
+import { Analytics } from "@vercel/analytics/next"
+import { SpeedInsights } from "@vercel/speed-insights/next"
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -59,6 +61,8 @@ export default function RootLayout({
             </AuthProvider>
           </ThemeProvider>
         </div>
+        <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );
