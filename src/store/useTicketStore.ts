@@ -43,11 +43,25 @@ export const useTicketStore = create<TicketStore>((set, get) => ({
     await addTicketToFirebase(ticket);
   },
   updateTicket: async (ticketId, updates) => {
-    // On met à jour juste Firebase, le listener mettra à jour le store automatiquement
+    // Mise à jour optimiste locale (immédiate dans l'UI)
+    const currentTickets = get().tickets;
+    const optimisticTickets = currentTickets.map(ticket =>
+      ticket.id === ticketId
+        ? { ...ticket, ...updates, updatedAt: Timestamp.now() }
+        : ticket
+    );
+    set({ tickets: optimisticTickets });
+
+    // Puis mise à jour Firebase (le listener synchronisera si besoin)
     await updateTicketInFirebase(ticketId, updates);
   },
   deleteTicket: async (ticketId) => {
-    // On supprime juste de Firebase, le listener mettra à jour le store automatiquement
+    // Mise à jour optimiste locale (suppression immédiate dans l'UI)
+    const currentTickets = get().tickets;
+    const optimisticTickets = currentTickets.filter(ticket => ticket.id !== ticketId);
+    set({ tickets: optimisticTickets });
+
+    // Puis suppression de Firebase (le listener synchronisera si besoin)
     await deleteTicketFromFirebase(ticketId);
   },
   syncHiddenTickets: async () => {

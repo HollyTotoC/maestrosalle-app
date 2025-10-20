@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useTicketStore } from "@/store/useTicketStore";
 import { useAppStore } from "@/store/store";
 import { useUserStore } from "@/store/useUserStore";
@@ -22,6 +21,7 @@ import { Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCirclePlus, faEye, faTruck, faCircleCheck } from "@fortawesome/free-solid-svg-icons";
+// Plus besoin de @dnd-kit, on fait du drag & drop natif !
 
 
 const statuses: Record<TicketStatus, string> = {
@@ -75,6 +75,8 @@ export default function StockTickets() {
   const [deliveryNote, setDeliveryNote] = useState("");
   const [expectedDeliveryAt, setExpectedDeliveryAt] = useState("");
   const [ticketToDelete, setTicketToDelete] = useState<string | null>(null);
+  const [draggedTicketId, setDraggedTicketId] = useState<string | null>(null);
+  const [touchStartPos, setTouchStartPos] = useState<{ x: number; y: number } | null>(null);
 
   // Sync tickets
   useEffect(() => {
@@ -168,8 +170,8 @@ export default function StockTickets() {
   const handleInProgress = () => {
     if (!currentTicket || !currentUserId) return;
 
+    // Le statut est déjà "in_progress", on ajoute juste les détails
     updateTicket(currentTicket, {
-      status: "in_progress",
       deliveryNote,
       expectedDeliveryAt: expectedDeliveryAt ? Timestamp.fromDate(new Date(expectedDeliveryAt)) : undefined,
       updatedBy: currentUserId,
@@ -177,6 +179,7 @@ export default function StockTickets() {
     setCurrentTicket(null);
     setDeliveryNote("");
     setExpectedDeliveryAt("");
+    toast.success("Détails de livraison ajoutés");
   };
 
   const handleDeleteTicket = async () => {
@@ -192,10 +195,89 @@ export default function StockTickets() {
     }
   };
 
+  // Handlers pour le drag & drop natif (desktop)
+  const handleDragStart = (ticketId: string) => {
+    setDraggedTicketId(ticketId);
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault(); // Nécessaire pour permettre le drop
+  };
+
+  const handleDrop = (newStatus: TicketStatus) => {
+    if (!draggedTicketId || !currentUserId) return;
+
+    const ticket = tickets.find((t) => t.id === draggedTicketId);
+    if (!ticket || ticket.status === newStatus) {
+      setDraggedTicketId(null);
+      return;
+    }
+
+    // Empêcher de revenir à "nouveau" si le ticket a déjà été vu
+    if (newStatus === "new" && ticket.status !== "new") {
+      toast.error("Impossible de remettre le ticket à 'Nouveau'");
+      setDraggedTicketId(null);
+      return;
+    }
+
+    const now = Timestamp.now();
+
+    // Gestion des différents statuts
+    if (newStatus === "seen") {
+      updateTicket(draggedTicketId, { status: newStatus, seenAt: now, updatedBy: currentUserId });
+      toast.success("Ticket marqué comme 'Vu'");
+    } else if (newStatus === "in_progress") {
+      updateTicket(draggedTicketId, { status: newStatus, updatedBy: currentUserId });
+      toast.success("Ticket en cours - Ajoutez les détails de livraison");
+      setCurrentTicket(draggedTicketId);
+    } else if (newStatus === "resolved") {
+      updateTicket(draggedTicketId, { status: newStatus, resolvedAt: now, updatedBy: currentUserId });
+      toast.success("Ticket marqué comme 'Résolu'");
+    } else {
+      updateTicket(draggedTicketId, { status: newStatus, updatedBy: currentUserId });
+    }
+
+    setDraggedTicketId(null);
+  };
+
+  // Handlers pour le touch (mobile)
+  const handleTouchStart = (e: React.TouchEvent, ticketId: string) => {
+    const touch = e.touches[0];
+    setTouchStartPos({ x: touch.clientX, y: touch.clientY });
+    setDraggedTicketId(ticketId);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!draggedTicketId) return;
+    // Empêcher le scroll pendant le drag
+    e.preventDefault();
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (!draggedTicketId || !touchStartPos) {
+      setDraggedTicketId(null);
+      setTouchStartPos(null);
+      return;
+    }
+
+    const touch = e.changedTouches[0];
+    const element = document.elementFromPoint(touch.clientX, touch.clientY);
+
+    // Trouver la zone de drop la plus proche
+    const dropZone = element?.closest('[data-drop-zone]') as HTMLElement;
+    if (dropZone) {
+      const newStatus = dropZone.getAttribute('data-drop-zone') as TicketStatus;
+      handleDrop(newStatus);
+    }
+
+    setDraggedTicketId(null);
+    setTouchStartPos(null);
+  };
+
   return (
     <div className="space-y-4">
-      {/* Formulaire d'ajout dans une dialogue */}
-      <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+        {/* Formulaire d'ajout dans une dialogue */}
+        <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
         <DialogTrigger asChild>
           <Button>Ajouter un ticket</Button>
         </DialogTrigger>
@@ -297,6 +379,16 @@ export default function StockTickets() {
               {statusIcons[statusKey as TicketStatus]}
               {statuses[statusKey as TicketStatus]}
             </h3>
+            <div
+              data-drop-zone={statusKey}
+              onDragOver={handleDragOver}
+              onDrop={() => handleDrop(statusKey as TicketStatus)}
+              className={`space-y-4 min-h-[200px] p-2 rounded-lg transition-all duration-200 ${
+                draggedTicketId
+                  ? 'bg-primary/10 dark:bg-primary/20 border-2 border-dashed border-primary'
+                  : 'bg-transparent border-2 border-transparent'
+              }`}
+            >
             {isLoading ? (
               // Affichage des squelettes pendant le chargement
               Array.from({ length: 3 }).map((_, index) => (
@@ -332,7 +424,14 @@ export default function StockTickets() {
                 .map((ticket) => (
                   <div
                     key={ticket.id}
-                    className="p-4 bg-white dark:bg-neutral-800 rounded-lg shadow-md dark:shadow-neutral-700 space-y-2"
+                    draggable
+                    onDragStart={() => handleDragStart(ticket.id)}
+                    onTouchStart={(e) => handleTouchStart(e, ticket.id)}
+                    onTouchMove={handleTouchMove}
+                    onTouchEnd={handleTouchEnd}
+                    className={`p-4 bg-white dark:bg-neutral-800 rounded-lg shadow-md dark:shadow-neutral-700 space-y-2 cursor-move touch-none ${
+                      draggedTicketId === ticket.id ? 'opacity-50' : 'opacity-100'
+                    }`}
                   >
                     <h4 className="text-md font-bold">{ticket.item}</h4>
                     <p className="text-sm text-gray-600 dark:text-gray-400">{ticket.note || "Pas de commentaire"}</p>
@@ -370,32 +469,14 @@ export default function StockTickets() {
                         </p>
                       )}
                     </div>
-                    <div className="mt-2 flex gap-2">
-                      <Select
-                        value={ticket.status}
-                        onValueChange={(value) => updateTicketStatus(ticket.id, value as TicketStatus)}
-                      >
-                        <SelectTrigger className="flex-1">
-                          <SelectValue placeholder="Changer l'état" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {Object.keys(statuses)
-                            .filter((key) => {
-                              // Empêcher de revenir à "nouveau" si le ticket a déjà été vu
-                              if (key === "new" && ticket.status !== "new") return false;
-                              return true;
-                            })
-                            .map((key) => (
-                              <SelectItem key={key} value={key}>
-                                <Badge className="w-full">{statuses[key as TicketStatus]}</Badge>
-                              </SelectItem>
-                            ))}
-                        </SelectContent>
-                      </Select>
+                    <div className="mt-2 flex justify-end">
                       <Button
                         variant="destructive"
                         size="icon"
-                        onClick={() => setTicketToDelete(ticket.id)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setTicketToDelete(ticket.id);
+                        }}
                         title="Supprimer le ticket"
                       >
                         <Trash2 className="h-4 w-4" />
@@ -404,6 +485,7 @@ export default function StockTickets() {
                   </div>
                 ))
             )}
+            </div>
           </div>
         ))}
       </div>
