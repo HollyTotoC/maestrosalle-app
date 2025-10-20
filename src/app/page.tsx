@@ -19,6 +19,7 @@ import {
   faShieldAlt,
   faTerminal,
   faRightToBracket,
+  faSpinner,
 } from "@fortawesome/free-solid-svg-icons";
 import { useTheme } from "@/components/ThemeProvider";
 
@@ -42,12 +43,16 @@ export default function Home() {
   const [pendingUserData, setPendingUserData] = useState<PendingUserData | null>(null);
   const [pendingGoogleUser, setPendingGoogleUser] = useState<PendingUserData["user"] | null>(null);
   const [mounted, setMounted] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isValidatingCode, setIsValidatingCode] = useState(false);
+  const [isCreatingAccount, setIsCreatingAccount] = useState(false);
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
   const handleLogin = async () => {
+    setIsLoading(true);
     try {
       const result = await loginWithGoogle();
       const user = result.user;
@@ -59,31 +64,43 @@ export default function Home() {
       } else {
         setPendingGoogleUser(user);
         setShowCodeModal(true);
+        setIsLoading(false);
       }
     } catch (error) {
       console.error("Erreur de connexion :", error);
       toast.error("Échec de connexion. Veuillez réessayer.");
+      setIsLoading(false);
     }
   };
 
   const handleCodeSubmit = async (code: string) => {
     if (!pendingGoogleUser) return;
-    setShowCodeModal(false);
-    const inviteRef = doc(db, "invitations", code);
-    const inviteSnap = await getDoc(inviteRef);
 
-    if (!inviteSnap.exists() || inviteSnap.data().usedBy || inviteSnap.data().used) {
-      toast.error("Code invalide ou déjà utilisé.");
-      return;
+    setIsValidatingCode(true);
+    try {
+      const inviteRef = doc(db, "invitations", code);
+      const inviteSnap = await getDoc(inviteRef);
+
+      if (!inviteSnap.exists() || inviteSnap.data().usedBy || inviteSnap.data().used) {
+        toast.error("Code invalide ou déjà utilisé.");
+        setIsValidatingCode(false);
+        return;
+      }
+
+      setPendingUserData({
+        user: pendingGoogleUser,
+        role: inviteSnap.data().role,
+        inviteRef,
+        inviteSnap,
+      });
+      setShowCodeModal(false);
+      setShowProfileModal(true);
+      setIsValidatingCode(false);
+    } catch (error) {
+      console.error("Erreur de validation du code :", error);
+      toast.error("Erreur lors de la validation du code.");
+      setIsValidatingCode(false);
     }
-
-    setPendingUserData({
-      user: pendingGoogleUser,
-      role: inviteSnap.data().role,
-      inviteRef,
-      inviteSnap,
-    });
-    setShowProfileModal(true);
   };
 
   const handleProfileSubmit = async (formData: {
@@ -95,24 +112,33 @@ export default function Home() {
     since: string;
   }) => {
     if (!pendingUserData) return;
-    const { user, role, inviteRef, inviteSnap } = pendingUserData;
-    const userRef = doc(db, "users", user.uid);
-    await setDoc(userRef, {
-      displayName: formData.displayName,
-      email: formData.email,
-      avatarUrl: formData.avatarUrl,
-      phone: formData.phone,
-      birthday: formData.birthday,
-      since: formData.since,
-      role,
-      isAdmin: role === "admin",
-      createdAt: new Date(),
-    });
-    await setDoc(inviteRef, { ...inviteSnap.data(), usedBy: user.uid, used: true }, { merge: true });
-    toast.success("Bienvenue ! Votre compte est activé.");
-    setTimeout(() => {
-      router.push("/dashboard");
-    }, 300);
+
+    setIsCreatingAccount(true);
+    try {
+      const { user, role, inviteRef, inviteSnap } = pendingUserData;
+      const userRef = doc(db, "users", user.uid);
+      await setDoc(userRef, {
+        displayName: formData.displayName,
+        email: formData.email,
+        avatarUrl: formData.avatarUrl,
+        phone: formData.phone,
+        birthday: formData.birthday,
+        since: formData.since,
+        role,
+        isAdmin: role === "admin",
+        createdAt: new Date(),
+      });
+      await setDoc(inviteRef, { ...inviteSnap.data(), usedBy: user.uid, used: true }, { merge: true });
+      toast.success("Bienvenue ! Votre compte est activé.");
+      setIsCreatingAccount(false);
+      setTimeout(() => {
+        router.push("/dashboard");
+      }, 300);
+    } catch (error) {
+      console.error("Erreur de création du compte :", error);
+      toast.error("Erreur lors de la création du compte.");
+      setIsCreatingAccount(false);
+    }
   };
 
   if (!mounted) return null;
@@ -213,22 +239,30 @@ export default function Home() {
               {theme === "light" ? (
                 <Button
                   onClick={handleLogin}
+                  disabled={isLoading}
                   size="lg"
-                  className="group px-6 sm:px-12 py-3 sm:py-7 text-sm sm:text-lg font-bold rounded-2xl shadow-2xl hover:shadow-3xl transition-all duration-300 hover:scale-105 active:scale-95 bg-gradient-to-r from-primary to-primary/90"
+                  className="group px-6 sm:px-12 py-3 sm:py-7 text-sm sm:text-lg font-bold rounded-2xl shadow-2xl hover:shadow-3xl transition-all duration-300 hover:scale-105 active:scale-95 bg-gradient-to-r from-primary to-primary/90 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
                 >
-                  <FontAwesomeIcon icon={faRightToBracket} className="mr-2 sm:mr-3 group-hover:rotate-12 transition-transform text-sm sm:text-base" />
-                  <span className="hidden sm:inline">Connexion avec Google</span>
-                  <span className="sm:hidden">Connexion</span>
+                  <FontAwesomeIcon
+                    icon={isLoading ? faSpinner : faRightToBracket}
+                    className={`mr-2 sm:mr-3 ${isLoading ? 'animate-spin' : 'group-hover:rotate-12'} transition-transform text-sm sm:text-base`}
+                  />
+                  <span className="hidden sm:inline">{isLoading ? "Connexion en cours..." : "Connexion avec Google"}</span>
+                  <span className="sm:hidden">{isLoading ? "Chargement..." : "Connexion"}</span>
                 </Button>
               ) : (
                 <Button
                   onClick={handleLogin}
+                  disabled={isLoading}
                   size="lg"
-                  className="group px-4 sm:px-12 py-3 sm:py-6 text-xs sm:text-base font-mono font-bold uppercase tracking-wider border-2 border-primary/50 bg-primary/10 hover:bg-primary/20 text-primary rounded-none transition-all duration-300 hover:border-primary"
+                  className="group px-4 sm:px-12 py-3 sm:py-6 text-xs sm:text-base font-mono font-bold uppercase tracking-wider border-2 border-primary/50 bg-primary/10 hover:bg-primary/20 text-primary rounded-none transition-all duration-300 hover:border-primary disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  <FontAwesomeIcon icon={faShieldAlt} className="mr-2 sm:mr-3 text-sm sm:text-base" />
-                  <span className="hidden sm:inline">[AUTHENTICATE]</span>
-                  <span className="sm:hidden">[AUTH]</span>
+                  <FontAwesomeIcon
+                    icon={isLoading ? faSpinner : faShieldAlt}
+                    className={`mr-2 sm:mr-3 text-sm sm:text-base ${isLoading ? 'animate-spin' : ''}`}
+                  />
+                  <span className="hidden sm:inline">{isLoading ? "[LOADING...]" : "[AUTHENTICATE]"}</span>
+                  <span className="sm:hidden">{isLoading ? "[LOAD]" : "[AUTH]"}</span>
                 </Button>
               )}
             </div>
@@ -301,11 +335,13 @@ export default function Home() {
         open={showCodeModal}
         onClose={() => setShowCodeModal(false)}
         onSubmit={handleCodeSubmit}
+        isLoading={isValidatingCode}
       />
       <UserProfileModal
         open={showProfileModal}
         onClose={() => setShowProfileModal(false)}
         onSubmit={handleProfileSubmit}
+        isLoading={isCreatingAccount}
         initialData={
           pendingUserData
             ? {

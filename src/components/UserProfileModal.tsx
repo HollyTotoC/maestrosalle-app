@@ -10,6 +10,8 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faSpinner } from "@fortawesome/free-solid-svg-icons";
 
 interface UserProfileModalProps {
     open: boolean;
@@ -27,6 +29,7 @@ interface UserProfileModalProps {
         email: string;
         avatarUrl: string;
     };
+    isLoading?: boolean;
 }
 
 export function UserProfileModal({
@@ -34,6 +37,7 @@ export function UserProfileModal({
     onClose,
     onSubmit,
     initialData,
+    isLoading = false,
 }: UserProfileModalProps) {
     const [displayName, setDisplayName] = useState(
         initialData.displayName || ""
@@ -67,9 +71,18 @@ export function UserProfileModal({
 
     return (
         <Dialog open={open} onOpenChange={onClose}>
-            <DialogContent>
+            <DialogContent
+                className="
+                    bg-card/60 backdrop-blur-xl backdrop-saturate-150
+                    dark:bg-card dark:backdrop-blur-none
+                    rounded-2xl dark:rounded-sm
+                    border border-border/50 dark:border-2
+                    shadow-lg dark:shadow-sm
+                    transition-all duration-200 dark:duration-300
+                "
+            >
                 <DialogHeader>
-                    <DialogTitle>Complétez votre profil</DialogTitle>
+                    <DialogTitle className="dark:font-mono">Complétez votre profil</DialogTitle>
                 </DialogHeader>
                 <form
                     onSubmit={handleSubmit}
@@ -89,15 +102,16 @@ export function UserProfileModal({
                     </Avatar>
                     <div className="w-full flex flex-col gap-2">
                         <div>
-                            <Label>Nom affiché</Label>
+                            <Label className="dark:font-mono">Nom affiché</Label>
                             <Input
                                 value={displayName}
                                 onChange={(e) => setDisplayName(e.target.value)}
+                                disabled={isLoading}
                                 required
                             />
                         </div>
                         <div>
-                            <Label>Email</Label>
+                            <Label className="dark:font-mono">Email</Label>
                             <Input
                                 value={email}
                                 disabled
@@ -106,36 +120,63 @@ export function UserProfileModal({
                             />
                         </div>
                         <div>
-                            <Label>Téléphone</Label>
+                            <Label className="dark:font-mono">Téléphone</Label>
                             <Input
                                 value={phone}
                                 onChange={(e) => setPhone(e.target.value)}
                                 placeholder="06..."
+                                disabled={isLoading}
                                 required
                             />
                         </div>
                         <div>
-                            <Label>Date de naissance</Label>
+                            <Label className="dark:font-mono">Date de naissance</Label>
                             <Input
                                 value={birthday}
                                 onChange={(e) => setBirthday(e.target.value)}
                                 type="date"
+                                disabled={isLoading}
                                 required
                             />
                         </div>
                         <div>
-                            <Label>Entrée dans l&apos;équipe (depuis)</Label>
+                            <Label className="dark:font-mono">Entrée dans l&apos;équipe (depuis)</Label>
                             <Input
                                 value={since}
                                 onChange={(e) => setSince(e.target.value)}
                                 type="date"
+                                disabled={isLoading}
                                 required
                             />
                         </div>
                     </div>
-                    <DialogFooter className="w-full flex justify-end">
-                        <Button type="submit" className="w-full">
-                            Valider
+                    <DialogFooter className="w-full flex gap-2">
+                        <Button
+                            type="button"
+                            variant="outline"
+                            onClick={onClose}
+                            disabled={isLoading}
+                            className="
+                                flex-1
+                                rounded-lg dark:rounded-sm
+                                dark:font-mono
+                                transition-all duration-200 dark:duration-300
+                            "
+                        >
+                            Annuler
+                        </Button>
+                        <Button
+                            type="submit"
+                            className="
+                                flex-1
+                                rounded-lg dark:rounded-sm
+                                dark:font-mono
+                                transition-all duration-200 dark:duration-300
+                            "
+                            disabled={isLoading}
+                        >
+                            {isLoading && <FontAwesomeIcon icon={faSpinner} className="mr-2 animate-spin" />}
+                            {isLoading ? "Création..." : "Valider"}
                         </Button>
                     </DialogFooter>
                 </form>
